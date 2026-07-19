@@ -206,8 +206,8 @@ app.get(['/health', '/api/health'], (req, res) => {
         status: blockchainReady ? 'ok' : (isSoftReady ? 'soft-ready' : (blockchainError ? 'error' : 'initializing')),
         timestamp: Date.now(),
         chainLength: blockchain?.chain?.length || 0,
-        blocksInDB: blockchain?.database?.local?.db ? 
-            (blockchain.database.local.db.exec('SELECT COUNT(*) FROM blocks')[0]?.values[0][0] || 0) : 0,
+        blocksInDB: (blockchain?.database?.local?.db || blockchain?.database?.db) ? 
+            ((blockchain.database.local?.db || blockchain.database.db).exec('SELECT COUNT(*) FROM blocks')[0]?.values[0][0] || 0) : 0,
         version: '1.2.1-REBORN',
         name: 'CHEESE Blockchain Core',
         nodeRole: NODE_ROLE,
