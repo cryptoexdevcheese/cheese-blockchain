@@ -9,13 +9,13 @@
  */
 
 // ==================== SPECIALIZED ML MODELS (8 Models) ====================
-const FraudDetectorNN = require('./models/fraud-detector');
+const { FraudDetectorNN } = require('./models/fraud-detector');
 const TransactionPredictorLSTM = require('./models/transaction-predictor');
 const AnomalyDetectorML = require('./models/anomaly-detector');
-const MiningOptimizerRL = require('./models/mining-optimizer');
-const WhaleDetectorML = require('./models/whale-detector');
+const { MiningOptimizerRL } = require('./models/mining-optimizer');
+const { WhaleDetectorML } = require('./models/whale-detector');
 const NetworkHealthPredictor = require('./models/network-health');
-const SentimentAnalyzer = require('./models/sentiment-analyzer');
+const { SentimentAnalyzer } = require('./models/sentiment-analyzer');
 const UserBehaviorPredictor = require('./models/user-behavior-predictor');
 
 // ==================== ADVANCED ML MODELS (2 Models) ====================

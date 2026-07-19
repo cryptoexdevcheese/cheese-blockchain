@@ -31,17 +31,17 @@ try {
 }
 
 // Neural Network Models
-const FraudDetectorNN = require('./models/fraud-detector');
+const { FraudDetectorNN } = require('./models/fraud-detector');
 const TransactionPredictorLSTM = require('./models/transaction-predictor');
 const AnomalyDetectorML = require('./models/anomaly-detector');
-const MiningOptimizerRL = require('./models/mining-optimizer');
-const WhaleDetectorML = require('./models/whale-detector');
+const { MiningOptimizerRL } = require('./models/mining-optimizer');
+const { WhaleDetectorML } = require('./models/whale-detector');
 const NetworkHealthPredictor = require('./models/network-health');
 
 // Advanced ML Models  
 const PricePredictor = require('./models/price-predictor');
 const SmartContractAnalyzer = require('./models/contract-analyzer');
-const SentimentAnalyzer = require('./models/sentiment-analyzer');
+const { SentimentAnalyzer } = require('./models/sentiment-analyzer');
 const UserBehaviorPredictor = require('./models/user-behavior-predictor');
 
 module.exports = {
