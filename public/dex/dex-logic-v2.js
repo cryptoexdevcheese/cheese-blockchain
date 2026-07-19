@@ -1379,11 +1379,42 @@ function openAddLiquidity(tokenA, tokenB) {
     loadBalances();
 }
 
-function updateLiquidityPrice() {
-    const amt0 = parseFloat(document.getElementById('liquidityAmount0').value) || 0;
-    const amt1 = parseFloat(document.getElementById('liquidityAmount1').value) || 0;
+let activePoolsCache = [];
+
+function updateLiquidityPrice(source = 0) {
+    const input0 = document.getElementById('liquidityAmount0');
+    const input1 = document.getElementById('liquidityAmount1');
+    if (!input0 || !input1) return;
+
     const token0 = document.getElementById('liquidityToken0').textContent;
     const token1 = document.getElementById('liquidityToken1').textContent;
+
+    const poolKey = [token0, token1].sort().join('_');
+    const pool = activePoolsCache.find(p => {
+        const key = [p.token0, p.token1].sort().join('_');
+        return key === poolKey;
+    });
+
+    let amt0 = parseFloat(input0.value) || 0;
+    let amt1 = parseFloat(input1.value) || 0;
+
+    if (pool && pool.reserve0 > 0 && pool.reserve1 > 0) {
+        let r0 = pool.reserve0;
+        let r1 = pool.reserve1;
+        if (token0 !== pool.token0) {
+            r0 = pool.reserve1;
+            r1 = pool.reserve0;
+        }
+        const ratio = r1 / r0;
+
+        if (source === 0 && amt0 > 0) {
+            amt1 = amt0 * ratio;
+            input1.value = amt1.toFixed(6);
+        } else if (source === 1 && amt1 > 0) {
+            amt0 = amt1 / ratio;
+            input0.value = amt0.toFixed(6);
+        }
+    }
 
     if (amt0 > 0 && amt1 > 0) {
         const price = amt1 / amt0;
@@ -1670,6 +1701,7 @@ async function loadPools() {
         const data = await response.json();
 
         if (data.success && data.pools) {
+            activePoolsCache = data.pools;
             // Update total pools count in stats
             document.getElementById('totalPools').textContent = data.pools.length;
 
@@ -1924,6 +1956,27 @@ function executeConvert() { showNotification(WNCH_RETIRED_MSG, 'error'); }
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🧀 CHEESE DEX loaded');
+
+    // Clean cache-busting query strings (e.g., ?v=5.5.0&t=1784503396111) from address bar
+    if (typeof window !== 'undefined' && window.history && window.location.search) {
+        try {
+            const url = new URL(window.location.href);
+            let cleaned = false;
+            ['v', 't', '_v', '_t'].forEach(param => {
+                if (url.searchParams.has(param)) {
+                    url.searchParams.delete(param);
+                    cleaned = true;
+                }
+            });
+            if (cleaned) {
+                const cleanPath = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '');
+                window.history.replaceState({}, document.title, cleanPath);
+            }
+        } catch (e) {
+            console.warn('URL clean error:', e.message);
+        }
+    }
+
     resolveDexVaultAddress();
     initSwapTokenIcons();
     loadPools();

@@ -1192,6 +1192,262 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
     });
 
     /**
+     * Initiate P2P Trade (P2P Chat Card / Trade Panel flow)
+     */
+    router.post('/p2p/trade/initiate', async (req, res) => {
+        try {
+            const { orderId, buyerAddress, signature, message } = req.body;
+            if (!orderId || !buyerAddress) {
+                return res.status(400).json({ success: false, error: 'orderId and buyerAddress are required' });
+            }
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(orderId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Order not found' });
+            const order = orderDoc.data();
+
+            if (order.creatorAddress.toLowerCase() === buyerAddress.toLowerCase()) {
+                return res.status(400).json({ success: false, error: 'Cannot trade your own order' });
+            }
+
+            const sellerAddress = order.creatorAddress;
+            const initialMessages = [{
+                sender: 'system',
+                text: `P2P Trade initiated. Buyer: send ${order.amountWanted} ${order.tokenWanted} to seller off-chain, then click 'I Have Paid'.`,
+                timestamp: Date.now()
+            }];
+
+            await orderRef.update({
+                buyerAddress,
+                sellerAddress,
+                status: 'pending_payment',
+                initiatedAt: Date.now(),
+                messages: initialMessages
+            });
+
+            const updatedDoc = await orderRef.get();
+            res.json({ success: true, trade: { id: updatedDoc.id, ...updatedDoc.data() } });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * Get P2P Trade Chat Messages
+     */
+    router.get('/p2p/trade/chat', async (req, res) => {
+        try {
+            const { tradeId, userAddress } = req.query;
+            if (!tradeId) return res.status(400).json({ success: false, error: 'tradeId required' });
+            const dex = getReadyDex();
+            const orderDoc = await dex.storage.collection('dex_p2p_orders').doc(tradeId).get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+            const trade = orderDoc.data();
+            res.json({ success: true, messages: trade.messages || [] });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * Send P2P Trade Chat Message
+     */
+    router.post('/p2p/trade/chat/send', async (req, res) => {
+        try {
+            const { tradeId, senderAddress, text, signature, message } = req.body;
+            if (!tradeId || !senderAddress || !text) {
+                return res.status(400).json({ success: false, error: 'tradeId, senderAddress, and text required' });
+            }
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(tradeId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+
+            const trade = orderDoc.data();
+            const isBuyer = trade.buyerAddress && trade.buyerAddress.toLowerCase() === senderAddress.toLowerCase();
+            const isSeller = trade.sellerAddress && trade.sellerAddress.toLowerCase() === senderAddress.toLowerCase();
+            const role = isBuyer ? 'buyer' : (isSeller ? 'seller' : 'user');
+
+            const currentMessages = trade.messages || [];
+            currentMessages.push({
+                sender: senderAddress,
+                text,
+                role,
+                timestamp: Date.now()
+            });
+
+            await orderRef.update({ messages: currentMessages });
+            res.json({ success: true, messages: currentMessages });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * Mark P2P Trade as Paid
+     */
+    router.post('/p2p/trade/mark-paid', async (req, res) => {
+        try {
+            const { tradeId, userAddress, referenceNumber } = req.body;
+            if (!tradeId || !userAddress) return res.status(400).json({ success: false, error: 'tradeId and userAddress required' });
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(tradeId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+
+            const trade = orderDoc.data();
+            const messages = trade.messages || [];
+            messages.push({
+                sender: 'system',
+                text: `Payment marked as sent by buyer (Ref: ${referenceNumber || 'N/A'}). Seller: verify payment and release escrow.`,
+                timestamp: Date.now()
+            });
+
+            await orderRef.update({
+                status: 'paid',
+                paymentConfirmation: { referenceNumber: referenceNumber || 'N/A', paidAt: Date.now() },
+                messages
+            });
+
+            res.json({ success: true, message: 'Trade marked as paid' });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * Release P2P Escrow to Buyer
+     */
+    router.post('/p2p/trade/release', async (req, res) => {
+        try {
+            const { tradeId, userAddress } = req.body;
+            if (!tradeId || !userAddress) return res.status(400).json({ success: false, error: 'tradeId and userAddress required' });
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(tradeId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+
+            const trade = orderDoc.data();
+            if (trade.sellerAddress.toLowerCase() !== userAddress.toLowerCase() && trade.creatorAddress.toLowerCase() !== userAddress.toLowerCase()) {
+                return res.status(403).json({ success: false, error: 'Only the seller can release escrow' });
+            }
+
+            const blockchainProxy = getBlockchainProxy();
+            if (blockchainProxy && trade.buyerAddress) {
+                await blockchainProxy.sendFromLiquidityPool(trade.buyerAddress, trade.amountOffered, {
+                    type: 'p2p_release',
+                    currency: trade.tokenOffered,
+                    description: `P2P escrow release for trade ${tradeId}`
+                });
+            }
+
+            const messages = trade.messages || [];
+            messages.push({
+                sender: 'system',
+                text: 'Escrow funds released to buyer! Trade completed successfully 🎉',
+                timestamp: Date.now()
+            });
+
+            await orderRef.update({
+                status: 'completed',
+                releasedAt: Date.now(),
+                messages
+            });
+
+            res.json({ success: true, message: 'Escrow released and trade completed' });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * File P2P Trade Dispute
+     */
+    router.post('/p2p/trade/dispute', async (req, res) => {
+        try {
+            const { tradeId, userAddress, reason } = req.body;
+            if (!tradeId || !userAddress) return res.status(400).json({ success: false, error: 'tradeId and userAddress required' });
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(tradeId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+
+            const trade = orderDoc.data();
+            const messages = trade.messages || [];
+            messages.push({
+                sender: 'system',
+                text: `⚠️ Trade disputed by ${userAddress.substring(0,6)}... Reason: "${reason || 'No reason specified'}". Admin mediation requested.`,
+                timestamp: Date.now()
+            });
+
+            await orderRef.update({
+                status: 'disputed',
+                dispute: { filedBy: userAddress, reason: reason || '', timestamp: Date.now() },
+                messages
+            });
+
+            res.json({ success: true, message: 'Dispute filed successfully' });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * Admin Resolve P2P Trade Dispute
+     */
+    router.post('/p2p/trade/resolve', async (req, res) => {
+        try {
+            const { tradeId, adminAddress, resolution } = req.body;
+            if (!tradeId || !resolution) return res.status(400).json({ success: false, error: 'tradeId and resolution required' });
+            const dex = getReadyDex();
+            const orderRef = dex.storage.collection('dex_p2p_orders').doc(tradeId);
+            const orderDoc = await orderRef.get();
+            if (!orderDoc.exists) return res.status(404).json({ success: false, error: 'Trade not found' });
+
+            const trade = orderDoc.data();
+            const blockchainProxy = getBlockchainProxy();
+
+            let newStatus = 'completed';
+            if (resolution === 'release_to_buyer') {
+                newStatus = 'completed';
+                if (blockchainProxy && trade.buyerAddress) {
+                    await blockchainProxy.sendFromLiquidityPool(trade.buyerAddress, trade.amountOffered, {
+                        type: 'p2p_dispute_resolution',
+                        currency: trade.tokenOffered,
+                        description: `Dispute resolution release for trade ${tradeId}`
+                    });
+                }
+            } else {
+                newStatus = 'cancelled';
+                if (blockchainProxy && trade.sellerAddress) {
+                    await blockchainProxy.sendFromLiquidityPool(trade.sellerAddress, trade.amountOffered, {
+                        type: 'p2p_dispute_resolution',
+                        currency: trade.tokenOffered,
+                        description: `Dispute resolution refund for trade ${tradeId}`
+                    });
+                }
+            }
+
+            const messages = trade.messages || [];
+            messages.push({
+                sender: 'system',
+                text: `⚖️ Admin resolution applied: ${resolution}. Trade marked as ${newStatus}.`,
+                timestamp: Date.now()
+            });
+
+            await orderRef.update({
+                status: newStatus,
+                resolution: { adminAddress, resolution, resolvedAt: Date.now() },
+                messages
+            });
+
+            res.json({ success: true, message: `Dispute resolved (${resolution})` });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
      * Support Chat AI
      */
     let chatService = null;
