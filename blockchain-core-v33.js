@@ -639,7 +639,7 @@ class EnhancedHybridBlockchainAI {
 
     async loadFromDatabase() {
         console.log('📦 Loading blockchain from database...');
-        const blocks = await this.database.getAllBlocks();
+        const blocks = await this.database.getAllBlocks(true);
 
         // 1. Deduplicate blocks
         const uniqueBlocksMap = new Map();
