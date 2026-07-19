@@ -1,0 +1,299 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+dist/
+build/
+coverage/
+
+# IDE & OS
+.DS_Store
+.idea/
+.vscode/
+.windsurf/
+.agent/
+
+# Logs
+*.log
+logs.txt
+full_logs.txt
+
+# Database files
+*.db
+
+# ========== SENSITIVE FILES — NEVER COMMIT ==========
+
+# Private keys and wallet files
+FOUNDER-WALLET.json
+*-WALLET.json
+*.wallet.json
+*private*.json
+*privatekey*
+LOCAL-PRIVATE-KEYS-INDEX.md
+*.pem
+*.key
+.cheese_production_keys.txt
+NEW-SYSTEM-WALLETS.json
+LIQUIDITY-POOL-WALLET.json
+NEW_OPERATIONAL_WALLETS.txt
+
+# Environment and credentials
+.env
+.env.*
+service-account.json
+*-credentials.json
+firebase-admin*.json
+
+# Local Netlify folder
+.netlify
+
+# ========== ONE-OFF SCRIPTS — DO NOT COMMIT ==========
+
+# Audit, debug, check, inspect, trace, verify scripts
+audit-*.js
+audit_*.js
+check-*.js
+check_*.js
+debug-*.js
+debug_*.js
+inspect-*.js
+inspect_*.js
+trace-*.js
+find-*.js
+find_*.js
+verify-*.js
+verify_*.js
+
+# Fix, recover, restore, clean, dump scripts
+fix-*.js
+fix_*.js
+recover-*.js
+restore-*.js
+restore_*.js
+rescue-*.js
+clean_*.js
+clean-*.js
+dump-*.js
+dump_*.js
+wipe-*.js
+prune-*.js
+sanitize-*.js
+sanitize_*.js
+nuclear-*.js
+surgical-*.js
+enforce_*.js
+exterminate_*.js
+
+# Migration & consolidation scripts
+migrate-*.js
+migrate_*.js
+consolidate-*.js
+atomic-migration.js
+attempt-withdrawal.js
+complete-transfer-all-assets.js
+final-consolidation-transfer.js
+manual-transfer-instructions.js
+run_migration_final.js
+system-wallet-recovery-diagnostic.js
+
+# Bridge test scripts
+bridge-*nch.js
+
+# Emergency scripts
+emergency-*.js
+
+# Admin scripts
+admin-*.js
+
+# Versioned restoration scripts (v21..v38)
+v[0-9]*.js
+
+# Test scripts with potential keys
+test-recovery*.js
+test-all-found-keys-legacy.js
+test_mint_wnch.js
+*brute-force-custom.js
+*check-bip39.js
+*recover-wallet-key.js
+reverse-legacy-derivation.js
+*test-wallet-compatibility.js
+
+# Python one-off scripts
+check_*.py
+clean_*.py
+fix_*.py
+patch-*.py
+
+# ========== DATA DUMPS — DO NOT COMMIT ==========
+
+# Blockchain & data dumps
+blockchain_dump*.json
+cloud_full_dump*.json
+all_tx.json
+full_chain_dump.txt
+harvested-nch.json
+john_full_dump.json
+sample_blocks.json
+server-brain.json
+projects.json
+bscscan_page.html
+bscscan_result.json
+tx_verify.json
+b.timestamp
+live_app.js
+master
+git
+{
+
+# Audit results
+audit-raw.json
+audit-results-*.json
+audit_*.json
+*_report*.json
+*_report*.md
+inconsistency-analysis.json
+ecosystem-audit-results.json
+baseline-snapshot-*.json
+*-execution-plan.json
+identified-paid-wallets.json
+paid_wallets_audit.json
+discovery_key_summary.json
+processed-bridges.json
+block_*_dump.json
+dex-memory-report.json
+verify-output.txt
+
+# Firestore exports
+firestore-*.json
+*-extract-*.json
+*-transactions.json
+*-fixed-*.json
+*-backup-*.json
+microscopic-scan-*.json
+restoration-report-*.json
+blockchain-fixed-*.json
+firebase-sync-*/
+
+# ========== OBSOLETE DIRECTORIES ==========
+deploy-dex/
+deploy-explorer/
+deploy-wallet/
+wallet-logos/
+submission-files/
+chainlist-submission/
+firebase-backups/
+TRUSTWALLET_PAYLOAD/
+temp_trustwallet_fork/
+fix_fork/
+BACKUPS/
+CRITICAL-BACKUPS/
+CRITICAL-DATA-EXPORTS/
+GOOGLE_DRIVE_SYNC/
+LOCKED_STABLE_*/
+marketing/
+
+# ========== OBSOLETE SCRIPTS & DOCS ==========
+
+# Windows batch/PowerShell scripts
+*.bat
+*.ps1
+
+# Shell one-offs (keep deploy-to-droplet.sh via git add -f)
+add-dex-price-endpoint.sh
+configure-liquidity.sh
+enhance-dex-colors.sh
+fix-nginx-cors.sh
+fix-premine.sh
+patch-dex-swap.sh
+repair-vm-*.sh
+setup-auto-deploy.bat
+setup-firestore-credentials.sh
+setup-https-vm.sh
+simple-patch.sh
+deploy-3node-architecture.sh
+deploy-blockchain.sh
+deploy-dex-vm.sh
+deploy-on-vm.sh
+deploy-vm.sh
+test_ai.sh
+
+# Corrupted/temp files
+.!*
+
+# Obsolete status docs (keep setup guides & README)
+BLOCKCHAIN-FIX-COMPLETE.md
+DATA-RECOVERY-STATUS.md
+EMERGENCY-*.md
+COPY-STATUS.txt
+DEPLOYMENT-INFO.txt
+CACHE_BUST.txt
+DNS-RECORDS-*.txt
+TRANSACTIONS-FOUND.md
+NOTARY_*.md
+CLOUD-BACKUP-FOUND.md
+CLOUD-STORAGE-FREE-TIERS.md
+FIREWALL-TROUBLESHOOTING.md
+MINER_ROLE_ANALYSIS.md
+SAFE-LIQUIDITY-POOL-IMPLEMENTATION.md
+SEND-TRANSACTION-FIXES.md
+LIQUIDITY-POOL-ANALYSIS.md
+LIQUIDITY-POOL-RECOVERY.md
+DIFFICULTY_ADJUSTMENT_SOLUTION.md
+difficulty_adjustment_analysis.md
+MULTI-PLATFORM-SETUP.md
+RAILWAY-vs-RENDER-COMPARISON.md
+RENDER-ACCOUNT-CHECKLIST.md
+EXACT_CLICK_INSTRUCTIONS.md
+SUBDOMAIN-VALIDATION-GUIDE.md
+FIREBASE-BACKUP-GUIDE.md
+LOCAL-SYNC-INSTALLATION.md
+REALTIME_SYNC_GUIDE.md
+WALLET-CONFIG-LOCKED.md
+ARCHITECTURE-ANALYSIS.md
+CORRECTED-ARCHITECTURE-ANALYSIS.md
+AI-MODEL-CODE-VERIFICATION.md
+FINAL-AI-VERIFICATION-REPORT.md
+27-AI-MODELS-COMPLETE.md
+PUBLICIZATION_READINESS_REPORT.md
+NCH_HOLDER_AUDIT.md
+bitflow_vulnerability_report.md
+ethena_vulnerability_report.md
+lombard_vulnerability_report.md
+
+# Marketing drafts
+CHEESE_Blockchain_Investor_Pitch.md
+CHEESE_Blockchain_Investor_Presentation.md
+INVESTOR_VIDEO_SCRIPT.md
+INVESTOR_VIDEO_SCRIPT_GLOBAL.md
+FULL_MARKETING_PACK.md
+MARKETING_CONTENT_PACK.md
+PRESS-KIT.md
+marketing_*.png
+
+# Submission/listing docs
+CHAINLIST_PR_GUIDE.md
+EASY_CHAINLIST_SUBMISSION.md
+NETWORK_SUBMISSION_PACKAGE.md
+REGISTRY_SUBMISSION_PACKET.md
+WALLET_LISTING_GUIDE.md
+TRUSTWALLET_PAYLOAD/
+
+# Misc obsolete
+deployed_check.html
+cheese-website.html
+CHEESE-Blockchain-Whitepaper.html
+CORS-CONFIG-cheeseblockchain.js
+TEMPORARY-FIREBASE-ONLY-CONFIG.js
+config-template-cheeseblockchain.js
+chart_logic_extracted.js
+simulate_frontend_logic.js
+rich_list_report.md
+.wallet-config.lock
+CLOUDFLARE-DOMAIN-SETUP.md
+HOW-TOKENIZED-STOCKS-WORKS.md
+WHY-NOT-USE-NCH-FOR-STOCKS.md
+TOKENIZED-STOCKS-INTEGRATION-ANALYSIS.md
+NATIVE-TOKENIZED-STOCKS-REQUIREMENTS.md
+

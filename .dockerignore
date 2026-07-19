@@ -1,0 +1,46 @@
+# Ignore large directories for Docker build
+node_modules
+contracts/node_modules
+BACKUPS
+GOOGLE_DRIVE_SYNC
+CRITICAL-*
+LOCKED_STABLE*
+# deploy-*
+# public removed to include frontend
+*.zip
+*.tar
+*.gz
+*.log
+*.json
+!package.json
+!package-lock.json
+!cheese-blockchain-key.json
+!service-account.json
+.git
+# wallet and dex removed to include frontend code
+# advanced-p2p and contracts included for core functionality
+*.db
+*.sqlite
+!cheese-blockchain.db
+*.md
+*.txt
+# Allow specific images needed for UI
+*.png
+!public/*.png
+!public/wallet/*.png
+!usdt_cheese.png
+!usdc_cheese.png
+!icon-512.png
+*.sh
+*.ps1
+test*
+audit*
+check*
+diagnose*
+dump*
+inspect*
+list*
+recover*
+restore*
+verify*
+# *.html removed to include UI files

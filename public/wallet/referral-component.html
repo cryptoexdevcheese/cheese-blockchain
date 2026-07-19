@@ -1,0 +1,232 @@
+<!-- CHEESE Blockchain Referral System UI Component -->
+<!-- Add this to your wallet HTML file -->
+
+<style>
+    .referral-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .referral-header {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .referral-code-display {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        backdrop-filter: blur(10px);
+    }
+
+    .referral-code-label {
+        font-size: 12px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .referral-code-value {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+    }
+
+    .referral-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .referral-btn {
+        flex: 1;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .referral-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .referral-link-container {
+        margin-top: 15px;
+    }
+
+    .referral-link-input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        margin-top: 5px;
+    }
+
+    .referral-link-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .referral-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .referral-stat {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .referral-stat-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .referral-stat-label {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 5px;
+    }
+
+    .referral-input-section {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .referral-input-label {
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .referral-input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .referral-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .referral-benefits {
+        margin-top: 15px;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .referral-benefits ul {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+
+    .referral-benefits li {
+        margin: 5px 0;
+    }
+</style>
+
+<!-- Referral Code Display Section (for existing users) -->
+<div class="referral-section" id="referralSection" style="display: none;">
+    <div class="referral-header">
+        <span>🎁</span>
+        <span>Your Referral Code</span>
+    </div>
+
+    <div class="referral-code-display">
+        <div class="referral-code-label">Share this code with friends:</div>
+        <div class="referral-code-value" id="referralCode">CHEESE-XXXXXXXX</div>
+    </div>
+
+    <div class="referral-actions">
+        <button class="referral-btn" onclick="copyReferralCode()">
+            📋 Copy Code
+        </button>
+        <button class="referral-btn" onclick="copyShareLink()">
+            🔗 Copy Link
+        </button>
+    </div>
+
+    <div class="referral-link-container">
+        <div class="referral-code-label">Or share this link:</div>
+        <input type="text" class="referral-link-input" id="referralShareLink" readonly
+            placeholder="https://cheesecoin.app/wallet?ref=CHEESE-XXXXXXXX" />
+    </div>
+
+    <div class="referral-benefits">
+        <strong>💰 Earn Rewards:</strong>
+        <ul>
+            <li>Get <strong>10 NCH</strong> for each friend who registers for mining</li>
+            <li>Rewards come from unmined supply (not treasury)</li>
+            <li>Unlimited referrals - grow the network!</li>
+        </ul>
+    </div>
+
+    <!-- Optional: Referral Stats -->
+    <div class="referral-stats" id="referralStats" style="display: none;">
+        <div class="referral-stat">
+            <div class="referral-stat-value" id="totalReferrals">0</div>
+            <div class="referral-stat-label">Total Referrals</div>
+        </div>
+        <div class="referral-stat">
+            <div class="referral-stat-value" id="totalEarned">0</div>
+            <div class="referral-stat-label">NCH Earned</div>
+        </div>
+    </div>
+</div>
+
+<!-- Referral Code Input Section (for new users during registration) -->
+<div class="referral-input-section" id="referralInputSection" style="display: none;">
+    <label class="referral-input-label">
+        🎁 Have a Referral Code? (Optional)
+    </label>
+    <input type="text" class="referral-input" id="referralCodeInput" placeholder="Enter code like CHEESE-0E6EC671"
+        maxlength="16" pattern="CHEESE-[0-9A-Fa-f]{8}" />
+    <div class="referral-benefits">
+        <small>Your referrer will earn 10 NCH when you complete registration!</small>
+    </div>
+</div>
+
+<!-- Include the referral UI script -->
+<script src="referral-ui.js"></script>
+<script>
+    // Show referral section when wallet is loaded
+    window.addEventListener('load', () => {
+        const walletAddress = localStorage.getItem('cheeseWalletAddress');
+        if (walletAddress) {
+            document.getElementById('referralSection')?.style.removeProperty('display');
+            displayReferralCode(walletAddress);
+        }
+    });
+</script>

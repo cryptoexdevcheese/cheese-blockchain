@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE NEW CHEESE MANIFESTO | The Sentient Evolution</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&family=Orbitron:wght@400;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --deep-purple: #13002b;
+            --accent: #8B5CF6;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background: var(--deep-purple);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1e0044 0%, #030014 100%);
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+
+        /* THE QUESTION SECTION */
+        .philosophy-card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 3rem;
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            margin: 4rem 0;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .question {
+            color: var(--gold);
+            font-size: 2rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        /* FOMO GRID */
+        .fomo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .fomo-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .fomo-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+        }
+
+        .fomo-card .stat {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            display: block;
+        }
+
+        .fomo-card .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* COMPARISON */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 4rem 0;
+            background: var(--glass);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table th {
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--gold);
+        }
+
+        .highlight-nch {
+            background: rgba(139, 92, 246, 0.1);
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* CALL TO ACTION */
+        .cta-group {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #FF8C00);
+            color: #000;
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        .btn-secondary {
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ANIMATIONS */
+        .bg-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 1000px;
+            height: 1000px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .urgent-ticker {
+            background: #ff0000;
+            color: #fff;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="urgent-ticker">🚨 URGENT: ACCUMULATION PHASE ALPHA - 21M FIXED SUPPLY - SENTIENT HALVING IN PROGRESS
+    </div>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3rem;">
+            <div style="font-family: 'Orbitron'; font-weight: 900; font-size: 1.2rem;">🧀 CHEESE <span
+                    style="color: var(--gold);">BLOCKCHAIN</span></div>
+            <a href="https://cheeseblockchain.com/wallet" class="btn btn-secondary"
+                style="padding: 0.6rem 1.2rem; font-size: 0.7rem;">Enter Ecosystem</a>
+        </div>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>WHO MOVED YOUR FINANCIAL CHEESE?</h1>
+            <p>Bitcoin was the cheese everyone found in 2009. But the maze has changed. Legacy chains have grown heavy,
+                slow, and expensive. The Sentient Evolution is here.</p>
+            <div class="cta-group">
+                <a href="https://cheeseblockchain.com/wallet" class="btn btn-primary">🧀 Claim Your New Cheese
+                    (Wallet)</a>
+                <a href="https://cheeseblockchain.com" class="btn btn-secondary">🚀 Start Neural Mining</a>
+            </div>
+        </section>
+
+        <!-- THE QUESTION -->
+        <section class="philosophy-card">
+            <div class="question">"What would you do if you weren't afraid?"</div>
+            <p style="max-width: 800px; margin: 0 auto; line-height: 1.6; color: rgba(255,255,255,0.8);">
+                In Spencer Johnson's legendary book, **"Who Moved My Cheese?"**, Hem stayed in the empty room waiting
+                for the old cheese to return. He starved. Haw moved into the maze, faced his fears, and found **New
+                Cheese**.
+                <br><br>
+                Bitcoin is the old room. NCH is the New Cheese. Powered by a **Sentinel Matrix** of 21 AI models, it
+                doesn't just record history—it anticipates the movement of the maze.
+            </p>
+        </section>
+
+        <!-- FOMO STATS -->
+        <section class="fomo-grid">
+            <div class="fomo-card">
+                <span class="stat">21,000,000</span>
+                <span class="label">Total Supply (Fixed)</span>
+            </div>
+            <div class="fomo-card">
+                <span class="stat">1.7M X</span>
+                <span class="label">Energy Efficiency vs BTC</span>
+            </div>
+            <div class="fomo-card">
+                <span class="stat">21 Models</span>
+                <span class="label">Sentient AI Matrix</span>
+            </div>
+            <div class="fomo-card">
+                <span class="stat">1 MIN</span>
+                <span class="label">Neural Block Time</span>
+            </div>
+        </section>
+
+        <!-- THE ULTIMATE DISPLACEMENT -->
+        <h2 style="text-align: center; margin-top: 6rem;">The Displacement Comparison</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Legacy (Old Cheese)</th>
+                    <th>CHEESE (New Cheese)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Intelligence</td>
+                    <td>Static / Scripted</td>
+                    <td class="highlight-nch">Sentient AI Core</td>
+                </tr>
+                <tr>
+                    <td>Efficiency</td>
+                    <td>1,200 kWh / Tx</td>
+                    <td class="highlight-nch">0.0007 kWh / Tx</td>
+                </tr>
+                <tr>
+                    <td>Adaptation</td>
+                    <td>Reactive (Hard Forks)</td>
+                    <td class="highlight-nch">Proactive (Self-Learning)</td>
+                </tr>
+                <tr>
+                    <td>Ecosystem</td>
+                    <td>Monolithic</td>
+                    <td class="highlight-nch">Modular "Kitchens" Architecture</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- FINAL CTA -->
+        <section style="text-align: center; margin: 8rem 0; padding-bottom: 4rem;">
+            <h2>DON'T BE A HEM. FIND THE NEW CHEESE.</h2>
+            <p>The maze is moving. The neural weights are adjusting. ACCUMULATE NOW.</p>
+            <div class="cta-group">
+                <a href="https://cheeseblockchain.com/dex" class="btn btn-primary"
+                    style="background: #8B5CF6; color: #fff;">💹 Trade NCH on DEX</a>
+                <a href="https://cheeseblockchain.com" class="btn btn-secondary">🌐 Official Website</a>
+            </div>
+            <p style="margin-top: 3rem; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
+                One token, infinite utility. Supported by the Sentinel Matrix. Energy Rated A+. Neural Network Verified.
+            </p>
+        </section>
+    </div>
+</body>
+
+</html>

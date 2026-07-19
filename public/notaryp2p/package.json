@@ -1,0 +1,18 @@
+{
+  "name": "cheese-notary-p2p",
+  "version": "1.0.0",
+  "description": "Sovereign P2P Notary on Cheese Blockchain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js --network cheese",
+    "dev": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Cheese Blockchain",
+  "chainId": 20250,
+  "chainIdHex": "0x4F1A",
+  "shortName": "nch",
+  "nativeCurrency": {
+    "name": "Native Cheesecoin",
+    "symbol": "NCH",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://cheeseblockchain.com/rpc"
+  ],
+  "blockExplorerUrls": [
+    "https://cheeseblockchain.com/explorer/"
+  ],
+  "iconUrls": [
+    "https://cheeseblockchain.com/icon-32.png",
+    "https://cheeseblockchain.com/icon-192.png",
+    "https://cheeseblockchain.com/icon-512.png",
+    "https://cheeseblockchain.com/logo.png"
+  ],
+  "website": "https://cheeseblockchain.com",
+  "updatedAt": "2026-04-23T00:00:00Z"
+}

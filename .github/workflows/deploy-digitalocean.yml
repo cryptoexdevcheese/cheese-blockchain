@@ -1,0 +1,50 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Deploy to DigitalOcean App Platform
+      env:
+        DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
+      run: |
+        if [ -z "$DIGITALOCEAN_ACCESS_TOKEN" ] || [ -z "$APP_ID" ]; then
+          echo "⚠️ DigitalOcean credentials not configured"
+          echo "Set DIGITALOCEAN_ACCESS_TOKEN and DIGITALOCEAN_APP_ID in GitHub secrets"
+          echo "Or enable DigitalOcean GitHub integration in your repository settings"
+          exit 0
+        fi
+        
+        echo "🚀 Deploying to DigitalOcean App Platform..."
+        
+        # Trigger DigitalOcean deployment
+        curl -X POST "https://api.digitalocean.com/v2/apps/$APP_ID/deployments" \
+          -H "Authorization: Bearer $DIGITALOCEAN_ACCESS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "force_build": true
+          }'
+        
+        echo "✅ Deployment triggered successfully"
+        echo "Monitor deployment at: https://cloud.digitalocean.com/apps"
+
+    - name: Alternative: DigitalOcean GitHub Integration
+      run: |
+        echo "💡 Alternative: Enable DigitalOcean GitHub Integration"
+        echo "1. Go to: https://cloud.digitalocean.com/apps"
+        echo "2. Click 'Create App' or select your existing app"
+        echo "3. In 'Settings', click 'GitHub Integration'"
+        echo "4. Connect your GitHub repository"
+        echo "5. Select automatic deployment on push to master/main"
+        echo "This provides automatic updates without GitHub Actions"

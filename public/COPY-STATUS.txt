@@ -1,0 +1,20 @@
+COPY STATUS
+===========
+This folder is a clean copy of: Cheese Wallet November 27 2025
+Created: November 28, 2025
+Purpose: Clean deployment folder for Cloud Run
+
+DO NOT modify the original November 27 folder.
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cheese Wallet</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Extension Main Container -->
+  <div class="extension-container">
+    
+    <!-- Top Header -->
+    <header class="header">
+      <div class="brand">
+        <span class="logo">🧀</span>
+        <div class="brand-info">
+          <h1>Cheese Wallet</h1>
+          <div class="network-selector-container" style="margin-top: 2px;">
+            <select id="networkSelect" style="background: rgba(255, 255, 255, 0.05); color: #ffd700; border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 6px; font-size: 0.68rem; font-weight: 600; cursor: pointer; outline: none;">
+              <option value="cheese" selected>🧀 Cheese Mainnet</option>
+              <option value="bsc">🪙 Binance Smart Chain</option>
+              <option value="ethereum">⟠ Ethereum Mainnet</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="lockBtn" style="display: none;" title="Lock Wallet"><i class="fa-solid fa-lock"></i></button>
+      </div>
+    </header>
+
+    <!-- CONTENT SCREENS -->
+    <main class="main-content">
+      
+      <!-- SCREEN 1: Setup Choice -->
+      <div id="setupScreen" class="screen active">
+        <div class="intro-box">
+          <div class="icon-big">🧀</div>
+          <h2>Welcome to Cheese Blockchain</h2>
+          <p>Get started by creating a new secure wallet or importing an existing account.</p>
+        </div>
+        <div class="btn-group">
+          <button id="btnGotoCreate" class="btn btn-primary">Create New Wallet</button>
+          <button id="btnGotoImport" class="btn btn-secondary">Import Existing Wallet</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: Create Wallet Seed Display -->
+      <div id="createScreen" class="screen">
+        <h3>Create New Wallet</h3>
+        <p class="description">Write down your 12-word recovery mnemonic seed phrase in the correct order and save it in a safe place.</p>
+        <div class="mnemonic-box" id="newMnemonicDisplay">
+          <!-- Dynamically populated -->
+        </div>
+        <div class="form-group">
+          <label for="createPassword">Set Password (min 4 chars):</label>
+          <input type="password" id="createPassword" placeholder="Enter password...">
+        </div>
+        <button id="btnConfirmCreate" class="btn btn-primary" style="margin-top: 1rem;">I Saved It, Create Wallet</button>
+        <button class="btn btn-link btn-back">Back</button>
+      </div>
+
+      <!-- SCREEN 3: Import Form with Mnemonic/Private Key Tabs -->
+      <div id="importScreen" class="screen">
+        <h3>Import Wallet</h3>
+        <div class="import-tabs" style="display: flex; margin-top: 0.5rem; margin-bottom: 1rem; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 4px;">
+          <button id="tabMnemonic" class="tab-btn active" style="flex: 1; padding: 6px 12px; background: var(--card-bg); border: none; border-radius: 6px; color: var(--text-primary); cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: var(--transition);">Seed Phrase</button>
+          <button id="tabPrivateKey" class="tab-btn" style="flex: 1; padding: 6px 12px; background: transparent; border: none; border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: var(--transition);">Private Key</button>
+        </div>
+
+        <!-- Mnemonic Container -->
+        <div id="mnemonicInputContainer">
+          <p class="description" style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Enter your 12-word recovery mnemonic seed phrase, separated by spaces.</p>
+          <div class="form-group">
+            <label for="importMnemonic">Recovery Phrase:</label>
+            <textarea id="importMnemonic" rows="3" placeholder="word1 word2 ... word12" style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.8rem; resize: none; margin-top: 5px;"></textarea>
+          </div>
+        </div>
+
+        <!-- Private Key Container -->
+        <div id="privateKeyInputContainer" style="display: none;">
+          <p class="description" style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Paste your 64-character private key hex string.</p>
+          <div class="form-group">
+            <label for="importPrivateKey">Private Key:</label>
+            <input type="text" id="importPrivateKey" placeholder="0x... or 64-char hex string" style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.8rem; margin-top: 5px;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="importPassword">Set Lock Password (min 4 chars):</label>
+          <input type="password" id="importPassword" placeholder="Enter lock password..." style="width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: var(--text-primary); margin-top: 5px;">
+        </div>
+        <button id="btnConfirmImport" class="btn btn-primary" style="margin-top: 1.25rem;">Import Account</button>
+        <button class="btn btn-link btn-back">Back</button>
+      </div>
+
+      <!-- SCREEN 4: Lock / Unlock Screen -->
+      <div id="unlockScreen" class="screen">
+        <div class="intro-box">
+          <div class="icon-big">🔐</div>
+          <h2>Wallet Locked</h2>
+          <p>Enter your password to unlock and access your Cheese accounts.</p>
+        </div>
+        <div class="form-group">
+          <input type="password" id="unlockPassword" placeholder="Enter password...">
+        </div>
+        <button id="btnUnlock" class="btn btn-primary" style="margin-top: 1rem;">Unlock Wallet</button>
+      </div>
+
+      <!-- SCREEN 5: Dashboard -->
+      <div id="dashboardScreen" class="screen">
+        <!-- Account Details Card -->
+        <div class="account-card card">
+          <div class="account-header">
+            <span>Account 1</span>
+            <span class="address-box" id="addressText" title="Copy Address">0x0000...0000 <i class="fa-solid fa-copy"></i></span>
+          </div>
+          <div class="balance-display">
+            <div class="amount" id="balanceAmount">0.00</div>
+            <div class="symbol" id="balanceSymbol">NCH</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Action Quick Links -->
+        <div class="dashboard-actions">
+          <button id="btnSend" class="action-btn"><i class="fa-solid fa-paper-plane"></i><span>Send</span></button>
+          <button id="btnReceive" class="action-btn"><i class="fa-solid fa-qrcode"></i><span>Receive</span></button>
+        </div>
+
+        <!-- Asset Portfolio Section -->
+        <div class="assets-list">
+          <h3>Assets</h3>
+          <div id="assetsContainer">
+            <!-- Dynamically populated depending on active network -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 6: Send Assets Form -->
+      <div id="sendScreen" class="screen">
+        <h3>Send Assets</h3>
+        <div class="form-group">
+          <label for="sendToken">Select Token:</label>
+          <select id="sendToken" class="settings-input">
+            <!-- Dynamically populated options -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sendRecipient">Recipient Address (0x...):</label>
+          <input type="text" id="sendRecipient" placeholder="0x...">
+        </div>
+        <div class="form-group">
+          <label for="sendAmount">Amount:</label>
+          <input type="number" id="sendAmount" placeholder="0.0">
+        </div>
+        <button id="btnConfirmSend" class="btn btn-primary" style="margin-top: 1rem;">Send Transaction</button>
+        <button class="btn btn-link btn-back-dashboard">Cancel</button>
+      </div>
+
+      <!-- SCREEN 7: Receive Assets Panel -->
+      <div id="receiveScreen" class="screen">
+        <h3>Receive Assets</h3>
+        <p class="description" id="receiveDescription">Your public wallet address is displayed below.</p>
+        <div class="qr-container" style="background: #fff; width: 160px; height: 160px; margin: 1.5rem auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+          <img id="receiveQRCode" style="width: 144px; height: 144px; display: none;" alt="Wallet QR Code">
+          <div id="qrLoading" style="color: #000; font-size: 0.85rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+        <div class="address-display" id="receiveAddressText" style="word-break: break-all; background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; font-family: monospace; text-align: center; border: 1px solid var(--border-color); cursor: pointer;">
+          0x0...
+        </div>
+        <button class="btn btn-secondary btn-back-dashboard" style="margin-top: 1.5rem;">Done</button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="ethers.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

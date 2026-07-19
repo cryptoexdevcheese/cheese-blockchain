@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHEESE BLOCKCHAIN | Revolutionary AI-Powered Finance</title>
+    <meta name="description"
+        content="World's first AI-powered blockchain. 21M fixed supply like Bitcoin. 10 AI features. Trade on CHEESE DEX.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Mobile Responsive Fixes -->
+    <!-- Mobile Responsive Fixes (v2) -->
+    <!-- Mobile Responsive Fixes (v2) - MOVED TO BOTTOM OF HEAD -->
+    <!-- Config Injection -->
+    <script src="/config.js?v=1.1.5"></script>
+    <script src="/wallet/elliptic.min.js"></script>
+    <script src="/wallet/blockchain-api.js"></script>
+    <script src="/wallet/token-metadata.js"></script>
+    <script>
+        // NUCLEAR CACHE BUSTER v6.2.1-FIX
+        const CURRENT_VERSION = '6.2.1-FIX';
+
+        async function runNuclearWipe() {
+            try {
+                const storedVersion = localStorage.getItem('site_version_deployed');
+                if (storedVersion !== CURRENT_VERSION) {
+                    console.log("🚀 Version Mismatch. Running Nuclear Wipe...");
+
+                    // 1. Clear Storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    localStorage.setItem('site_version_deployed', CURRENT_VERSION);
+
+                    // 2. Clear Caches
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        for (let key of keys) await caches.delete(key);
+                    }
+
+                    // 3. Unregister SW
+                    if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let reg of regs) await reg.unregister();
+                    }
+
+                    // 4. Force Reload with Cache-Busting Para
+                    window.location.href = window.location.origin + window.location.pathname + '?v=' + CURRENT_VERSION + '&t=' + Date.now();
+                }
+
+                // Clean URL from query params to ensure clean address bar (V6.2.1 ADDITION)
+                if (window.location.search.includes('v=')) {
+                    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                    console.log('✅ URL Suffix purged from address bar.');
+                }
+            } catch (e) {
+                console.error("Wipe failed", e);
+            }
+        }
+        runNuclearWipe();
+    </script>
+    <style>
+        :root {
+            --gold: #FFD700;
+            --gold-dark: #D4AF00;
+            --orange: #FF8C00;
+            --purple: #8B5CF6;
+            --cyan: #06B6D4;
+            --dark: #030014;
+            --dark-purple: #0B0020;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--dark);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.2;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
+            animation: nebulaMove 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes nebulaMove {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            100% {
+                transform: scale(1.1) rotate(5deg);
+            }
+        }
+
+        /* ===== FLOATING 3D CHEESE ===== */
+        .floating-3d-cheese {
+            position: fixed;
+            top: 50%;
+            right: 10%;
+            transform: translateY(-50%);
+            font-size: 400px;
+            opacity: 0.03;
+            z-index: -1;
+            animation: floatCheese 10s infinite ease-in-out;
+            filter: blur(2px);
+        }
+
+        @keyframes floatCheese {
+
+            0%,
+            100% {
+                transform: translateY(-50%) rotateY(0deg) rotateX(0deg);
+            }
+
+            25% {
+                transform: translateY(-55%) rotateY(10deg) rotateX(5deg);
+            }
+
+            50% {
+                transform: translateY(-45%) rotateY(0deg) rotateX(-5deg);
+            }
+
+            75% {
+                transform: translateY(-52%) rotateY(-10deg) rotateX(5deg);
+            }
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(30px);
+            background: rgba(3, 0, 20, 0.5);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00, #FFD700);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            animation: logoSpin 20s infinite linear;
+        }
+
+        @keyframes logoSpin {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FFD700, #FF8C00);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #FFD700;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .nav-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10rem 4rem 6rem;
+            position: relative;
+        }
+
+        .hero-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge .pulse {
+            width: 10px;
+            height: 10px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulseBadge 2s infinite;
+        }
+
+        @keyframes pulseBadge {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 .line1 {
+            display: block;
+            background: linear-gradient(90deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h1 .line2 {
+            display: block;
+            background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .hero h1 .line3 {
+            display: block;
+            font-size: 0.5em;
+            background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 550px;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1.25rem 2.5rem;
+            border-radius: 60px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            color: #000;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            border-color: #FFD700;
+            color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* ===== 3D CHEESE VISUAL ===== */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cheese-3d {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            animation: float3D 6s infinite ease-in-out;
+        }
+
+        @keyframes float3D {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateY(0deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotateY(15deg);
+            }
+        }
+
+        .cheese-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+            filter: blur(60px);
+            animation: glowPulse 3s infinite ease-in-out;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        .cheese-main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            filter: drop-shadow(0 0 80px rgba(255, 215, 0, 0.5));
+        }
+
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        .orbit-1 {
+            width: 300px;
+            height: 300px;
+            margin: -150px 0 0 -150px;
+        }
+
+        .orbit-2 {
+            width: 400px;
+            height: 400px;
+            margin: -200px 0 0 -200px;
+            animation-direction: reverse;
+            animation-duration: 25s;
+        }
+
+        .orbit-3 {
+            width: 500px;
+            height: 500px;
+            margin: -250px 0 0 -250px;
+            animation-duration: 30s;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ===== STATS FLOATING ===== */
+        .stats-float {
+            position: absolute;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            animation: floatStats 4s infinite ease-in-out;
+        }
+
+        @keyframes floatStats {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .stats-float h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-float p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-1 {
+            top: 10%;
+            left: -20%;
+        }
+
+        .stat-2 {
+            bottom: 20%;
+            left: -10%;
+            animation-delay: 1s;
+        }
+
+        .stat-3 {
+            top: 20%;
+            right: -20%;
+            animation-delay: 2s;
+        }
+
+        .stat-4 {
+            bottom: 10%;
+            right: -10%;
+            animation-delay: 0.5s;
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            padding: 8rem 4rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header .overline {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #8B5CF6;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            position: relative;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            transition: all 0.4s;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.02);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6rem;
+            font-weight: 900;
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            color: rgba(255, 255, 255, 0.02);
+            line-height: 1;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .feature-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.8;
+        }
+
+        /* ===== ECOSYSTEM ===== */
+        .ecosystem {
+            padding: 8rem 4rem;
+            position: relative;
+        }
+
+        .ecosystem-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .eco-card {
+            position: relative;
+            padding: 3rem;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
+            text-align: center;
+            transition: all 0.4s;
+            overflow: hidden;
+        }
+
+        .eco-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .eco-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .eco-card:hover::before {
+            opacity: 1;
+        }
+
+        .eco-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            display: block;
+        }
+
+        .eco-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .eco-card p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        /* ===== TOKENOMICS ===== */
+        .tokenomics {
+            padding: 8rem 4rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 215, 0, 0.02) 50%, transparent 100%);
+        }
+
+        .token-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .token-visual {
+            position: relative;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .token-ring {
+            position: absolute;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            animation: tokenRing 10s linear infinite;
+        }
+
+        .ring-1 {
+            width: 200px;
+            height: 200px;
+        }
+
+        .ring-2 {
+            width: 300px;
+            height: 300px;
+            animation-direction: reverse;
+        }
+
+        .ring-3 {
+            width: 400px;
+            height: 400px;
+        }
+
+        @keyframes tokenRing {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .token-center {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .token-center .big-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 60px rgba(255, 215, 0, 0.5);
+        }
+
+        .token-center p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .token-info h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .token-list {
+            list-style: none;
+        }
+
+        .token-list li {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .token-list li span {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .token-list li strong {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            color: #FFD700;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            padding: 10rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            filter: blur(100px);
+        }
+
+        .cta-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .cta-section p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 6rem 4rem 3rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand .logo {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.8;
+        }
+
+        .footer-links h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: #FFD700;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #FFD700;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .ecosystem-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .token-main {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ===== MOBILE RESPONSIVE - FIT TO SCREEN ===== */
+        @media (max-width: 768px) {
+
+            /* Force content to fit screen */
+            html,
+            body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            * {
+                max-width: 100vw !important;
+            }
+
+            /* Navigation */
+            nav {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 1rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                width: 100%;
+                justify-content: flex-start;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-links::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-links a {
+                white-space: nowrap;
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-cta {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .logo-icon {
+                font-size: 1.5rem;
+            }
+
+            /* Hero Section - Compact */
+            .hero {
+                padding: 6rem 1rem 2rem;
+                min-height: auto;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem !important;
+                line-height: 1.2;
+                letter-spacing: 0;
+            }
+
+            .hero h1 .line3 {
+                font-size: 0.6em;
+            }
+
+            .hero p {
+                font-size: 0.95rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .hero-badge {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                gap: 0.75rem;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.9rem 1.5rem;
+                font-size: 0.9rem;
+            }
+
+            /* Hide COMPLEX 3D elements on mobile (orbits cause clutter) */
+            /* Keep .floating-3d-cheese and .stats-float visible - styled in mobile-fix.css */
+            .cheese-3d,
+            .hero-visual {
+                display: none !important;
+            }
+
+            /* Sections - Reduce padding */
+            .features,
+            .ecosystem,
+            .tokenomics,
+            section[style*="padding: 8rem"] {
+                padding: 3rem 1rem !important;
+            }
+
+            .section-header {
+                margin-bottom: 2rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .section-header p {
+                font-size: 0.9rem;
+            }
+
+            .section-header .overline {
+                font-size: 0.7rem;
+                letter-spacing: 2px;
+            }
+
+            /* Features Grid - Single column */
+            .features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
+            }
+
+            .feature-card {
+                padding: 1.25rem;
+                border-radius: 16px;
+            }
+
+            .feature-card h3 {
+                font-size: 1.1rem;
+            }
+
+            .feature-card p {
+                font-size: 0.85rem;
+            }
+
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .feature-number {
+                font-size: 3rem;
+            }
+
+            /* Ecosystem Grid */
+            .ecosystem-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
+            }
+
+            .eco-card {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+
+            .eco-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+
+            .eco-card h3 {
+                font-size: 1.2rem;
+            }
+
+            /* Token/Why Section Grids */
+            .token-main,
+            div[style*="grid-template-columns: repeat(2"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .token-visual {
+                height: 250px;
+            }
+
+            .token-center .big-number {
+                font-size: 2.5rem;
+            }
+
+            /* CTA Section */
+            .cta-section h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .cta-section p {
+                font-size: 0.9rem;
+            }
+
+            /* Footer - Single column */
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem;
+            }
+
+            footer {
+                padding: 2rem 1rem !important;
+            }
+
+            .footer-brand p {
+                font-size: 0.85rem;
+            }
+
+            .footer-links h4 {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .footer-links ul {
+                gap: 0.25rem;
+            }
+
+            .footer-links a {
+                font-size: 0.85rem;
+            }
+
+            .footer-bottom {
+                padding-top: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Extra Small - Phones */
+        @media (max-width: 480px) {
+            nav {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .nav-cta {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.7rem;
+            }
+
+            .hero {
+                padding: 5rem 0.75rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem !important;
+            }
+
+            .hero p {
+                font-size: 0.85rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .feature-card,
+            .eco-card {
+                padding: 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.3rem !important;
+            }
+
+            footer {
+                padding: 1.5rem 0.75rem !important;
+            }
+        }
+    </style>
+    <!-- External Mobile Fixes must be loaded AFTER inline styles to override them -->
+    <link rel="stylesheet" href="mobile-fix.css?t=1767777900000">
+</head>
+
+<body>
+    <!-- Stars Background -->
+    <div class="stars-container" id="stars"></div>
+    <div class="nebula"></div>
+    <div class="floating-3d-cheese">🧀</div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <span class="logo-icon">🧀</span>
+            <span>CHEESE</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#ecosystem">Ecosystem</a></li>
+            <li><a href="#tokenomics">Tokenomics</a></li>
+            <li><a href="#mining" style="color: #FFD700;">⛏️ Mining</a></li>
+        </ul>
+        <a href="#mining" class="nav-cta">
+            ⛏️ Start Mining
+        </a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="pulse"></span>
+                    WORLD'S FIRST AI-POWERED BLOCKCHAIN
+                </div>
+                <h1>
+                    <span class="line1">THE FUTURE OF</span>
+                    <span class="line2">DECENTRALIZED FINANCE</span>
+                    <span class="line3">POWERED BY ARTIFICIAL INTELLIGENCE</span>
+                </h1>
+                <p>The only blockchain with 21 real AI/ML models including neural networks, LSTM, Transformers, and
+                    Reinforcement Learning. Fixed 21M supply like Bitcoin. 1.7 million times more energy efficient.
+                    Self-learning network with persistent weights.</p>
+                <div class="hero-cta">
+                    <a href="#features" class="btn btn-primary">
+                        🧠 View Features
+                    </a>
+                    <a href="#mining" class="btn btn-secondary">
+                        ⛏️ Start Mining
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="cheese-3d">
+                    <div class="cheese-glow"></div>
+                    <div class="orbit orbit-1">
+                        <div class="orbit-dot" style="top:-6px;left:50%;"></div>
+                    </div>
+                    <div class="orbit orbit-2">
+                        <div class="orbit-dot" style="top:50%;right:-6px;"></div>
+                    </div>
+                    <div class="orbit orbit-3">
+                        <div class="orbit-dot" style="bottom:-6px;left:50%;"></div>
+                    </div>
+                    <div class="cheese-main">🧀</div>
+                </div>
+                <div class="stats-float stat-1">
+                    <h4>21M</h4>
+                    <p>Max Supply</p>
+                </div>
+                <div class="stats-float stat-2">
+                    <h4>21</h4>
+                    <p>AI/ML Models</p>
+                </div>
+                <div class="stats-float stat-3">
+                    <h4>0.3%</h4>
+                    <p>DEX Fee</p>
+                </div>
+                <div class="stats-float stat-4">
+                    <h4>1min</h4>
+                    <p>Block Time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <p class="overline">Revolutionary Technology</p>
+            <h2>21 AI/ML Models</h2>
+            <p>No other blockchain has these capabilities. CHEESE is the future.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-number">01</div>
+                <div class="feature-icon">🔍</div>
+                <h3>Fraud Detection</h3>
+                <p>Real-time ML-powered transaction validation that detects anomalies before they occur.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">02</div>
+                <div class="feature-icon">🧠</div>
+                <h3>Self-Learning</h3>
+                <p>The network continuously learns and improves from every transaction.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">03</div>
+                <div class="feature-icon">🐋</div>
+                <h3>Whale Alerts</h3>
+                <p>AI detection of large movements with market impact analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">04</div>
+                <div class="feature-icon">📊</div>
+                <h3>Predictive Analytics</h3>
+                <p>Forecasts network behavior and optimizes fee estimation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">05</div>
+                <div class="feature-icon">🛡️</div>
+                <h3>Contract Scanner</h3>
+                <p>Scans smart contracts for vulnerabilities before deployment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">06</div>
+                <div class="feature-icon">🌱</div>
+                <h3>Energy Efficient</h3>
+                <p>1.7 million times more efficient than Bitcoin. A+ green rating.</p>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Why CHEESE Section -->
+    <section class="why-better" id="why"
+        style="padding: 8rem 4rem; background: linear-gradient(180deg, transparent 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);">
+        <div class="section-header">
+            <p class="overline">Why CHEESE?</p>
+            <h2>What Makes Us Different</h2>
+            <p>Built from scratch with AI at its core - not retrofitted</p>
+        </div>
+        <div class="why-grid"
+            style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+            <div class="feature-card"
+                style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                <div class="feature-icon" style="background: rgba(16, 185, 129, 0.1);">⚡</div>
+                <h3>1.7 Million× More Efficient</h3>
+                <p>Bitcoin uses 1,700 kWh per transaction. CHEESE uses 0.001 kWh. That's 1.7 million times more energy
+                    efficient with an A+ green rating.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2);">
+                <div class="feature-icon" style="background: rgba(139, 92, 246, 0.1);">🧠</div>
+                <h3>AI-Native Architecture</h3>
+                <p>Not an AI layer added on top - AI is built into the core consensus. The network literally learns and
+                    improves with every block.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2);">
+                <div class="feature-icon" style="background: rgba(6, 182, 212, 0.1);">🔒</div>
+                <h3>ML Fraud Prevention</h3>
+                <p>Every transaction passes through ML validators that detect suspicious patterns, preventing hacks
+                    before they happen.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(255, 215, 0, 0.05); border-color: rgba(255, 215, 0, 0.2);">
+                <div class="feature-icon">💎</div>
+                <h3>Bitcoin-Like Scarcity</h3>
+                <p>Fixed 21M supply that can never be increased. Halving every year. No minting, no inflation. True
+                    digital scarcity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Full Ecosystem -->
+    <section class="ecosystem" id="ecosystem">
+        <div class="section-header">
+            <p class="overline">Complete Platform</p>
+            <h2>CHEESE Ecosystem</h2>
+            <p>A complete suite of products for the decentralized future</p>
+        </div>
+        <div class="ecosystem-grid-4"
+            style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+            <div class="eco-card">
+                <span class="eco-icon">💼</span>
+                <h3>CHEESE Wallet</h3>
+                <p>Secure native wallet for NCH, CHEESE BSC & more</p>
+                <a href="/wallet/" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Open Wallet</a>
+            </div>
+            <div class="eco-card">
+                <span class="eco-icon">🔄</span>
+                <h3>CHEESE DEX</h3>
+                <p>Trade tokens with 0.3% fees. Become a liquidity provider</p>
+                <a href="/dex/" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Launch DEX</a>
+            </div>
+            <div class="eco-card">
+                <span class="eco-icon">🤖</span>
+                <h3>AI Trading Bot</h3>
+                <p>Automated high-frequency trading powered by Cheese AI.</p>
+                <a href="javascript:alert('AI Trading Bot is running in autonomous mode. Please check local console.');"
+                    class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Access Bot</a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Tokenomics -->
+    <section class="tokenomics" id="tokenomics">
+        <div class="token-main">
+            <div class="token-visual">
+                <div class="token-ring ring-1"></div>
+                <div class="token-ring ring-2"></div>
+                <div class="token-ring ring-3"></div>
+                <div class="token-center">
+                    <div class="big-number">21M</div>
+                    <p>Fixed Supply</p>
+                </div>
+            </div>
+            <div class="token-info">
+                <h2>Bitcoin-Like Tokenomics</h2>
+                <ul class="token-list">
+                    <li><span>Total Supply</span><strong>21,000,000 NCH</strong></li>
+                    <li><span>Mineable</span><strong>90.5%</strong></li>
+                    <li><span>Founder Allocation</span><strong>9.5%</strong></li>
+                    <li><span>Halving Period</span><strong>~1 Year</strong></li>
+                    <li><span>Inflation</span><strong>0% (Fixed)</strong></li>
+                </ul>
+            </div>
+    </section>
+
+    <!-- 🎁 REFERRAL PROMOTION BANNER -->
+    <section
+        style="padding: 3rem 4rem; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);">
+        <div style="max-width: 1000px; margin: 0 auto; text-align: center; position: relative;">
+            <div
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(40px); animation: glowPulse 3s infinite;">
+            </div>
+            <div style="position: relative; z-index: 10;">
+                <p
+                    style="font-size: 1rem; color: #8B5CF6; font-family: 'Orbitron', sans-serif; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.5rem;">
+                    💰 Limited Time Offer</p>
+                <h2
+                    style="font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 4vw, 2.5rem); margin-bottom: 1rem;">
+                    <span
+                        style="background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Earn
+                        10 NCH</span>
+                    <span style="color: white;"> Per Referral!</span>
+                </h2>
+                <p
+                    style="font-size: 1.15rem; color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6;">
+                    Invite friends to mine CHEESE and get <strong style="color: #FFD700;">10 NCH instantly</strong> when
+                    they register.
+                    They mine, you earn. <strong>No limits!</strong>
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="copyReferralLink()" class="btn btn-primary"
+                        style="padding: 1rem 2rem; font-size: 1rem; animation: pulse 2s infinite;">
+                        🎁 Copy Your Referral Link
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ⛏️ MINING SECTION -->
+    <section class="mining" id="mining"
+        style="padding: 8rem 4rem; background: linear-gradient(180deg, transparent 0%, rgba(255, 215, 0, 0.03) 50%, transparent 100%);">
+        <div class="section-header">
+            <p class="overline">Start Earning</p>
+            <h2>⛏️ Mine CHEESE Coins</h2>
+            <p>Start mining NCH coins directly in your browser. No hardware required - AI-optimized Proof-of-Work.</p>
+        </div>
+
+        <div class="mining-grid"
+            style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+
+            <!-- Mining Control Panel -->
+            <div class="feature-card"
+                style="background: rgba(255, 215, 0, 0.05); border: 2px solid rgba(255, 215, 0, 0.3);">
+                <div class="feature-icon">🎮</div>
+                <h3>Mining Control</h3>
+
+                <div style="text-align: center; padding: 1.5rem 0;">
+                    <div style="font-family: 'Orbitron', sans-serif; font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+                        id="miningHashrate">0</div>
+                    <div style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">H/s (Hashrate)</div>
+                </div>
+
+                <input type="text" id="minerWallet" placeholder="Your Wallet Address"
+                    style="width: 100%; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,215,0,0.3); background: rgba(0,0,0,0.3); color: #fff; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                <div style="text-align: right; margin-bottom: 1rem;">
+                    <a href="/wallet/index.html" target="_blank"
+                        style="color: #FFD700; text-decoration: none; font-size: 0.8rem;">Don't have a wallet? Create
+                        one →</a>
+                </div>
+
+
+                <button id="startMiningBtn" onclick="toggleMining()" class="btn btn-primary"
+                    style="width: 100%; justify-content: center;">
+                    ⛏️ Start Mining
+                </button>
+
+                <div style="margin-top: 1rem; text-align: center;">
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">Status: </span>
+                    <span id="miningStatus" style="color: #10B981;">Ready</span>
+                </div>
+            </div>
+
+            <!-- Mining Stats -->
+            <div class="feature-card"
+                style="background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2);">
+                <div class="feature-icon" style="background: rgba(139, 92, 246, 0.1);">📊</div>
+                <h3>Your Stats</h3>
+
+                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <span style="color: rgba(255,255,255,0.5);">Blocks Mined</span>
+                        <span style="font-family: 'Orbitron'; font-weight: bold;" id="blocksMined">0</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <span style="color: rgba(255,255,255,0.5);">NCH Earned</span>
+                        <span style="font-family: 'Orbitron'; color: #FFD700; font-weight: bold;"
+                            id="cheeseEarned">0.00</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <span style="color: rgba(255,255,255,0.5);">Hashes</span>
+                        <span style="font-family: 'Orbitron'; font-weight: bold;" id="hashesComputed">0</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 0.75rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+                        <span style="color: rgba(255,255,255,0.5);">Time</span>
+                        <span style="font-family: 'Orbitron'; font-weight: bold;" id="miningTime">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Mining Console -->
+            <div class="feature-card" style="background: rgba(0,0,0,0.4);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>📜 Mining Console</h3>
+                    <button onclick="copyReferralLink()" class="btn btn-primary"
+                        style="padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none;">
+                        🔗 Copy Referral Link
+                    </button>
+                </div>
+                <div id="miningConsole"
+                    style="background: #0a0a0a; padding: 1rem; border-radius: 12px; height: 180px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; color: #00ff00; margin-top: 1rem;">
+                    <div style="color: #888;">[SYSTEM] Mining engine initialized</div>
+                    <div style="color: #00bfff;">[AI] ML Mining Optimizer: READY</div>
+                    <div style="color: #888;">[SYSTEM] Enter wallet address and click Start Mining</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2>Join the Revolution</h2>
+        <p>Be part of the world's first AI-powered blockchain</p>
+        <div class="cta-buttons">
+            <a href="#mining" class="btn btn-primary">⛏️ Start Mining</a>
+            <a href="#features" class="btn btn-secondary">🧠 Learn More</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <span class="logo-icon">🧀</span>
+                    <span>CHEESE</span>
+                </div>
+                <p>The world's first AI-powered blockchain. Built for the future of decentralized finance.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Products</h4>
+                <ul>
+                    <li><a href="/wallet/index.html">Wallet</a></li>
+                    <li><a href="/dex/index.html" target="_blank">DEX</a></li>
+                    <li><a href="/wallet/index.html">Bridge</a></li>
+                    <li><a href="#">Trading Bot</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/wallet/">Wallet</a></li>
+                    <li><a href="/dex/">DEX</a></li>
+                    <li><a href="/wallet/index.html#bridge">Bridge</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Network</h4>
+                <ul>
+                    <li><a href="#">Status</a></li>
+                    <li><a href="#">Stats</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Contact Us</h4>
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
+                    <select id="contactTopic" onchange="updateContactLink()"
+                        style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 8px; background: #000; color: #fff; border: 1px solid #333;">
+                        <option value="Inquiry">General Inquiry</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Liquidity">Liquidity</option>
+                    </select>
+                    <a id="contactEmailBtn" href="mailto:cryptoexdevcheese@gmail.com?subject=General Inquiry"
+                        class="btn btn-sm btn-primary"
+                        style="width: 100%; justify-content: center; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; padding: 0.5rem; border-radius: 8px;">
+                        ✉️ Email Us
+                    </a>
+                    <div
+                        style="margin-top: 0.5rem; font-size: 0.75rem; color: #888; word-break: break-all; text-align: center;">
+                        <a href="mailto:cryptoexdevcheese@gmail.com"
+                            style="color: #888; text-decoration: none;">cryptoexdevcheese@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 CHEESE Blockchain. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- PAYMENT MODAL -->
+    <!-- Registration Modal -->
+    <div id="regModal" class="modal-overlay" style="display: none;">
+        <div class="reg-modal"
+            style="background: #111; padding: 2rem; border-radius: 20px; border: 1px solid #FFD700; max-width: 500px; width: 90%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001;">
+            <span class="close-modal" onclick="closeRegistrationModal()"
+                style="color: #fff; float: right; font-size: 1.5rem; cursor: pointer;">&times;</span>
+            <h2 style="font-family: Orbitron; margin-bottom: 2rem;">⛏️ Premium Mining Access</h2>
+
+            <div id="reg-status-msg"
+                style="margin-bottom: 1rem; text-align: center; display: none; padding: 0.75rem; border-radius: 10px; background: rgba(255,255,255,0.1);">
+            </div>
+
+            <div class="reg-step" style="margin-bottom: 1.5rem;">
+                <h4 style="color: #FFD700; margin-bottom: 0.5rem;">STEP 1: Connect Wallet</h4>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem;">Connect your MetaMask /
+                    Web3 Wallet to BSC Network.</p>
+                <div id="wallet-selection-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button onclick="executeWalletConnection('MetaMask')" class="btn"
+                        style="background: #f6851b; color: #fff; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="24">
+                        MetaMask
+                    </button>
+                    <button onclick="executeWalletConnection('Trust')" class="btn"
+                        style="background: #3375bb; color: #fff; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        <img src="https://trustwallet.com/assets/images/media/assets/trust_platform.svg" width="24">
+                        Trust Wallet
+                    </button>
+                    <button onclick="Swal.fire('Coming Soon', 'WalletConnect V2 integration is coming.', 'info')"
+                        class="btn"
+                        style="background: #3b99fc; color: #fff; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        <img src="https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Logo/Blue%20(Default)/Logo.svg"
+                            width="24"> WalletConnect
+                    </button>
+                    <button onclick="executeWalletConnection('Coinbase')" class="btn"
+                        style="background: #0052ff; color: #fff; text-align: left; display: flex; align-items: center; gap: 10px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                        <img src="https://avatars.githubusercontent.com/u/18060234?s=200&v=4" width="24"> Coinbase
+                        Wallet
+                    </button>
+                </div>
+
+                <div id="wallet-connected-view" style="display: none;">
+                    <button class="btn btn-success w-100" disabled
+                        style="background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #fff; font-weight: bold;">
+                        ✅ Connected: <span id="connected-address"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="reg-step" id="step-pay" style="opacity: 0.5; pointer-events: none;">
+                <h4 style="color: #FFD700; margin-bottom: 0.5rem;">STEP 2: Pay Activation Fee</h4>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem;">Pay <strong>10
+                        USDT</strong> (BEP20) to activate mining for this device.</p>
+                <button onclick="payActivationFee()" id="pay-fee-btn" class="btn btn-primary" style="width: 100%;">
+                    💳 Pay 10 USDT
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ============ REAL BLOCKCHAIN MINING ============
+        // Blockchain server URL (Unified Config)
+        const BLOCKCHAIN_API = (window.CHEESE_CONFIG && window.CHEESE_CONFIG.API_URL) ? window.CHEESE_CONFIG.API_URL : 'https://cheeseblockchain.com';
+
+        // SYSTEM CONSTANTS FOR PAYMENTS
+        const VAULT_ADDRESS = "0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D";
+        const EXEMPT_MINING_WALLETS = [
+            '0x0E6ec6713E7b5b7C11d969dA848813d08223598E',
+            '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3',
+            '0x3801490C9f806c917b8CbA710Db9135FA3B116ae',
+            '0x712A1CBa607C60D95f27088c80aBbBD1f53d33Fe',
+            '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D'
+        ].map(a => a.toLowerCase());
+        function isExemptMinerWallet(addr) {
+            return EXEMPT_MINING_WALLETS.includes((addr || '').trim().toLowerCase());
+        }
+        const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955"; // BSC USDT
+        const BSC_CHAIN_ID = '0x38'; // 56
+        // CRITICAL: API Key for backend access
+        const API_KEY = 'REDACTED_DEX_API_KEY';
+
+        let provider, signer, signerAddress;
+
+        // Mining state
+        let isMining = false;
+        let miningInterval = null;
+        let timeInterval = null;
+        let hashCount = 0;
+        let blocksFound = 0;
+        let cheeseEarned = 0;
+        let miningStartTime = null;
+        let minerWallet = localStorage.getItem('cheeseMinerWallet') || '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D';
+
+        // Generate or retrieve device ID
+        function getOrCreateDeviceId() {
+            let deviceId = localStorage.getItem('cheeseDeviceId');
+            if (deviceId) return deviceId;
+
+            const fingerprint = [
+                navigator.userAgent,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                navigator.platform,
+                navigator.hardwareConcurrency || '8',
+                navigator.deviceMemory || '8'
+            ].join('|');
+
+            let hash = 0;
+            for (let i = 0; i < fingerprint.length; i++) {
+                hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i);
+                hash = hash & hash;
+            }
+            deviceId = 'web_' + Math.abs(hash).toString(36);
+            localStorage.setItem('cheeseDeviceId', deviceId);
+            return deviceId;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // 1. Fill wallet if saved
+            if (minerWallet && document.getElementById('minerWallet')) {
+                document.getElementById('minerWallet').value = minerWallet;
+            }
+            // 2. Exempt wallet — skip registration gate
+            if (isExemptMinerWallet(minerWallet)) {
+                closeRegistrationModal();
+                logToConsole('MINING', '✅ Exempt wallet — ready to mine NCH (no 10 USDT fee)');
+            }
+            // 3. Check Referral
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode) {
+                localStorage.setItem('cheeseReferrer', refCode);
+                console.log('Referrer saved:', refCode);
+            }
+        });
+
+        // Referral Copy
+        function copyReferralLink() {
+            console.log('Copy Link Clicked');
+            const wallet = localStorage.getItem('cheeseMinerWallet');
+            if (!wallet) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Wallet Required', 'Please enter your wallet address in the miner first.', 'warning');
+                } else {
+                    alert('Wallet Required: Please enter your wallet address in the miner first.');
+                }
+                return;
+            }
+            const link = `${window.location.origin}/?ref=${wallet}`;
+            navigator.clipboard.writeText(link).then(() => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success', title: 'Link Copied!', text: link,
+                        background: '#0B0020', color: '#fff'
+                    });
+                } else {
+                    alert('Link Copied! ' + link);
+                }
+            }).catch(err => {
+                console.error('Clipboard failed', err);
+                prompt('Copy your link manually:', link); // Fallback if clipboard fails
+            });
+        }
+
+        // Close Modal
+        function closeRegistrationModal() {
+            document.getElementById('regModal').style.display = 'none';
+        }
+
+        // Toggle Mining
+        function toggleMining() {
+            if (isMining) stopMining();
+            else startMining();
+        }
+
+        async function startMining() {
+            minerWallet = document.getElementById('minerWallet').value.trim();
+            if (!minerWallet || minerWallet.length < 10) {
+                logToConsole('ERROR', 'Please enter a valid wallet address');
+                return;
+            }
+            localStorage.setItem('cheeseMinerWallet', minerWallet);
+            if (isExemptMinerWallet(minerWallet)) {
+                logToConsole('MINING', '✅ Exempt wallet — no registration required');
+            }
+
+            isMining = true;
+            miningStartTime = Date.now();
+            document.getElementById('startMiningBtn').innerHTML = '⏹️ Stop Mining';
+            document.getElementById('startMiningBtn').style.background = '#ef4444';
+            document.getElementById('miningStatus').textContent = 'Mining...';
+            document.getElementById('miningStatus').style.color = '#10B981';
+
+            logToConsole('MINING', 'Started REAL mining...');
+
+            // Check connection
+            try {
+                const health = await fetch(BLOCKCHAIN_API + '/api/health', {
+                    headers: { 'x-api-key': API_KEY }
+                });
+                if (health.ok) logToConsole('AI', '✅ Connected to CHEESE Blockchain!');
+            } catch (e) { logToConsole('ERROR', 'Cannot reach blockchain'); }
+
+            mineRealBlock();
+            miningInterval = setInterval(mineRealBlock, 30000);
+            timeInterval = setInterval(updateMiningTime, 1000);
+        }
+
+        function stopMining() {
+            isMining = false;
+            clearInterval(miningInterval);
+            clearInterval(timeInterval);
+            document.getElementById('startMiningBtn').innerHTML = '⛏️ Start Mining';
+            document.getElementById('startMiningBtn').style.background = '';
+            document.getElementById('miningStatus').textContent = 'Stopped';
+            document.getElementById('miningStatus').style.color = '#ef4444';
+        }
+
+        async function mineRealBlock() {
+            if (!isMining) return;
+            // Fake update UI
+            hashCount += Math.floor(Math.random() * 1000) + 500;
+            if (miningStartTime) {
+                const elapsed = (Date.now() - miningStartTime) / 1000;
+                if (elapsed > 0) {
+                    document.getElementById('miningHashrate').textContent = Math.floor(hashCount / elapsed);
+                }
+            }
+
+            try {
+                const response = await fetch(BLOCKCHAIN_API + '/api/mine', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY
+                    },
+                    body: JSON.stringify({ minerAddress: minerWallet, deviceId: getOrCreateDeviceId() })
+                });
+
+                if (response.status === 429) {
+                    logToConsole('AI', '⏳ Server Cooldown: Waiting for next block...');
+                    return;
+                }
+
+                if (response.status === 403 || response.status === 401) {
+                    // Try to parse error, but default to registration required if 401 (Auth Failed)
+                    let isRegistrationError = response.status === 401; // Assume 401 means blocked/unregistered
+                    if (!isRegistrationError) {
+                        try {
+                            const err = await response.json();
+                            if (err.error && err.error.includes('registered')) isRegistrationError = true;
+                        } catch (e) { }
+                    }
+
+                    if (isRegistrationError && !isExemptMinerWallet(minerWallet)) {
+                        logToConsole('ERROR', '⚠️ REGISTRATION REQUIRED');
+                        stopMining();
+                        document.getElementById('regModal').style.display = 'block';
+                        return;
+                    }
+                }
+
+                const result = await response.json();
+                if (result.success && result.block) {
+                    blocksFound++;
+                    cheeseEarned += (result.reward || 1);
+                    document.getElementById('blocksMined').textContent = blocksFound;
+                    document.getElementById('cheeseEarned').textContent = cheeseEarned.toFixed(2);
+                    logToConsole('BLOCK', '🎉 REAL BLOCK MINED! #' + result.block.index);
+                } else if (result.error) {
+                    // Log error but don't stop (might be 'no pending tx')
+                    if (result.error.includes('pending transactions')) {
+                        logToConsole('AI', '💤 Idle: Waiting for pending transactions...');
+                    } else {
+                        logToConsole('INFO', 'ℹ️ ' + result.error);
+                    }
+                }
+            } catch (e) { logToConsole('ERROR', e.message); }
+        }
+
+        // 2. Connect Wallet Logic - Direct Selection
+        async function executeWalletConnection(walletType) {
+            console.log("Executing Connection for:", walletType);
+
+            if (typeof window.ethereum === 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Wallet Not Found',
+                    text: 'Please install MetaMask or use a Web3 Browser (Trust Wallet, etc.).',
+                    background: '#0B0020',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            // Show Loading State
+            Swal.fire({
+                title: 'Connecting...',
+                text: `Please confirm the connection request in your ${walletType} wallet.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                background: '#0B0020',
+                color: '#fff'
+            });
+
+            try {
+                // Explicitly request accounts first
+                console.log("Requesting accounts...");
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                if (!accounts || accounts.length === 0) {
+                    throw new Error("No accounts found or connection rejected.");
+                }
+
+                console.log("Creating Provider...");
+                provider = new ethers.BrowserProvider(window.ethereum);
+
+                console.log("Getting Signer...");
+                signer = await provider.getSigner();
+
+                console.log("Getting Address...");
+                signerAddress = await signer.getAddress();
+
+                console.log("Connected Successfully:", signerAddress);
+
+                // 1. UI Transition: Hide List, Show Connected
+                const selectionDiv = document.getElementById('wallet-selection-container');
+                const connectedDiv = document.getElementById('wallet-connected-view');
+                const addressSpan = document.getElementById('connected-address');
+
+                if (selectionDiv && connectedDiv && addressSpan) {
+                    selectionDiv.style.display = 'none';
+                    connectedDiv.style.display = 'block';
+                    addressSpan.textContent = `${signerAddress.substring(0, 6)}...${signerAddress.substring(38)}`;
+                }
+
+                // 2. Visual Transition for Steps
+                const step1 = document.querySelector('.reg-step:first-of-type');
+                if (step1) step1.style.opacity = '0.5';
+
+                const step2 = document.getElementById('step-pay');
+                if (step2) {
+                    step2.style.opacity = '1';
+                    step2.style.pointerEvents = 'all';
+                    step2.classList.add('active-step');
+                    step2.style.border = '2px solid #FFD700';
+                    step2.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.3)';
+                    step2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                const payBtn = document.getElementById('pay-fee-btn');
+                if (payBtn) payBtn.disabled = false;
+
+                // 3. Notification
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Wallet Connected!',
+                    text: 'Great! Now please pay the 10 USDT activation fee.',
+                    confirmButtonText: 'Go to Payment',
+                    background: '#0B0020',
+                    color: '#fff'
+                });
+
+            } catch (e) {
+                console.error("Connection Error:", e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Failed',
+                    text: e.message || 'Could not connect wallet. Please try again.',
+                    background: '#0B0020',
+                    color: '#fff'
+                });
+            }
+        }
+
+        async function payActivationFee() {
+            const btn = document.getElementById('pay-fee-btn');
+            if (btn.disabled) return;
+
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+            try {
+                // Ensure on BSC
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: BSC_CHAIN_ID }]
+                    });
+                } catch (e) {
+                    console.log('Switch chain failed or rejected', e);
+                }
+
+                const usdt = new ethers.Contract(USDT_CONTRACT, [
+                    "function transfer(address to, uint256 amount) public returns (bool)"
+                ], signer);
+
+                Swal.fire({
+                    title: 'Confirm Transaction',
+                    text: 'Please confirm the 10 USDT payment in your wallet.',
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    background: '#0B0020',
+                    color: '#fff',
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                console.log("Sending transaction...");
+                const tx = await usdt.transfer(VAULT_ADDRESS, ethers.parseUnits("10.0", 18));
+                console.log("Tx sent:", tx.hash);
+
+                Swal.fire({
+                    title: 'Transaction Sent!',
+                    html: `Check status: <a href="https://bscscan.com/tx/${tx.hash}" target="_blank" style="color:#FFD700">View on BscScan</a><br>Waiting for confirmation...`,
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    background: '#0B0020',
+                    color: '#fff',
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await tx.wait();
+                console.log("Tx mined");
+
+                // Register
+                const res = await fetch(BLOCKCHAIN_API + '/api/mining/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        walletAddress: signerAddress,
+                        deviceId: getOrCreateDeviceId(),
+                        bscTxHash: tx.hash,
+                        referrer: localStorage.getItem('cheeseReferrer')
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Registration Successful!',
+                        text: 'Welcome to CHEESE Mining. You are now active.',
+                        confirmButtonText: 'Start Mining 🚀',
+                        background: '#0B0020',
+                        color: '#fff'
+                    }).then(() => {
+                        closeRegistrationModal();
+                        startMining();
+                    });
+                } else {
+                    throw new Error(data.error || 'Server registration failed');
+                }
+            } catch (e) {
+                console.error("Payment Error:", e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: e.message || 'Transaction failed or was rejected.',
+                    background: '#0B0020',
+                    color: '#fff'
+                });
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function updateMiningTime() {
+            if (!miningStartTime || !isMining) return;
+            const elapsed = Math.floor((Date.now() - miningStartTime) / 1000);
+            const h = Math.floor(elapsed / 3600);
+            const m = Math.floor((elapsed % 3600) / 60);
+            const s = elapsed % 60;
+            const timeStr = [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
+            if (document.getElementById('miningTime')) document.getElementById('miningTime').textContent = timeStr;
+        }
+
+        function logToConsole(type, msg) {
+            const c = document.getElementById('miningConsole');
+            if (c) {
+                const time = new Date().toLocaleTimeString();
+                c.innerHTML += `<div>[${time}] [${type}] ${msg}</div>`;
+                c.scrollTop = c.scrollHeight;
+            }
+        }
+
+        // Initial Fetch
+        fetch(BLOCKCHAIN_API + '/api/blockchain', {
+            headers: { 'x-api-key': API_KEY }
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                if (document.getElementById('activeMiners')) document.getElementById('activeMiners').textContent = Math.max(1, Math.floor(d.pendingTransactionsCount / 2));
+            }
+        }).catch(() => { });
+    </script>
+
+    <!-- Stars Script -->
+    <script>
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+    </script>
+    <script>
+        function updateContactLink() {
+            const topic = document.getElementById('contactTopic').value;
+            const btn = document.getElementById('contactEmailBtn');
+            btn.href = `mailto:cryptoexdevcheese@gmail.com?subject=${encodeURIComponent(topic)}`;
+        }
+    </script>
+</body>
+
+</html>

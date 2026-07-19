@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🧀 CHEESE Native Wallet - Educational Blockchain Platform</title>
+
+    <!-- PWA Configuration -->
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CHEESE Wallet">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="manifest" href="./manifest.json?v=3.2">
+
+    <!-- Icons -->
+    <link rel="icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css?v=3.5">
+    <script>
+        // Force reload if new version detected
+        try {
+            const version = '4.6';
+            if (localStorage.getItem('backupVersion') !== version) {
+                console.log('New Backup version detected. Clearing cache and forcing reload...');
+                localStorage.setItem('backupVersion', version);
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                window.location.reload(true);
+            }
+        } catch (e) { }
+    </script>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            // Register stable service worker version
+            navigator.serviceWorker.register('./sw.js', {
+                updateViaCache: 'none'
+            }).then(registration => {
+                console.log('✅ Service Worker registered:', registration.scope);
+                
+                // Trigger an update check immediately
+                registration.update();
+                
+                // If a new service worker is installed, reload the page to load new assets
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('New Service Worker version installed. Reloading...');
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
+            }).catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'CLEAR_PRICE_CACHE') {
+                    try {
+                        const cached = localStorage.getItem('cheeseTokenPrices');
+                        if (cached) {
+                            const prices = JSON.parse(cached);
+                            if (prices['NCH']) {
+                                delete prices['NCH'];
+                                localStorage.setItem('cheeseTokenPrices', JSON.stringify(prices));
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error clearing price cache:', e);
+                    }
+                }
+            });
+
+            // Skip waiting if requested
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+            }
+        }
+    </script>
+</head>
+
+<body style="padding-top: 0;">
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="./icon-192.png" alt="CHEESE Logo" class="logo-img"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div class="logo-text" style="display: none;">🧀 CHEESE Native Wallet</div>
+        </div>
+        <div class="network-status" id="network-status">🟢 Online</div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn active" data-screen="home">🏠 Home</button>
+        <button class="nav-btn" data-screen="portfolio">📊 Portfolio</button>
+        <button class="nav-btn" data-screen="buy">💰 Buy</button>
+        <button class="nav-btn" data-screen="sell">💸 Sell</button>
+        <button class="nav-btn" data-screen="swap">🔄 Swap</button>
+        <!-- wNCH bridge retired -->
+        <button class="nav-btn" data-screen="p2p">🤝 P2P</button>
+        <button class="nav-btn" data-screen="connect">🔌 Connect</button>
+        <button class="nav-btn" data-screen="notary">📜 Notary</button>
+        <button class="nav-btn" data-screen="settings">⚙️ Settings</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <!-- No Wallet Section -->
+            <div id="no-wallet-section" class="card">
+                <div class="welcome-logo">
+                    <img src="./icon-192.png" alt="CHEESE Logo" class="welcome-logo-img"
+                        onerror="this.style.display='none';">
+                </div>
+                <h2>Welcome to CHEESE Native Wallet</h2>
+                <p>Create a new wallet or import an existing one</p>
+                <div class="wallet-actions">
+                    <button type="button" id="create-wallet-btn" class="btn btn-primary" onclick="app.showCreateWalletModal()">Create New Wallet</button>
+                    <button type="button" id="import-wallet-btn" class="btn btn-secondary" onclick="app.importWallet()">Import Wallet</button>
+                    <button type="button" id="add-wallet-btn" class="btn btn-secondary" style="margin-top: 10px;" onclick="app.showCreateWalletModal()">Add Wallet</button>
+                </div>
+            </div>
+
+
+
+            <!-- Login Section (for existing wallets) -->
+            <div id="login-section" class="card" style="display: none;">
+                <div class="welcome-logo">
+                    <img src="./icon-192.png" alt="CHEESE Logo" class="welcome-logo-img"
+                        onerror="this.style.display='none';">
+                </div>
+                <h2>Access Your Wallet</h2>
+                <div id="wallet-info-preview" class="wallet-info-preview">
+                    <p>Wallet found in this browser</p>
+                </div>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="login-password">Password <span id="password-required-indicator"
+                                style="color: #dc3545; display: none;">*</span></label>
+                        <input type="password" id="login-password" placeholder="Enter your wallet password"
+                            autocomplete="current-password" required>
+                        <div class="form-hint" id="password-hint">Enter your password to unlock your wallet</div>
+                        <div style="margin-top: 5px;">
+                            <label style="font-size: 0.9em; display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="show-password-checkbox" style="margin-right: 5px;">
+                                Show password
+                            </label>
+                        </div>
+                    </div>
+                    <div class="login-actions">
+                        <button id="login-btn" class="btn btn-primary">Unlock Wallet</button>
+                        <button id="cancel-login-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                    <div id="biometric-login-section" style="margin-top: 15px; display: none;">
+                        <button id="biometric-login-btn" class="btn"
+                            style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1em; cursor: pointer;">
+                            <span id="biometric-icon">👆</span> <span id="biometric-text">Use Biometric</span>
+                        </button>
+                        <div id="biometric-status"
+                            style="margin-top: 10px; font-size: 0.85em; color: #666; text-align: center;"></div>
+                    </div>
+                    <div class="login-options">
+                        <button id="import-wallet-login-btn" class="btn btn-link">Import Different Wallet</button>
+                        <button id="forgot-password-btn" class="btn btn-link">Forgot Password?</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Section -->
+            <div id="wallet-section" class="card" style="display: none;">
+                <div class="balance-section">
+                    <div class="balance-logo-container" style="text-align: center; margin-bottom: 15px;">
+                        <img src="./icon-192.png" alt="NCH" style="width: 80px; height: 80px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border: 2px solid #fff;">
+                    </div>
+                    <h3>Your Balance</h3>
+                    <div class="balance-amount" id="balance">0.00</div>
+                    <div class="balance-label">NCH</div>
+                    <div class="balance-usd" id="balance-usd">≈ $0.00 USD</div>
+                </div>
+
+                <div class="wallet-address">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div class="address-label">Wallet Address</div>
+                        <select id="network-selector"
+                            style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85em; background: white;">
+                            <option value="cheese-native">🧀 Native Chain</option>
+                            <option value="bsc">🔵 BSC</option>
+                            <option value="ethereum">💎 Ethereum</option>
+                        </select>
+                    </div>
+                    <div class="address-value" id="wallet-address">-</div>
+                    <div class="address-actions">
+                        <button class="btn btn-small" id="copy-address-btn">📋 Copy</button>
+                        <button class="btn btn-small" id="share-address-btn">📤 Share</button>
+                        <button class="btn btn-small" id="qr-address-btn">📷 QR</button>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button id="send-btn" class="btn btn-action">📤 Send</button>
+                    <button id="receive-btn" class="btn btn-action">📥 Receive</button>
+                    <button id="buy-btn" class="btn btn-action">💰 Buy</button>
+                    <button id="sell-btn" class="btn btn-action">💸 Sell</button>
+                    <button id="swap-btn" class="btn btn-action">🔄 Swap</button>
+                    <button id="notary-quick-btn" class="btn btn-action">📜 Notary</button>
+                </div>
+
+                <!-- Portfolio Quick View -->
+                <div class="portfolio-quick-view">
+                    <button class="btn btn-secondary btn-small" onclick="window.app.showPortfolio()">📊 View Portfolio</button>
+                </div>
+
+                <div class="transactions-section">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <div class="transaction-filters">
+                            <select id="tx-filter-type" class="filter-select">
+                                <option value="all">All</option>
+                                <option value="sent">Sent</option>
+                                <option value="received">Received</option>
+                            </select>
+                            <input type="text" id="tx-search" class="filter-search" placeholder="Search...">
+                        </div>
+                    </div>
+                    <div id="transactions-list" class="transactions-list">
+                        <p>Loading...</p>
+                    </div>
+                    <button class="btn btn-secondary btn-small" id="view-all-tx-btn"
+                        onclick="window.app.showAllTransactions()">View All Transactions</button>
+                </div>
+
+                <div class="mining-section">
+                    <h3>⛏️ Mobile Mining</h3>
+                    <div class="mining-controls">
+                        <button id="start-mining-btn" class="btn btn-primary">🚀 Start Mining</button>
+                        <button id="stop-mining-btn" class="btn btn-danger" style="display: none;">⏹️ Stop
+                            Mining</button>
+                    </div>
+                    <div id="mining-stats" class="mining-stats" style="display: none;">
+                        <div class="stat-item">
+                            <span class="stat-label">Hash Rate:</span>
+                            <span class="stat-value" id="hash-rate">0 H/s</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Hashes:</span>
+                            <span class="stat-value" id="total-hashes">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Blocks Found:</span>
+                            <span class="stat-value" id="blocks-found">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Difficulty:</span>
+                            <span class="stat-value" id="mining-difficulty">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Mining Time:</span>
+                            <span class="stat-value" id="mining-time">00:00:00</span>
+                        </div>
+                    </div>
+                    <div class="mining-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="mobile-mode-checkbox" checked>
+                            <span>Battery Saver Mode</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="background-mining-checkbox">
+                            <span>Mine in Background</span>
+                        </label>
+                    </div>
+                    <p class="info-text">Use your device to mine blocks and earn NCheese rewards</p>
+                </div>
+            </div>
+
+            <!-- Browser Extension Download Card -->
+            <div id="extension-download-section" class="card" style="margin-top: 20px; text-align: center; border: 1px dashed rgba(255, 255, 255, 0.15); background: rgba(255, 215, 0, 0.02); padding: 25px;">
+                <div style="font-size: 2.5rem; margin-bottom: 15px;">🔌</div>
+                <h2 style="margin-bottom: 8px; color: #ffd700; font-size: 1.35rem;">Cheese Browser Extension</h2>
+                <p style="font-size: 0.88rem; color: #a1a1aa; max-width: 380px; margin: 0 auto 20px auto; line-height: 1.5;">
+                    Prefer a browser extension like MetaMask? Download the updated Cheese Wallet Extension package to install on Chrome, Brave, Edge, or Opera.
+                </p>
+                <div class="wallet-actions" style="display: flex; justify-content: center; margin-bottom: 15px;">
+                    <a href="./cheese-wallet.zip" download="cheese-wallet.zip" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px 24px; min-width: 200px;">
+                        📥 Download Extension ZIP
+                    </a>
+                </div>
+                <div style="font-size: 0.78rem; color: #a1a1aa; line-height: 1.5; background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: left; max-width: 420px; margin: 0 auto;">
+                    <b>How to Install:</b>
+                    <ol style="margin: 8px 0 0 16px; padding: 0;">
+                        <li style="margin-bottom: 4px;">Download and unzip the <b>cheese-wallet.zip</b> file on your computer.</li>
+                        <li style="margin-bottom: 4px;">Open your browser and navigate to <b>chrome://extensions/</b> (or Extensions settings).</li>
+                        <li style="margin-bottom: 4px;">Turn on <b>Developer Mode</b> in the top-right corner.</li>
+                        <li style="margin-bottom: 0;">Click <b>Load unpacked</b> and select the extracted folder.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Screen -->
+        <div id="portfolio-screen" class="screen">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">📊 Portfolio</h2>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="portfolio-price-update-btn" class="btn btn-secondary"
+                            style="padding: 8px 12px; font-size: 0.8em;">💰 Update Prices</button>
+                        <button id="portfolio-refresh-btn" class="btn btn-secondary"
+                            style="padding: 8px 15px; font-size: 0.9em;">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Search and Add Token -->
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="portfolio-search-token"
+                            placeholder="Search token by name, symbol, or address..."
+                            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9em;">
+                        <button id="portfolio-add-token-btn" class="btn btn-primary">➕ Add Token</button>
+                    </div>
+                    <div id="portfolio-search-results"
+                        style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; background: white; margin-top: 10px;">
+                    </div>
+                </div>
+
+                <!-- Token List -->
+                <div id="portfolio-content">
+                    <div style="text-align: center; padding: 20px;">
+                        <p>Loading portfolio...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buy Screen -->
+        <div id="buy-screen" class="screen">
+            <div class="card">
+                <h2>💰 Buy NCheese</h2>
+                <p>Purchase NCheese tokens with fiat currency</p>
+
+                <div class="form-group">
+                    <label>Amount (USD)</label>
+                    <input type="number" id="buy-amount" placeholder="Enter amount" min="20" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="buy-method">
+                        <optgroup label="💳 Card Payments">
+                            <option value="credit_card">Credit/Debit Card</option>
+                            <option value="visa">Visa</option>
+                            <option value="mastercard">Mastercard</option>
+                            <option value="amex">American Express</option>
+                        </optgroup>
+                        <optgroup label="🌍 Global E-Wallets">
+                            <option value="paypal">PayPal</option>
+                            <option value="google_pay">Google Pay</option>
+                            <option value="apple_pay">Apple Pay</option>
+                            <option value="samsung_pay">Samsung Pay</option>
+                        </optgroup>
+                        <optgroup label="🇺🇸 US E-Wallets">
+                            <option value="venmo">Venmo</option>
+                            <option value="cash_app">Cash App</option>
+                            <option value="zelle">Zelle</option>
+                        </optgroup>
+                        <optgroup label="🇨🇳 China E-Wallets">
+                            <option value="alipay">Alipay</option>
+                            <option value="wechat_pay">WeChat Pay</option>
+                        </optgroup>
+                        <optgroup label="🇮🇳 India E-Wallets">
+                            <option value="paytm">Paytm</option>
+                            <option value="phonepe">PhonePe</option>
+                            <option value="gpay_india">Google Pay (India)</option>
+                        </optgroup>
+                        <optgroup label="🇪🇺 Europe E-Wallets">
+                            <option value="revolut">Revolut</option>
+                            <option value="wise">Wise (TransferWise)</option>
+                            <option value="skrill">Skrill</option>
+                            <option value="neteller">Neteller</option>
+                        </optgroup>
+                        <optgroup label="🇧🇷 Latin America">
+                            <option value="mercadopago">Mercado Pago</option>
+                            <option value="pix">PIX (Brazil)</option>
+                        </optgroup>
+                        <optgroup label="🇵🇭 Philippines E-Wallets">
+                            <option value="gcash">GCash</option>
+                            <option value="paymaya">Maya (PayMaya)</option>
+                            <option value="coins_ph">Coins.ph</option>
+                            <option value="grab_pay_ph">GrabPay (Philippines)</option>
+                            <option value="paymongo">PayMongo</option>
+                            <option value="dragonpay">DragonPay</option>
+                        </optgroup>
+                        <optgroup label="🏦 Bank Transfers">
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="sepa">SEPA Transfer</option>
+                            <option value="ach">ACH Transfer</option>
+                        </optgroup>
+                        <optgroup label="🔌 Payment Gateways">
+                            <option value="moonpay">MoonPay</option>
+                            <option value="ramp">Ramp Network</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="buy-preview">
+                    <div class="preview-item">
+                        <span>You'll receive:</span>
+                        <span id="buy-receive">0 NCH</span>
+                    </div>
+                    <div class="preview-item">
+                        <span>Fee:</span>
+                        <span>~2.5%</span>
+                    </div>
+                </div>
+
+                <button id="buy-submit-btn" class="btn btn-primary">Continue to Payment</button>
+            </div>
+        </div>
+
+        <!-- Sell Screen -->
+        <div id="sell-screen" class="screen">
+            <div class="card">
+                <h2>💸 Sell NCheese</h2>
+                <p>Convert NCheese tokens to fiat currency</p>
+
+                <div class="form-group">
+                    <label>Amount (NCheese)</label>
+                    <input type="number" id="sell-amount" placeholder="Enter amount" min="1" step="0.01">
+                    <div class="balance-info">
+                        <span>Available: <strong id="sell-available-balance">0.00</strong> NCH</span>
+                        <button class="btn btn-small" onclick="window.app.setMaxSellAmount()">Max</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Receive Currency</label>
+                    <select id="sell-currency">
+                        <option value="USD">USD (US Dollar)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                        <option value="GBP">GBP (British Pound)</option>
+                        <option value="PHP">PHP (Philippine Peso)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Payout Method</label>
+                    <select id="sell-method">
+                        <optgroup label="🌍 Global E-Wallets">
+                            <option value="paypal">PayPal</option>
+                            <option value="google_pay">Google Pay</option>
+                            <option value="apple_pay">Apple Pay</option>
+                            <option value="samsung_pay">Samsung Pay</option>
+                        </optgroup>
+                        <optgroup label="🇺🇸 US E-Wallets">
+                            <option value="venmo">Venmo</option>
+                            <option value="cash_app">Cash App</option>
+                            <option value="zelle">Zelle</option>
+                        </optgroup>
+                        <optgroup label="🇨🇳 China E-Wallets">
+                            <option value="alipay">Alipay</option>
+                            <option value="wechat_pay">WeChat Pay</option>
+                        </optgroup>
+                        <optgroup label="🇮🇳 India E-Wallets">
+                            <option value="paytm">Paytm</option>
+                            <option value="phonepe">PhonePe</option>
+                            <option value="gpay_india">Google Pay (India)</option>
+                        </optgroup>
+                        <optgroup label="🇪🇺 Europe E-Wallets">
+                            <option value="revolut">Revolut</option>
+                            <option value="wise">Wise (TransferWise)</option>
+                            <option value="skrill">Skrill</option>
+                            <option value="neteller">Neteller</option>
+                            <option value="payoneer">Payoneer</option>
+                        </optgroup>
+                        <optgroup label="🇧🇷 Latin America">
+                            <option value="mercadopago">Mercado Pago</option>
+                            <option value="pix">PIX (Brazil)</option>
+                        </optgroup>
+                        <optgroup label="🇵🇭 Philippines E-Wallets">
+                            <option value="gcash">GCash</option>
+                            <option value="paymaya">Maya (PayMaya)</option>
+                            <option value="coins_ph">Coins.ph</option>
+                            <option value="grab_pay_ph">GrabPay (Philippines)</option>
+                            <option value="paymongo">PayMongo</option>
+                            <option value="dragonpay">DragonPay</option>
+                        </optgroup>
+                        <optgroup label="🏦 Bank Transfers">
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="sepa">SEPA Transfer</option>
+                            <option value="ach">ACH Transfer</option>
+                            <option value="wire_transfer">Wire Transfer</option>
+                        </optgroup>
+                        <optgroup label="🔌 Payment Gateways">
+                            <option value="moonpay">MoonPay</option>
+                            <option value="ramp">Ramp Network</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Payout Address</label>
+                    <input type="text" id="sell-payout-address"
+                        placeholder="Enter bank account, PayPal email, or address">
+                    <small class="form-hint">For bank transfer: Enter account details. For PayPal: Enter email. For
+                        crypto: Enter address.</small>
+                </div>
+
+                <div class="sell-preview">
+                    <div class="preview-item">
+                        <span>You'll receive:</span>
+                        <span id="sell-receive">$0.00</span>
+                    </div>
+                    <div class="preview-item">
+                        <span>Exchange Rate:</span>
+                        <span id="sell-rate">1 NCH = $0.022</span>
+                    </div>
+                    <div class="preview-item">
+                        <span>Fee:</span>
+                        <span>~2.5%</span>
+                    </div>
+                    <div class="preview-item highlight">
+                        <span>Net Amount:</span>
+                        <span id="sell-net-amount">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="sell-warning">
+                    <p>⚠️ <strong>Important:</strong> Selling NCheese will lock your tokens until the transaction is
+                        processed. This may take 1-3 business days.</p>
+                </div>
+
+                <button id="sell-submit-btn" class="btn btn-primary">Sell NCheese</button>
+            </div>
+        </div>
+
+        <!-- Swap Screen -->
+        <div id="swap-screen" class="screen">
+            <div class="card">
+                <h2>🔄 Swap Tokens</h2>
+
+                <div class="swap-form">
+                    <div class="swap-input">
+                        <label>From</label>
+                        <select id="swap-from">
+                            <option value="NCH">NCH (Native)</option>
+                            <option value="USDT">USDT</option>
+                            <option value="USDC">USDC</option>
+                        </select>
+                        <input type="number" id="swap-from-amount" placeholder="Amount" step="0.01">
+                    </div>
+
+                    <div class="swap-arrow">⇅</div>
+
+                    <div class="swap-input">
+                        <label>To</label>
+                        <select id="swap-to">
+                            <option value="USDT">USDT</option>
+                            <option value="USDC">USDC</option>
+                            <option value="NCH">NCH (Native)</option>
+                        </select>
+                        <input type="number" id="swap-to-amount" placeholder="Amount" readonly>
+                    </div>
+                </div>
+
+                <div class="swap-info">
+                    <div class="info-item">
+                        <span>Rate:</span>
+                        <span id="swap-rate">1 NCH = 0.022 USDT</span>
+                    </div>
+                    <div class="info-item">
+                        <span>Fee:</span>
+                        <span>0.5%</span>
+                    </div>
+                </div>
+
+                <button id="swap-submit-btn" class="btn btn-primary">Swap Now</button>
+            </div>
+        </div>
+
+        <!-- Bridge Screen -->
+        <div id="bridge-screen" class="screen" style="display:none !important;">
+            <div class="card">
+                <h2>🌉 Bridge Tokens</h2>
+                <p>Transfer NCheese between native blockchain and other chains</p>
+
+                <!-- Bridge Direction Tabs -->
+                <div class="bridge-tabs">
+                    <button class="bridge-tab active" data-direction="out">Bridge Out</button>
+                    <button class="bridge-tab" data-direction="in">Bridge In</button>
+                </div>
+
+                <!-- Bridge Out Section -->
+                <div id="bridge-out-section" class="bridge-section active">
+                    <div class="form-group">
+                        <label>From Chain</label>
+                        <div class="chain-badge">🧀 Cheese Native Blockchain</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>To Chain</label>
+                        <select id="bridge-to-chain">
+                            <option value="BSC">🔵 Binance Smart Chain (BSC)</option>
+                            <option value="ETH">💎 Ethereum</option>
+                            <option value="POLYGON">🟣 Polygon</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amount (NCheese)</label>
+                        <input type="number" id="bridge-amount" placeholder="Enter amount" min="10" step="0.01">
+                        <div class="form-hint">Minimum: 10 NCH</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Recipient Address (on destination chain)</label>
+                        <input type="text" id="bridge-recipient" placeholder="0x...">
+                    </div>
+
+                    <div class="bridge-preview">
+                        <div class="preview-item">
+                            <span>You'll send:</span>
+                            <span id="bridge-send-amount">0 NCH</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Bridge fee (1%):</span>
+                            <span id="bridge-fee">0 NCH</span>
+                        </div>
+                        <div class="preview-item highlight">
+                            <span>Recipient will receive:</span>
+                            <span id="bridge-receive-amount">0 NCH</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Estimated time:</span>
+                            <span id="bridge-time">-</span>
+                        </div>
+                    </div>
+
+                    <button id="bridge-out-btn" class="btn btn-primary">Bridge Out</button>
+                </div>
+
+                <!-- Bridge In Section -->
+                <div id="bridge-in-section" class="bridge-section">
+                    <div class="form-group">
+                        <label>From Chain</label>
+                        <select id="bridge-from-chain">
+                            <option value="BSC">🔵 Binance Smart Chain (BSC)</option>
+                            <option value="ETH">💎 Ethereum</option>
+                            <option value="POLYGON">🟣 Polygon</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>To Chain</label>
+                        <div class="chain-badge">🧀 Cheese Native Blockchain</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Source Transaction Hash</label>
+                        <input type="text" id="bridge-source-tx" placeholder="0x...">
+                        <div class="form-hint">Transaction hash from source chain (BSCScan/BSC transaction hash)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amount (NCheese)</label>
+                        <input type="number" id="bridge-in-amount" placeholder="Enter amount" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Recipient Address (on native blockchain)</label>
+                        <input type="text" id="bridge-in-recipient"
+                            placeholder="Your native wallet address (leave blank for current wallet)">
+                        <div class="form-hint">If left blank, will use your current wallet address</div>
+                    </div>
+
+                    <button id="bridge-in-btn" class="btn btn-primary">Bridge In</button>
+                </div>
+
+                <!-- Bridge History -->
+                <div class="bridge-history-section">
+                    <h3>Bridge History</h3>
+                    <div id="bridge-history-list" class="bridge-history-list">
+                        <p>No bridge transactions yet</p>
+                    </div>
+                </div>
+
+                <!-- Bridge Statistics -->
+                <div class="bridge-stats">
+                    <h3>Bridge Statistics</h3>
+                    <div id="bridge-stats" class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Bridges</div>
+                            <div class="stat-value" id="stat-total">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Bridged</div>
+                            <div class="stat-value" id="stat-amount">0 NCH</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total Fees</div>
+                            <div class="stat-value" id="stat-fees">0 NCH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connect Screen -->
+        <div id="connect-screen" class="screen">
+            <div class="card">
+                <h2>🔌 Connect</h2>
+
+                <div class="connect-options">
+                    <button id="connect-metamask-btn" class="btn btn-action" style="background: linear-gradient(135deg, #f6851b 0%, #e2761b 100%); color: white; border: none; margin-bottom: 5px;">🦊 Add Network to MetaMask</button>
+                    <button id="connect-nch-metamask-btn" class="btn btn-action" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; margin-bottom: 5px;">🧀 Add NCH Logo to MetaMask</button>
+                    <button id="connect-walletconnect" class="btn btn-action">WalletConnect</button>
+                    <button id="connect-qr" class="btn btn-action">Scan QR Code</button>
+                    <button id="connect-dapp" class="btn btn-action">Connect DApp</button>
+                </div>
+
+                <div class="dapp-links" style="margin-top: 20px;">
+                    <h3>🌐 CHEESE Ecosystem DApps</h3>
+                    <div class="dapp-list">
+                        <a href="https://cheeseblockchain.com" target="_blank" class="dapp-link">
+                            <div class="dapp-item">
+                                <div class="dapp-icon">🧀</div>
+                                <div class="dapp-info">
+                                    <div class="dapp-name">CHEESE Blockchain</div>
+                                    <div class="dapp-url">cheeseblockchain.com</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="qr-reader" style="display: none;"></div>
+
+                <div class="connections-list">
+                    <h3>Active Connections</h3>
+                    <div id="connections-list">
+                        <p>No active connections</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="card">
+                <h2>⚙️ Settings</h2>
+
+                <div class="settings-section">
+                    <h3>Wallet Management</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button id="add-to-metamask-settings-btn" class="btn btn-action" style="background: linear-gradient(135deg, #f6851b 0%, #e2761b 100%); color: white; border: none;">🦊 Add Network to MetaMask</button>
+                        <button id="add-nch-to-metamask-settings-btn" class="btn btn-action" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none;">🧀 Add NCH Logo to MetaMask</button>
+                        <button id="add-wallet-settings-btn" class="btn btn-primary">➕ Add Wallet</button>
+                        <button id="import-wallet-settings-btn" class="btn btn-secondary">📥 Import Wallet</button>
+                        <button id="view-seed-phrase-btn" class="btn btn-warning"
+                            style="background: #ffc107; color: #000;">🔑 View Seed Phrase</button>
+                        <button id="view-private-key-btn" class="btn btn-warning"
+                            style="background: #ffc107; color: #000;">🔐 View Private Key</button>
+                        <button id="export-wallet-btn" class="btn btn-secondary">📤 Export Wallet</button>
+                        <button id="logout-wallet-btn" class="btn btn-secondary">🔒 Logout / Lock Wallet</button>
+                        <button id="delete-wallet-btn" class="btn btn-danger">🗑&nbsp; Delete Wallet</button>
+                    </div>
+                    <div
+                        style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px; font-size: 0.85em; color: #856404;">
+                        ⚠️ <strong>Security Warning:</strong> Always backup your seed phrase or private key!
+                        <br>• If your wallet has a seed phrase: Backup the seed phrase
+                        <br>• If your wallet doesn't have a seed phrase (like founder wallet): Backup your private key
+                        <br>• If you lose both your password and backup, your tokens will be lost forever
+                    </div>
+                </div>
+
+
+                <div class="settings-section">
+                    <h3>About</h3>
+                    <div class="about-info">
+                        <div>Version: 1.0.0</div>
+                        <div>Native Blockchain Wallet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Notary Screen -->
+        <div id="notary-screen" class="screen">
+            <div class="card">
+                <h2 style="display: flex; align-items: center; gap: 10px;">📜 Document Notary</h2>
+                <p>Stamp your documents on the Cheese Blockchain for permanent, immutable proof of existence.</p>
+
+                <div id="notary-drop-zone" class="notary-drop-zone" style="border: 2px dashed #ccc; border-radius: 15px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafafa; margin-top: 20px;">
+                    <div class="drop-zone-content">
+                        <span style="font-size: 3em;">📁</span>
+                        <p style="margin: 15px 0; font-weight: bold; color: var(--secondary);">Drag & Drop file here</p>
+                        <button id="notary-select-file-btn" type="button" class="btn btn-secondary btn-small" style="margin-bottom: 15px;">📂 Select File</button>
+                        <small style="color: #888; display: block;">Files are NOT uploaded; only their digital fingerprint (SHA-256) is recorded.</small>
+                    </div>
+                    <input type="file" id="notary-file-input" style="display: none;" accept="*/*">
+                </div>
+
+                <div id="notary-preview" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid var(--primary);">
+                    <h4 id="notary-filename" style="margin-bottom: 10px; color: var(--secondary);">-</h4>
+                    <div style="font-size: 0.85em; color: #666; word-break: break-all; background: #eee; padding: 10px; border-radius: 5px;">
+                        <strong>SHA-256 Hash:</strong><br>
+                        <code id="notary-hash" style="color: var(--secondary);">-</code>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button id="notary-submit-btn" class="btn btn-primary" style="flex: 1;">📜 Notarize on Ledger</button>
+                        <button id="notary-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                    <div id="notary-fee-info" style="margin-top: 10px; font-size: 0.8em; color: #888; text-align: center;">
+                        Fee: 0.05 NCH
+                    </div>
+                </div>
+
+                <div class="notary-history" style="margin-top: 30px;">
+                    <h3 style="color: var(--secondary); margin-bottom: 15px;">📜 Recent Notarizations</h3>
+                    <div id="notary-history-list" class="transactions-list">
+                        <p style="text-align: center; color: #888; padding: 20px;">No notarizations found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- P2P Screen -->
+        <div id="p2p-screen" class="screen">
+            <div class="card p2p-card">
+                <div class="card-header">
+                    <h2>🤝 P2P Trading Hub</h2>
+                    <p>Trade directly with other users. All trades are automatically Notarized.</p>
+                </div>
+                
+                <div class="p2p-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn btn-secondary p2p-tab active" data-p2p-tab="market" style="flex: 1;">Browse Market</button>
+                    <button class="btn btn-secondary p2p-tab" data-p2p-tab="my-offers" style="flex: 1;">My Offers</button>
+                    <button class="btn btn-primary" id="create-p2p-offer-btn" style="flex: 1.2;">+ Create Offer</button>
+                </div>
+
+                <div id="p2p-market-view">
+                    <div class="search-box" style="margin-bottom: 15px;">
+                        <input type="text" id="p2p-search" placeholder="Search by token or user address..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                    </div>
+                    <div id="p2p-offers-list" class="offers-list">
+                        <!-- Offers will be populated here -->
+                        <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                            <div style="font-size: 2em; margin-bottom: 10px;">🔍</div>
+                            <p>Loading P2P market data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="p2p-create-view" style="display: none; animation: fadeIn 0.3s;">
+                    <h3 style="margin-bottom: 15px;">Post New Trade Offer</h3>
+                    <div class="form-group">
+                        <label>You Give</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="p2p-give-amount" placeholder="0.0" style="flex: 2;">
+                            <select id="p2p-give-token" style="flex: 1;">
+                                <option value="NCH">NCH</option>
+                                <option value="USDT">USDT</option>
+                                <option value="USDC">USDC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>You Want</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="p2p-want-amount" placeholder="0.0" style="flex: 2;">
+                            <select id="p2p-want-token" style="flex: 1;">
+                                <option value="USDT">USDT</option>
+                                <option value="NCH">NCH</option>
+                                <option value="USDC">USDC</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button id="cancel-p2p-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                        <button id="submit-p2p-offer-btn" class="btn btn-primary" style="flex: 2;">Post Offer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        // Check if QRCode library loaded
+        if (typeof QRCode === 'undefined') {
+            console.error('Failed to load QRCode library from CDN');
+        } else {
+            console.log('QRCode library loaded successfully from cdnjs');
+        }
+    </script>
+    <!-- Libraries & Loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="./elliptic.min.js"></script>
+    <script src="./elliptic-loader.js"></script>
+    
+    <!-- API & Configuration -->
+    <script src="/config.js?v=4.2.2"></script>
+    <script src="./blockchain-api.js?v=5.4.4"></script>
+    <script src="./wallet-config-LOCKED.js?v=4.1"></script>
+    
+    <!-- Utilities & Metadata -->
+    <script src="/blockchain-meta-config.js?v=4.1"></script>
+    <script src="./bsc-verifier.js?v=4.1"></script>
+    <script src="./cross-chain-balance.js?t=1717280000"></script>
+    <script src="./token-metadata.js?v=4.3"></script>
+    
+    <!-- Core Modules -->
+    <script src="./wallet-core.js?v=4.1"></script>
+    <script src="./wallet-security.js?v=4.1"></script>
+    <script src="./wallet-enhancements.js?v=4.1"></script>
+    <script src="./biometric-auth.js?v=4.1"></script>
+    <script src="./founder-income.js?v=4.1"></script>
+    
+    <!-- Engines & Managers -->
+
+    <script src="./token-manager.js?v=4.1"></script>
+    <script src="./swap-engine.js?v=4.5"></script>
+    <script src="./fiat-gateway.js?v=4.1"></script>
+    <script src="./mobile-miner.js?v=4.1"></script>
+    <script src="./connect-manager.js?v=4.1"></script>
+    
+    <!-- UI & Styles -->
+    <script src="./metamask-style.js?v=4.2"></script>
+    <script src="./token-search.js?v=4.2"></script>
+    
+    <!-- Main Application -->
+    <script src="./app.js?t=1717280004"></script>
+
+    <script>
+        // Additional event listeners
+        document.getElementById('buy-submit-btn')?.addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('buy-amount').value);
+            const method = document.getElementById('buy-method').value;
+            if (amount && window.app) {
+                window.app.buyCheese(amount, 'USD', method);
+            }
+        });
+
+        document.getElementById('swap-submit-btn')?.addEventListener('click', () => {
+            const amount = parseFloat(document.getElementById('swap-from-amount').value);
+            const fromToken = document.getElementById('swap-from').value;
+            const toToken = document.getElementById('swap-to').value;
+            if (amount && window.app) {
+                window.app.swapTokens(amount, fromToken, toToken);
+            }
+        });
+
+        document.getElementById('mine-btn')?.addEventListener('click', () => {
+            if (window.app) {
+                window.app.mineBlock();
+            }
+        });
+
+        document.getElementById('connect-walletconnect')?.addEventListener('click', () => {
+            if (window.app && window.app.connectManager) {
+                window.app.connectManager.connectWalletConnect();
+            }
+        });
+
+        document.getElementById('connect-qr')?.addEventListener('click', () => {
+            if (window.app && window.app.connectManager) {
+                window.app.connectManager.scanQRCode();
+            }
+        });
+    </script>
+</body>
+
+</html>

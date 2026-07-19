@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Request - Cheese Wallet</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="width: 375px; height: 600px;">
+  <div class="extension-container">
+    
+    <!-- Top Header -->
+    <header class="header">
+      <div class="brand">
+        <span class="logo">🧀</span>
+        <div class="brand-info">
+          <h1>Request Confirmation</h1>
+          <span class="network"><i class="fa-solid fa-circle-nodes"></i> Security Prompt</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT MODULES -->
+    <main class="main-content" style="display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <div>
+        <!-- DApp Origin Details -->
+        <div class="card" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 10px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.5rem;">🌐</span>
+          <div style="text-align: left;">
+            <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;">Origin Domain</div>
+            <div id="originText" style="font-size: 0.85rem; font-weight: bold; color: var(--cheese-gold);">https://cheeseblockchain.com</div>
+          </div>
+        </div>
+
+        <!-- 1. VIEW FOR ACCOUNTS REQUEST -->
+        <div id="connectView" class="confirm-view" style="display: none; text-align: center;">
+          <div class="icon-big" style="font-size: 2.5rem; margin-top: 1rem;">🔌</div>
+          <h2 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Connect to this Site?</h2>
+          <p style="font-size: 0.8rem; margin-bottom: 1.5rem;">This site is requesting permission to view your wallet address and balance. Transactions will still require manual approvals.</p>
+        </div>
+
+        <!-- 2. VIEW FOR SIGN MESSAGE -->
+        <div id="signView" class="confirm-view" style="display: none; text-align: left;">
+          <div style="text-align: center; margin-bottom: 1rem;">
+            <div class="icon-big" style="font-size: 2.5rem;">✍️</div>
+            <h2 style="font-size: 1.1rem;">Signature Request</h2>
+          </div>
+          <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">Message to Sign:</label>
+          <div id="messageText" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; font-family: monospace; max-height: 180px; overflow-y: auto; color: #fff; word-break: break-word; white-space: pre-wrap; user-select: text;">
+            Message loads here...
+          </div>
+        </div>
+
+        <!-- 3. VIEW FOR SEND TRANSACTION -->
+        <div id="txView" class="confirm-view" style="display: none; text-align: left;">
+          <div style="text-align: center; margin-bottom: 1rem;">
+            <div class="icon-big" style="font-size: 2.5rem;">💸</div>
+            <h2 style="font-size: 1.1rem;">Confirm Transaction</h2>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-secondary); display: block;">Recipient (To):</span>
+              <span id="txToText" style="font-family: monospace; font-size: 0.8rem; word-break: break-all; color: #fff; user-select: text;">0x...</span>
+            </div>
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-secondary); display: block;">Amount:</span>
+              <span id="txAmountText" style="font-size: 1.25rem; font-weight: bold; color: var(--cheese-gold);">0.00 NCH</span>
+            </div>
+            <div style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; display: flex; justify-content: space-between; font-size: 0.75rem;">
+              <span style="color: var(--text-secondary);">Estimated gas:</span>
+              <span style="color: #fff; font-weight: bold;">0.00021 NCH</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="btn-group" style="margin-top: 2rem;">
+        <button id="btnApprove" class="btn btn-primary">Approve Request</button>
+        <button id="btnReject" class="btn btn-secondary">Reject Request</button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="confirm.js"></script>
+</body>
+</html>

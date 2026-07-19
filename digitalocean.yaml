@@ -1,0 +1,62 @@
+# DigitalOcean Configuration for CHEESE MAIN NODE
+# Primary node with GOVERNANCE + HYBRID capabilities
+# Hosts all 27 AI models and full blockchain functionality
+# Main domain: cheeseblockchain.com
+
+services:
+  - type: web
+    name: cheese-main-node
+    env: node
+    repo: https://github.com/cryptoexdevcheese/cheese-blockchain
+    branch: master
+    buildCommand: npm install
+    startCommand: node start-server.js
+    healthCheckPath: /health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_TYPE
+        value: hybrid # Full capability: Mining + Governance + DEX + Wallet
+      - key: NODE_ROLE
+        value: HYBRID # For API endpoint compatibility
+      - key: API_KEY
+        value: bd1d57cfa96f8595684d823fe9aada5304495959aa27e02f16a16fbfd6b9623b
+      - key: PORT
+        value: 8080
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false # Set Firebase service account JSON for database access
+
+    # DigitalOcean droplet configuration
+    # Region: Singapore (sgp1)
+    # Resources: 1GB RAM, 1 vCPU (can be upgraded)
+    # IP: 165.22.252.113
+
+# DigitalOcean Main Node Capabilities:
+# - ALL 27 AI Models (Complete Ensemble Intelligence):
+#   * 8 JavaScript ML Models (Fraud detection, prediction, optimization)
+#   * 2 Infrastructure Models (Price prediction, smart contract analysis)
+#   * 4 Self-Learning Neural Networks (Classification, learning, risk assessment)
+#   * 1 TensorFlow.js Deep Learning Model (CNN fraud detection)
+#   * 6 Python AI Service Models (Enterprise TensorFlow, transformers, RL)
+#   * 6 Next-Generation AI Models (Quantum-resistant, governance, bridge, etc.)
+#
+# - Complete Blockchain Functionality:
+#   * Governance operations (voting, analysis)
+#   * Explorer API and analytics
+#   * DEX functionality
+#   * Wallet services
+#   * Smart contract deployment
+#   * Cross-chain bridge operations
+#
+# - User-Facing Services:
+#   * Main website: cheeseblockchain.com
+#   * Wallet: cheeseblockchain.com/wallet
+#   * DEX: cheeseblockchain.com/dex
+#   * API endpoints for all operations
+#
+# - AI-First Architecture:
+#   * Built from scratch as AI system
+#   * Machine learning at core (not add-on)
+#   * Continuous learning and improvement
+#   * Ensemble intelligence with 27 specialized models

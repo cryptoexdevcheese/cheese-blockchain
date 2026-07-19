@@ -1,0 +1,485 @@
+/**
+ * CHEESE Blockchain Mobile Responsive Fixes
+ * Fixes horizontal overflow, zoom issues, and box clustering on mobile devices
+ * 
+ * Author: Robert Terre
+ * © 2025-2026 All Rights Reserved
+ */
+
+/* ===== CRITICAL: Prevent zoom on mobile ===== */
+html {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+/* Global Mobile Fixes */
+html,
+body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
+* {
+    box-sizing: border-box !important;
+}
+
+/* ===== CRITICAL INTERACTION FIX (DESKTOP & MOBILE) ===== */
+/* These elements were overlaying buttons and blocking clicks */
+.token-ring,
+.orbit,
+.cheese-main,
+.stars,
+.nebula,
+.floating-3d-cheese,
+.hero-visual,
+.background-animation {
+    pointer-events: none !important;
+    /* Allow clicks to pass through */
+}
+
+/* ===== CRITICAL: FIX ECO-CARD PSEUDO-ELEMENTS BLOCKING BUTTONS ===== */
+/* The ::before glow effect (300% size, opacity:0) intercepts clicks! */
+.eco-card::before,
+.eco-card::after,
+.feature-card::before,
+.feature-card::after {
+    pointer-events: none !important;
+}
+
+/* ===== CONTAINER FIXES ===== */
+.container,
+.main-container,
+.dex-container,
+.swap-container,
+.pool-container,
+.section,
+.features,
+.ecosystem,
+.tokenomics,
+.ai-section,
+.roadmap {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+/* ===== MOBILE BREAKPOINT (768px and below) ===== */
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 14px !important;
+    }
+
+    /* Compact Hero */
+    .hero {
+        flex-direction: column !important;
+        padding: 3rem 1rem 1rem !important;
+        text-align: center !important;
+        gap: 1.5rem !important;
+        min-height: auto !important;
+    }
+
+    .hero-content {
+        padding: 0 !important;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .hero p {
+        font-size: 0.95rem !important;
+        margin-bottom: 1.5rem !important;
+        line-height: 1.5 !important;
+    }
+
+    .hero-badge {
+        font-size: 0.75rem !important;
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.25rem !important;
+        font-size: 0.9rem !important;
+        border-radius: 40px !important;
+    }
+
+    /* Hide complex 3D elements on mobile (orbits/rings cause clutter) */
+    /* NOTE: .floating-3d-cheese and .stats-float remain visible - styled below */
+    .hero-visual,
+    .cheese-3d,
+    .token-ring {
+        display: none !important;
+    }
+
+    /* Compact Sections */
+    .features,
+    .ecosystem,
+    .tokenomics,
+    .mining,
+    .why-better,
+    .cta-section {
+        padding: 2.5rem 1rem !important;
+    }
+
+    .section-header {
+        margin-bottom: 2rem !important;
+    }
+
+    .section-header h2 {
+        font-size: 1.6rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .section-header p {
+        font-size: 0.9rem !important;
+    }
+
+    /* Compact Grids */
+    .features-grid,
+    .ecosystem-grid,
+    .mining-grid,
+    .why-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Compact Cards */
+    .feature-card,
+    .eco-card {
+        padding: 1.25rem !important;
+        border-radius: 16px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .feature-icon,
+    .eco-icon {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 1.5rem !important;
+        margin-bottom: 0.75rem !important;
+        border-radius: 12px !important;
+    }
+
+    .eco-icon {
+        font-size: 2.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .feature-card h3,
+    .eco-card h3 {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .feature-card p,
+    .eco-card p {
+        font-size: 0.85rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 0 !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .feature-number {
+        font-size: 2.5rem !important;
+        top: 0.5rem !important;
+        right: 1rem !important;
+    }
+
+    /* Mining Section Specifics */
+    #miningHashrate {
+        font-size: 2rem !important;
+    }
+
+    #miningConsole {
+        height: 120px !important;
+        padding: 0.5rem !important;
+    }
+
+    /* Inputs preventing zoom */
+    input,
+    select {
+        font-size: 16px !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Footer */
+    footer {
+        padding: 2rem 1rem !important;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+
+    /* Nav Fix already applied in index.html, but ensuring here */
+    nav {
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* ===== EXTRA SMALL SCREENS (phones in portrait) ===== */
+@media screen and (max-width: 480px) {
+    .hero h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .section-header h2 {
+        font-size: 1.4rem !important;
+    }
+
+    .feature-card,
+    .eco-card {
+        padding: 1rem !important;
+    }
+}
+
+/* ===== PREVENT ANIMATIONS FROM CAUSING OVERFLOW ===== */
+.stars-container,
+.nebula,
+.background-animation,
+.cheese-pattern,
+body::before,
+body::after {
+    max-width: 100vw !important;
+    overflow: hidden !important;
+}
+
+/* ===== FIX GRID ELEMENTS EXPLICITLY ===== */
+.features>div,
+.ecosystem>div,
+.ai-features>div {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* ===== CARD OVERFLOW FIXES ===== */
+.card,
+.feature-card,
+.eco-card,
+.swap-card,
+.pool-card,
+.token-card,
+.stats-card,
+.roadmap-card {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* ===== INPUT AND FORM FIXES ===== */
+input,
+select,
+button,
+textarea {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+table,
+.table-responsive {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    display: block !important;
+}
+
+/* ===== CRITICAL: MINING SECTION MOBILE FIX ===== */
+/* Fix for inline grid-template-columns that override mobile styles */
+@media screen and (max-width: 768px) {
+
+    /* Mining section - force single column */
+    .mining-grid,
+    #mining>div[style*="grid-template-columns"],
+    section.mining>div[style*="grid-template-columns"],
+    [id="mining"] div[style*="grid"],
+    .mining div[style*="repeat(3"],
+    div[style*="grid-template-columns: repeat(3, 1fr)"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        padding: 0 0.5rem !important;
+    }
+
+    /* Ecosystem 4-column grid - force single column */
+    .ecosystem-grid-4,
+    #ecosystem>div[style*="grid-template-columns"],
+    .ecosystem>div[style*="repeat(4"],
+    div[style*="grid-template-columns: repeat(4, 1fr)"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Why section 2-column grid - force single column */
+    .why-grid,
+    #why>div[style*="grid-template-columns"],
+    .why-better>div[style*="repeat(2"],
+    div[style*="grid-template-columns: repeat(2, 1fr)"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Mining cards - proper sizing */
+    #mining .feature-card,
+    section.mining .feature-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 1.25rem !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Fix mining control hashrate font size */
+    #miningHashrate {
+        font-size: 2rem !important;
+    }
+
+    /* Fix input fields causing zoom on focus */
+    #minerWallet,
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    select {
+        font-size: 16px !important;
+        /* Prevents iOS zoom on focus */
+        transform: scale(1) !important;
+    }
+
+    /* Mining console smaller height */
+    #miningConsole {
+        height: 120px !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Mining stats compact display */
+    #mining div[style*="display: flex"][style*="justify-content: space-between"] {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ===== EXTRA SMALL DEVICES ===== */
+@media screen and (max-width: 480px) {
+
+    /* Even more compact for small phones */
+    #mining>div[style*="grid"],
+    section.mining>div[style*="grid"] {
+        padding: 0 0.25rem !important;
+    }
+
+    #mining .feature-card {
+        padding: 1rem !important;
+    }
+
+    #miningHashrate {
+        font-size: 1.75rem !important;
+    }
+
+    /* Compact ecosystem cards */
+    .eco-card {
+        padding: 1.25rem !important;
+    }
+
+    .eco-card h3 {
+        font-size: 1.1rem !important;
+    }
+
+    .eco-icon {
+        font-size: 2.5rem !important;
+    }
+}
+
+/* ===== PREVENT PINCH ZOOM ISSUES ===== */
+html {
+    touch-action: pan-x pan-y;
+    -webkit-touch-callout: none;
+}
+
+/* Prevent double-tap zoom */
+* {
+    touch-action: manipulation;
+}
+
+/* ===== FIX FIXED ELEMENTS CAUSING OVERFLOW ===== */
+/* Global Hidden Desktop Elements on Mobile - RESTORED BUT SCALED */
+.floating-3d-cheese,
+.stats-float,
+.cheese-3d,
+.hero-visual {
+    display: block !important;
+}
+
+@media screen and (max-width: 768px) {
+
+    /* Click-Blocking Protection: Ensure visuals don't stop button clicks */
+    .floating-3d-cheese,
+    .stats-float,
+    .hero-visual {
+        pointer-events: none !important;
+    }
+
+    /* Fixed 3D Cheese - Simplified & Non-Intrusive */
+    /* Positioned at 120px to appear BELOW the navigation bar (nav is ~109px tall) */
+    .floating-3d-cheese {
+        font-size: 40px !important;
+        /* Small Icon */
+        width: auto !important;
+        height: auto !important;
+        top: 120px !important;
+        /* Below Nav Bar */
+        right: 15px !important;
+        transform: none !important;
+        opacity: 0.9 !important;
+        z-index: 50 !important;
+        animation: none !important;
+        /* No distracting movement */
+    }
+
+    /* Hero Visual - Hide Complex Orbits on Mobile (Too Clustered) */
+    .hero-visual,
+    .cheese-3d {
+        display: none !important;
+    }
+
+    /* Floating Stats - Visible & Clean */
+    .stats-float {
+        display: block !important;
+        position: absolute !important;
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+        background: rgba(0, 0, 0, 0.7) !important;
+        border-radius: 4px !important;
+        z-index: 10 !important;
+        white-space: nowrap !important;
+    }
+
+    /* Position Stats in Safe Areas (Below Nav, Left/Right) */
+    .stat-1 {
+        top: 70px !important;
+        left: 10px !important;
+        right: auto !important;
+        transform: none !important;
+    }
+
+    .stat-2 {
+        top: 70px !important;
+        left: auto !important;
+        right: 60px !important;
+        transform: none !important;
+    }
+
+    /* Hide extra stats on mobile to prevent clutter */
+    .stat-3,
+    .stat-4 {
+        display: none !important;
+    }
+
+    /* Hide stars/nebula inside hero visual */
+    .hero-visual .orbit {
+        display: none !important;
+    }
+}

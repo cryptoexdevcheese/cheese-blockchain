@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheese Blockchain | Secure Notary & Stamp</title>
+    <meta name="description" content="Securely hash and verify your Videos, Audio, Pictures, and Documents on the Cheese Blockchain.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="../logo.png" alt="Cheese Blockchain Logo" style="width: 32px; height: 32px; object-fit: contain;">
+                <span>Cheese Blockchain Notary</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-category="documents"><i class="fa-solid fa-file-alt"></i> Documents</li>
+                <li data-category="pictures"><i class="fa-solid fa-image"></i> Pictures</li>
+                <li data-category="audio"><i class="fa-solid fa-music"></i> Audio</li>
+                <li data-category="videos"><i class="fa-solid fa-video"></i> Videos</li>
+            </ul>
+            <div class="sidebar-footer" style="margin-top: auto; padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="/node-installer.sh" class="btn-outline" style="text-decoration: none; padding: 1rem; flex-direction: column; text-align: center; gap: 0.75rem; border-color: #ffcc00; color: #ffcc00; background: rgba(255, 204, 0, 0.03);">
+                    <i class="fa-solid fa-terminal" style="font-size: 2rem; color: #ffcc00;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 700; line-height: 1.3;">CLI Node Installer<br>(Governance / Mining)</span>
+                </a>
+                <a href="https://nodejs.org/" target="_blank" class="btn-outline" style="text-decoration: none; padding: 1rem; flex-direction: column; text-align: center; gap: 0.75rem;">
+                    <i class="fa-brands fa-node-js" style="font-size: 2rem; color: #68a063;"></i>
+                    <span style="font-size: 0.85rem; font-weight: 600; line-height: 1.3;">Download Node.js<br>for Governance Consensus</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="categoryTitle">Document Verification</h1>
+                    <p id="categoryDesc">Securely hash and timestamp your important documents on the Cheese Blockchain.</p>
+                </div>
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="hashSearch" placeholder="Verify Hash or TxID...">
+                        <button id="searchBtn" class="btn-primary btn-small">Verify</button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="uploadSection" class="upload-section">
+                <div id="dropzone" class="dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                    <h2>Drag & Drop your <span id="dropCategory">document</span> here</h2>
+                    <p>or click to browse files</p>
+                    <input type="file" id="fileInput" hidden>
+                </div>
+            </div>
+
+            <!-- Recent Notarizations History Section -->
+            <section id="historySection" class="history-section hidden">
+                <div class="history-header">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Notarizations</h2>
+                    <button type="button" id="clearHistoryBtn" class="btn-outline btn-small">Clear History</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- History entries will be injected here via JavaScript -->
+                </div>
+            </section>
+
+            <div id="processingArea" class="processing-area hidden">
+                <div class="spinner"></div>
+                <h3>Generating SHA-256 Hash...</h3>
+                <p>Preparing to stamp on the Cheese Blockchain.</p>
+            </div>
+
+            <div id="resultArea" class="result-area hidden">
+                <div id="duplicateAlert" class="duplicate-alert hidden">
+                    <i class="fa-solid fa-triangle-exclamation duplicate-alert-icon"></i>
+                    <div class="duplicate-alert-content">
+                        <h4>Duplicate Document Detected</h4>
+                        <p>This file is already registered on the Cheese Blockchain. Showing existing notarization record.</p>
+                    </div>
+                </div>
+                <div class="success-icon" id="resultIcon"><i class="fa-solid fa-check-circle"></i></div>
+                <h3 id="resultTitle">Successfully Stamped!</h3>
+                <p id="stampStatusNote" class="stamp-status-note">Your file hash is on the Cheese Blockchain. Save the hash and transaction ID below.</p>
+                <div class="hash-box">
+                    <label>Cheese Hash (SHA-256):</label>
+                    <div class="hash-value" id="hashValue">—</div>
+                    <button id="copyHashBtn" class="btn-primary btn-small" style="margin-top: 0.5rem; width: 100%;">Copy Hash</button>
+                </div>
+                <div class="tx-box">
+                    <label>Transaction ID:</label>
+                    <div class="tx-value" id="txValue">—</div>
+                    <button id="copyTxBtn" class="btn-primary btn-small" style="margin-top: 0.5rem; width: 100%;">Copy Transaction ID</button>
+                </div>
+                <div class="button-group" style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <a id="viewExplorerBtn" class="btn-outline" href="/explorer/" target="_blank" rel="noopener" style="flex: 1; text-align: center; text-decoration: none; padding: 0.75rem;">View on Explorer</a>
+                    <button type="button" id="verifyStampBtn" class="btn-outline" style="flex: 1;">Verify This Stamp</button>
+                </div>
+                
+                <!-- First Level Choice -->
+                <div class="button-group" style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button id="resetBtn" class="btn-outline">Stamp Another</button>
+                    <button id="hashOnlyBtn" class="btn-primary" style="flex: 1;">Hash Only (Copy)</button>
+                    <button id="hashAndSendBtn" class="btn-primary" style="flex: 1; background: linear-gradient(135deg, #FFD700, #FF8C00);">Hash & Send</button>
+                </div>
+
+                <!-- Second Level Choice (Hidden by default) -->
+                <div id="sendChoiceArea" class="hidden" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,215,0,0.2);">
+                    <h4 style="margin-bottom: 1rem; color: var(--text-main);">Choose Sending Method:</h4>
+                    
+                    <div class="send-methods" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- P2P Option -->
+                        <div class="send-method-card" style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,215,0,0.2); cursor: pointer;" onclick="showP2PMethod()">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-share-nodes"></i></div>
+                            <h5 style="margin-bottom: 0.5rem;">P2P Transfer</h5>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Send directly via blockchain address</p>
+                        </div>
+
+                        <!-- Traditional Option -->
+                        <div class="send-method-card" style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,215,0,0.2); cursor: pointer;" onclick="showTraditionalMethod()">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-envelope"></i></div>
+                            <h5 style="margin-bottom: 0.5rem;">Traditional</h5>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">WhatsApp, Telegram, Email, etc.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- P2P Method Form (Hidden) -->
+                <div id="p2pMethodForm" class="hidden" style="margin-top: 1.5rem;">
+                    <div class="hash-box">
+                        <label>Receiver Blockchain Address:</label>
+                        <input type="text" id="p2pReceiverAddress" placeholder="0x..." class="glass-input" style="width: 100%; padding: 0.75rem; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 0.9rem;">
+                    </div>
+                    <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="backToMethodsBtn" class="btn-outline">Back</button>
+                        <button id="sendP2PBtn" class="btn-primary" style="flex: 1;">Send via P2P</button>
+                    </div>
+                </div>
+
+                <!-- Traditional Method Form (Hidden) -->
+                <div id="traditionalMethodForm" class="hidden" style="margin-top: 1.5rem;">
+                    <div class="hash-box">
+                        <label>Choose Platform:</label>
+                        <select id="traditionalPlatform" class="glass-input" style="width: 100%; padding: 0.75rem; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 0.9rem;">
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="email">Email</option>
+                            <option value="messenger">Facebook Messenger</option>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="copy">Copy Link to Share</option>
+                        </select>
+                    </div>
+                    <div class="hash-box" style="margin-top: 1rem;">
+                        <label>Recipient (Phone/Email/Username):</label>
+                        <input type="text" id="traditionalRecipient" placeholder="Enter recipient..." class="glass-input" style="width: 100%; padding: 0.75rem; border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; font-size: 0.9rem;">
+                    </div>
+                    <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button id="backToMethodsBtn2" class="btn-outline">Back</button>
+                        <button id="sendTraditionalBtn" class="btn-primary" style="flex: 1;">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- P2P file transfer (sender) -->
+            <div id="p2pTransferArea" class="result-area hidden">
+                <h3><i class="fa-solid fa-share-nodes"></i> P2P File Transfer</h3>
+                <p id="transferStatusText" style="color: var(--text-muted); margin: 1rem 0;">Waiting for receiver to connect...</p>
+                <div id="transferSpinner" class="spinner" style="margin: 1rem auto;"></div>
+                <div id="progressBarContainer" class="hidden" style="width: 100%; background: rgba(0,0,0,0.3); border-radius: 8px; height: 8px; margin: 1rem 0;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: var(--cheese-gold); border-radius: 8px; transition: width 0.2s;"></div>
+                </div>
+                <label style="display: block; text-align: left; margin-top: 1rem; color: var(--cheese-gold); font-size: 0.85rem;">Share this link with the receiver:</label>
+                <input type="text" id="p2pLink" readonly class="glass-input" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem; font-size: 0.8rem;">
+                <div class="button-group" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" id="copyLinkBtn" class="btn-primary" style="flex: 1;">Copy Link</button>
+                    <button type="button" id="cancelP2PBtn" class="btn-outline">Done</button>
+                </div>
+            </div>
+
+            <!-- P2P file transfer (receiver) -->
+            <div id="p2pReceiverArea" class="result-area hidden">
+                <h3><i class="fa-solid fa-download"></i> Incoming P2P File</h3>
+                <p><strong id="incomingFileName">—</strong> (<span id="incomingFileSize">—</span>)</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); word-break: break-all;">Expected hash: <span id="incomingFileHash">—</span></p>
+                <p id="receiverStatusText" style="margin: 1rem 0;">Connecting to sender...</p>
+                <div id="receiverSpinner" class="spinner" style="margin: 1rem auto;"></div>
+                <div id="receiverProgressBarContainer" class="hidden" style="width: 100%; background: rgba(0,0,0,0.3); border-radius: 8px; height: 8px;">
+                    <div id="receiverProgressBar" style="width: 0%; height: 100%; background: var(--cheese-gold); border-radius: 8px;"></div>
+                </div>
+                <div id="receiverDownloadBox" class="hidden" style="margin-top: 1.5rem;">
+                    <button type="button" id="downloadReceivedBtn" class="btn-primary" style="width: 100%;">Download Verified File</button>
+                </div>
+            </div>
+
+            <!-- On-Page Instructions Section -->
+            <section class="on-page-instructions">
+                <h2>How to Hash & Notarize</h2>
+                <div class="instruction-grid">
+                    <div class="instruction-card">
+                        <div class="step-number">1</div>
+                        <h4>Select Your Asset</h4>
+                        <p>Choose the correct asset category from the sidebar (Documents, Pictures, Audio, or Videos) to organize your blockchain proofs.</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="step-number">2</div>
+                        <h4>Local Cryptographic Hashing</h4>
+                        <p>Drag and drop your file. Your browser uses the Web Crypto API to generate a highly secure SHA-256 hash locally. <strong>Your actual file never leaves your device.</strong></p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="step-number">3</div>
+                        <h4>Cheese Blockchain Stamp</h4>
+                        <p>Only the unique 64-character hash footprint is transmitted to the Cheese Blockchain via a smart contract, securing your timestamped proof.</p>
+                    </div>
+                    <div class="instruction-card">
+                        <div class="step-number">4</div>
+                        <h4>Immutable Verification</h4>
+                        <p>You receive a Transaction ID. Anyone can verify the asset's authenticity in the future by recalculating its hash and searching it in the top bar.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Search Result Modal -->
+    <div id="searchResultModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-btn search-close-btn">&times;</span>
+            <h2 style="color: var(--cheese-gold); margin-bottom: 1.5rem;"><i class="fa-solid fa-magnifying-glass"></i> Verification Result</h2>
+            <div id="searchResultContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+    <script src="script.js?v=4.0"></script>
+</body>
+</html>

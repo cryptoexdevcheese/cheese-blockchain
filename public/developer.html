@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHEESE AIaaS - Developer API Portal</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: rgba(20, 20, 30, 0.6);
+            --accent-primary: #ffcc00;
+            --accent-gradient: linear-gradient(135deg, #ffcc00 0%, #ff6600 100%);
+            --text-main: #f5f5fa;
+            --text-muted: #8a8a9a;
+            --border-color: rgba(255, 204, 0, 0.15);
+            --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 204, 0, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 102, 0, 0.05) 0%, transparent 40%);
+        }
+
+        header {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo-area img {
+            height: 38px;
+        }
+
+        .logo-area span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        .btn-portal {
+            background: var(--accent-gradient);
+            color: #000;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-portal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+        }
+
+        main {
+            padding: 3rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero-section h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #c0c0c0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+        }
+
+        @media (max-width: 968px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-glow);
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 204, 0, 0.4);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .card-title i {
+            color: var(--accent-primary);
+        }
+
+        /* API Key Manager */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(10, 10, 15, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+
+        .api-key-display {
+            background: #050508;
+            border: 1px dashed var(--accent-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+        }
+
+        .btn-copy {
+            background: transparent;
+            border: none;
+            color: var(--accent-primary);
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .btn-copy:hover {
+            color: #ff6600;
+        }
+
+        /* Billing Plans */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .plan-box {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(10, 10, 15, 0.4);
+        }
+
+        .plan-box:hover {
+            border-color: var(--accent-primary);
+            transform: scale(1.02);
+        }
+
+        .plan-box.active {
+            border-color: var(--accent-primary);
+            background: rgba(255, 204, 0, 0.05);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.1);
+        }
+
+        .plan-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-limit {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Usage Stats */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stats-value {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-gradient);
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        /* Interactive Docs */
+        .docs-section {
+            grid-column: 1 / -1;
+        }
+
+        .docs-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+            background: rgba(255, 204, 0, 0.02);
+        }
+
+        .code-container {
+            background: #050508;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-lang {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #14141e;
+            border: 1px solid var(--accent-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--card-glow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo-area">
+            <img src="/logo.png" alt="CHEESE logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\' width=\'38\' height=\'38\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'%23ffcc00\'/><text x=\'50\' y=\'58\' font-size=\'32\' font-weight=\'bold\' font-family=\'sans-serif\' text-anchor=\'middle\' fill=\'%23000\'>🧀</text></svg>'">
+            CHEESE <span>AIaaS</span>
+        </a>
+        <div class="nav-links">
+            <a href="/whitepaper.html">Whitepaper</a>
+            <a href="/explorer/">Explorer</a>
+            <button class="btn-portal" id="btn-connect-wallet">
+                <i class="fa-solid fa-wallet"></i> Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero-section">
+            <h1>Ecosystem AI-as-a-Service</h1>
+            <p>Monetize and license the 27 core AI/ML engines running on the CHEESE blockchain. Expose state-of-the-art predictive security, neural network audit services, and route optimization to Web3 dApps.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Portal Card: API Key Generator & Billing -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-key"></i> Developer Key Portal
+                </div>
+                
+                <div class="form-group">
+                    <label for="dev-name">Developer / Project Owner</label>
+                    <input type="text" id="dev-name" class="form-control" placeholder="Enter owner name or wallet address">
+                </div>
+                
+                <button class="btn-portal" style="width: 100%; justify-content: center;" id="btn-generate-key">
+                    <i class="fa-solid fa-gears"></i> Generate API Key (Free Tier)
+                </button>
+
+                <div class="api-key-display" id="key-display-area">
+                    <span id="txt-api-key">nch_ai_xxxxx</span>
+                    <button class="btn-copy" id="btn-copy-key" title="Copy to clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <label style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Upgrade Subscription Tier</label>
+                    <div class="plans-grid">
+                        <div class="plan-box active" data-tier="free">
+                            <div class="plan-name">Free</div>
+                            <div class="plan-price">0 USDC</div>
+                            <div class="plan-limit">1K Reqs/Mo</div>
+                        </div>
+                        <div class="plan-box" data-tier="developer">
+                            <div class="plan-name">Developer</div>
+                            <div class="plan-price">49 USDC</div>
+                            <div class="plan-limit">50K Reqs/Mo</div>
+                        </div>
+                        <div class="plan-box" data-tier="enterprise">
+                            <div class="plan-name">Enterprise</div>
+                            <div class="plan-price">299 USDC</div>
+                            <div class="plan-limit">500K Reqs/Mo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-portal" style="width: 100%; justify-content: center; margin-top: 1.5rem; background: var(--text-main); color: #000;" id="btn-subscribe" disabled>
+                    <i class="fa-solid fa-cart-shopping"></i> Purchase Subscription
+                </button>
+            </div>
+
+            <!-- Portal Card: Usage Analytics -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fa-solid fa-chart-line"></i> Quota & Usage Analytics
+                </div>
+
+                <div class="stats-row">
+                    <span class="stats-label">Subscription Tier</span>
+                    <span class="stats-value" id="stats-tier" style="text-transform: uppercase;">None</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">API Key Status</span>
+                    <span class="stats-value" id="stats-status" style="color: #00e676;">Inactive</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Owner Wallet</span>
+                    <span class="stats-value" id="stats-owner">-</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">API Requests Used</span>
+                    <span class="stats-value" id="stats-usage">0 / 0</span>
+                </div>
+
+                <label style="display: block; font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem; margin-top: 1.5rem;">Monthly Quota Remaining</label>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="quota-progress"></div>
+                </div>
+            </div>
+
+            <!-- Documentation Portal Card -->
+            <div class="card docs-section">
+                <div class="card-title">
+                    <i class="fa-solid fa-book"></i> Interactive Documentation & API Spec
+                </div>
+                
+                <div class="docs-tabs">
+                    <button class="tab-btn active" data-tab="curl">cURL (Request)</button>
+                    <button class="tab-btn" data-tab="js">JavaScript (Node)</button>
+                    <button class="tab-btn" data-tab="python">Python (FastAPI)</button>
+                    <button class="tab-btn" data-tab="installer">Node Installer (CLI)</button>
+                </div>
+
+                <div id="tab-content-curl" class="tab-pane">
+                    <pre class="code-container"><span class="code-lang">bash</span>curl -X POST "https://cheeseblockchain.com/api/developer/predict" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "modelName": "FraudDetectorNN",
+    "inputData": {
+      "features": [0.5, 0.2, 0.1, 0.9, 0.3, 0.4, 0.1, 0.8]
+    }
+  }'</pre>
+                </div>
+
+                <div id="tab-content-js" class="tab-pane" style="display: none;">
+                    <pre class="code-container"><span class="code-lang">javascript</span>const axios = require('axios');
+
+async function fetchAIPrediction() {
+    try {
+        const response = await axios.post('https://cheeseblockchain.com/api/developer/predict', {
+            modelName: 'SmartContractAnalyzer',
+            inputData: {
+                code: 'contract Wallet { function transfer() public { msg.sender.call.value(1 ether)(); } }'
+            }
+        }, {
+            headers: { 'x-api-key': 'YOUR_API_KEY' }
+        });
+        
+        console.log('AI Audit Result:', response.data.prediction);
+    } catch (err) {
+        console.error('API Error:', err.message);
+    }
+}
+fetchAIPrediction();</pre>
+                </div>
+
+                <div id="tab-content-python" class="tab-pane" style="display: none;">
+                    <pre class="code-container"><span class="code-lang">python</span>import requests
+
+url = "https://cheeseblockchain.com/api/developer/predict"
+headers = {"x-api-key": "YOUR_API_KEY"}
+payload = {
+    "modelName": "AnomalyDetectorML",
+    "inputData": {
+        "transaction": {"amount": 50000, "gasPrice": 120},
+        "context": {"frequency": 12, "timeSinceLastTx": 30}
+    }
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print("Prediction Data:", response.json()["prediction"])</pre>
+                </div>
+
+                <div id="tab-content-installer" class="tab-pane" style="display: none;">
+                    <pre class="code-container"><span class="code-lang">bash</span># Download and run the automated multi-role Node Installer
+# Configures Governance, Mining, or Hybrid node settings interactively:
+curl -s https://cheeseblockchain.com/node-installer.sh | bash</pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer style="margin-top: 5rem; padding: 3rem 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+        <p>© 2025-2026 Robert Terre / CHEESE Blockchain. All Rights Reserved. Proprietary software license.</p>
+        <p style="margin-top: 12px; font-weight: 500; font-size: 1rem;">Interested in partnering, investing, or licensing? Reach out to us at: <a href="mailto:cryptoexdevcheese@gmail.com" style="color: var(--accent-primary); text-decoration: none; font-weight: 600; transition: color 0.2s;">cryptoexdevcheese@gmail.com</a></p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast-message">
+        <i class="fa-solid fa-circle-check" style="color: var(--accent-primary);"></i>
+        <span id="toast-text">Success message goes here</span>
+    </div>
+
+    <!-- Web3 & UI Script -->
+    <script>
+        let walletAddress = null;
+        let activeApiKey = null;
+        let selectedTier = 'free';
+
+        // Connect Wallet
+        document.getElementById('btn-connect-wallet').addEventListener('click', async () => {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    walletAddress = accounts[0];
+                    document.getElementById('btn-connect-wallet').innerHTML = `
+                        <i class="fa-solid fa-wallet"></i> ${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}
+                    `;
+                    showToast('Wallet Connected Successfully!');
+                    document.getElementById('dev-name').value = walletAddress;
+                } catch (e) {
+                    console.error('Wallet connection rejected');
+                }
+            } else {
+                // Simulate Connection for demonstration
+                walletAddress = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+                document.getElementById('btn-connect-wallet').innerHTML = `
+                    <i class="fa-solid fa-wallet"></i> ${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}
+                `;
+                showToast('Web3 Simulated: Wallet Connected!');
+                document.getElementById('dev-name').value = walletAddress;
+            }
+        });
+
+        // Tab selection logic
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+                
+                btn.classList.add('active');
+                const paneId = 'tab-content-' + btn.getAttribute('data-tab');
+                document.getElementById(paneId).style.display = 'block';
+            });
+        });
+
+        // Plan Selection Logic
+        document.querySelectorAll('.plan-box').forEach(box => {
+            box.addEventListener('click', () => {
+                document.querySelectorAll('.plan-box').forEach(b => b.classList.remove('active'));
+                box.classList.add('active');
+                selectedTier = box.getAttribute('data-tier');
+                
+                const btnSub = document.getElementById('btn-subscribe');
+                if (selectedTier === 'free') {
+                    btnSub.disabled = true;
+                } else {
+                    btnSub.disabled = false;
+                }
+            });
+        });
+
+        // Generate Key Logic
+        document.getElementById('btn-generate-key').addEventListener('click', async () => {
+            const owner = document.getElementById('dev-name').value;
+            if (!owner) {
+                showToast('Please enter an owner name or connect wallet first!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/developer/keys/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ owner })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    activeApiKey = data.apiKey;
+                    document.getElementById('txt-api-key').innerText = activeApiKey;
+                    document.getElementById('key-display-area').style.display = 'flex';
+                    
+                    // Update stats
+                    updateStatsDisplay(data);
+                    showToast('API Key Generated Successfully!');
+                }
+            } catch (err) {
+                showToast('Generation failed: server connection error', true);
+            }
+        });
+
+        // Copy Key logic
+        document.getElementById('btn-copy-key').addEventListener('click', () => {
+            navigator.clipboard.writeText(activeApiKey);
+            showToast('API Key copied to clipboard!');
+        });
+
+        // Subscribe / Upgrade Logic
+        document.getElementById('btn-subscribe').addEventListener('click', async () => {
+            if (!activeApiKey) {
+                showToast('Please generate an API key first!', true);
+                return;
+            }
+
+            showToast('Simulating Web3 payment processing...');
+            
+            // Simulating a contract transfer TX hash
+            const txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('/api/developer/keys/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            apiKey: activeApiKey,
+                            tier: selectedTier,
+                            txHash
+                        })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast(`Tier Upgraded to ${selectedTier.toUpperCase()}!`);
+                        
+                        // Refetch stats to align UI
+                        fetchStats();
+                    }
+                } catch (err) {
+                    showToast('Upgrade failed: server connection error', true);
+                }
+            }, 2000);
+        });
+
+        // Fetch stats periodically
+        async function fetchStats() {
+            if (!activeApiKey) return;
+            try {
+                const response = await fetch(`/api/developer/keys/stats?apiKey=${activeApiKey}`);
+                const data = await response.json();
+                if (data.success) {
+                    updateStatsDisplay(data.stats);
+                }
+            } catch (e) {}
+        }
+
+        function updateStatsDisplay(stats) {
+            document.getElementById('stats-tier').innerText = stats.tier;
+            document.getElementById('stats-status').innerText = stats.status;
+            document.getElementById('stats-owner').innerText = stats.owner.substring(0, 12) + '...';
+            document.getElementById('stats-usage').innerText = `${stats.requests_count} / ${stats.requests_limit}`;
+            
+            const pct = Math.min(100, (stats.requests_count / stats.requests_limit) * 100);
+            document.getElementById('quota-progress').style.width = pct + '%';
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast-message');
+            const text = document.getElementById('toast-text');
+            text.innerText = message;
+            
+            const icon = toast.querySelector('i');
+            if (isError) {
+                icon.className = 'fa-solid fa-circle-exclamation';
+                icon.style.color = '#ff1744';
+                toast.style.borderColor = '#ff1744';
+            } else {
+                icon.className = 'fa-solid fa-circle-check';
+                icon.style.color = 'var(--accent-primary)';
+                toast.style.borderColor = 'var(--accent-primary)';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Set up periodic sync
+        setInterval(fetchStats, 10000);
+    </script>
+</body>
+</html>

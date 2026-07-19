@@ -1,0 +1,63 @@
+services:
+  # Main Blockchain Node on DigitalOcean (no Render main node needed)
+  # This section is for reference only - main blockchain runs on DigitalOcean
+  # cheeseblockchain.com points to DigitalOcean droplet
+  
+  # Dedicated Mining Service on Render
+  - type: web
+    name: cheese-mining-service
+    env: node
+    plan: starter # $7/month for persistent disk
+    repo: https://github.com/cryptoexdevcheese/cheese-blockchain
+    branch: master
+    buildCommand: npm install
+    startCommand: node mining-service.js
+    healthCheckPath: /mining-health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_ROLE
+        value: MINING # For API endpoint compatibility
+      - key: API_KEY
+        sync: false # Set manually in Render Dashboard (use the new secure key)
+      - key: INITIAL_PEERS
+        value: ws://cheeseblockchain.com:8080 # Connect to DigitalOcean main node
+      - key: PORT
+        value: 3000
+      - key: ENABLE_MINING
+        value: true
+      - key: MASTER_NODE_URL
+        value: http://cheeseblockchain.com  # Connects to DigitalOcean main blockchain
+      - key: API_KEY
+        sync: false # Manual entry for security - use same as DigitalOcean
+    disk:
+      name: mining-data
+      mountPath: /opt/mining-data
+      sizeGB: 5 # Persistent storage for mining data
+
+  # Blockchain Sync Service on Render
+  - type: worker
+    name: blockchain-sync-worker
+    env: node
+    plan: free
+    repo: https://github.com/cryptoexdevcheese/cheese-blockchain
+    branch: master
+    buildCommand: npm install
+    startCommand: node sync-service.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SYNC_INTERVAL_MINUTES
+        value: 5
+      - key: MASTER_NODE_URL
+        value: http://cheeseblockchain.com  # DigitalOcean main blockchain
+      - key: DIGITALOCEAN_IP
+        value: cheeseblockchain.com
+      - key: OFFICIAL_WEBSITE
+        value: http://cheeseblockchain.com
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false

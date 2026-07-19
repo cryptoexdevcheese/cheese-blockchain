@@ -1,0 +1,75 @@
+name: Deploy to DigitalOcean Droplet
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          if [ -z "${{ secrets.DROPLET_SSH_KEY }}" ] || [ -z "${{ secrets.DROPLET_HOST }}" ] || [ -z "${{ secrets.DROPLET_USER }}" ]; then
+            echo "Missing DROPLET_SSH_KEY, DROPLET_HOST, or DROPLET_USER secret"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DROPLET_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync code to droplet
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+        run: |
+          rsync -avz \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude 'cheese-blockchain.db' \
+            --exclude 'cheese-node-installer' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            ./ "${DROPLET_USER}@${DROPLET_HOST}:/opt/cheese-blockchain/cheese-blockchain/"
+
+      - name: Install dependencies and restart
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "${DROPLET_USER}@${DROPLET_HOST}" << 'EOF'
+          set -e
+          cd /opt/cheese-blockchain/cheese-blockchain
+          npm install --omit=dev
+          pm2 restart cheese-blockchain
+          pm2 save
+          echo "Deployed successfully"
+          EOF
+
+      - name: Verify DEX assets
+        run: |
+          BASE="https://cheeseblockchain.com"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS -o /dev/null -w "%{http_code}" "${BASE}/api/health" | grep -q "200"; then
+              echo "Server healthy after attempt $i"
+              break
+            fi
+            echo "Waiting for server restart (attempt $i)..."
+            sleep 10
+          done
+          curl -fsS "${BASE}/dex/" | grep -q "dex-logic-v2.js"
+          curl -fsS "${BASE}/dex/dex-logic-v2.js" | grep -q "resolveDexVaultAddress"
+          curl -fsS "${BASE}/wallet/swap-engine.js" | grep -q "fetchDexSwapQuote"
+          curl -fsS -o /dev/null -w "%{http_code}" "${BASE}/dex/api/market-prices" | grep -q "200"
+          curl -fsS -o /dev/null -w "%{http_code}" "${BASE}/wallet-logos/cheese-blockchain-256.png" | grep -q "200"
+          curl -fsS -o /dev/null -w "%{http_code}" "${BASE}/wallet-logos/cheese-blockchain-128.png" | grep -q "200"
+          curl -fsS -o /dev/null -w "%{http_code}" "${BASE}/whitepaper.html" | grep -q "200"
+          curl -fsS "${BASE}/whitepaper.html" | grep -q "Version 3.0"
+          echo "DEX, wallet swap fixes, whitepaper v3.0, and ChainList logos are live"

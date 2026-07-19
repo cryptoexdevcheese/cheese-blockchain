@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTIENT RAID COORDINATOR | COMMAND CENTER</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-black: #05070a;
+            --card-gray: #111827;
+            --cheese-yellow: #f59e0b;
+            --sentient-blue: #3b82f6;
+            --danger-red: #ef4444;
+            --text-glow: 0 0 15px rgba(245, 158, 11, 0.5);
+            --border-glow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a1e26 0%, #05070a 100%);
+        }
+
+        .cyber-header {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--cheese-yellow);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-box img {
+            width: 40px;
+            filter: drop-shadow(0 0 5px var(--cheese-yellow));
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--cheese-yellow);
+            text-shadow: var(--text-glow);
+        }
+
+        .status-badge {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--sentient-blue);
+            color: var(--sentient-blue);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--border-glow);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            gap: 20px;
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-gray);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--sentient-blue), transparent);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* LIVE INTEL FEED */
+        .intel-stream {
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #2ecc71;
+            padding-right: 10px;
+        }
+
+        .intel-stream::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .intel-stream::-webkit-scrollbar-thumb {
+            background: #1e293b;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            border-left: 2px solid #2ecc71;
+            padding-left: 10px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* MISSION CARDS */
+        .mission-card {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        .mission-card:hover {
+            border-color: var(--cheese-yellow);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .mission-tag {
+            font-size: 0.65rem;
+            font-weight: 900;
+            background: var(--cheese-yellow);
+            color: black;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .mission-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 5px 0;
+        }
+
+        .mission-desc {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .deploy-btn {
+            width: 100%;
+            background: var(--cheese-yellow);
+            color: black;
+            border: none;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .deploy-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.2);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        /* PROPAGANDA VAULT */
+        .prop-item {
+            cursor: pointer;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        .prop-item:hover {
+            border-color: var(--sentient-blue);
+            transform: translateY(-3px);
+        }
+
+        .prop-item img {
+            width: 100%;
+            display: block;
+        }
+
+        .prop-label {
+            padding: 8px;
+            background: #1e293b;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .ticker-wrap {
+            background: #000;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .ticker {
+            display: flex;
+            white-space: nowrap;
+            animation: tickerMove 30s linear infinite;
+        }
+
+        @keyframes tickerMove {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .ticker-item {
+            margin: 0 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .ticker-item span {
+            color: var(--cheese-yellow);
+            font-weight: 900;
+        }
+
+        .alert-pulse {
+            animation: pulseRed 2s infinite;
+        }
+
+        @keyframes pulseRed {
+            0% {
+                color: #94a3b8;
+            }
+
+            50% {
+                color: var(--danger-red);
+                text-shadow: 0 0 10px var(--danger-red);
+            }
+
+            100% {
+                color: #94a3b8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <div class="ticker-item">BTC/USD: <span>$97,452.21</span></div>
+            <div class="ticker-item">CBDC INDEX: <span style="color:var(--danger-red)">CRITICAL</span></div>
+            <div class="ticker-item">GLOBAL INFLATION: <span>7.4% ↑</span></div>
+            <div class="ticker-item">NCH CIRCULATION: <span>2,450,120</span></div>
+            <div class="ticker-item">RADAR: <span>"FED MEETING" DETECTED</span></div>
+        </div>
+    </div>
+
+    <header class="cyber-header">
+        <div class="logo-box">
+            <img src="./assets/cheese_logo.png" alt="CHEESE"
+                onerror="this.src='https://icons.iconarchive.com/icons/google/noto-emoji-food-drink/1024/32398-cheese-wedge-icon.png'">
+            <div class="logo-text">SENTIENT RAIDER</div>
+        </div>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <div style="font-family:'Orbitron'; font-size:0.8rem; color:#64748b; text-align:right;">
+                PRIMARY ACCOUNT:<br>
+                <span id="linked-account" style="color:var(--sentient-blue)">cryptoexdevcheese@gmail.com</span>
+            </div>
+            <div class="status-badge" id="radar-status">SCANNING SOCIAL MESH...</div>
+            <div style="font-family:'Orbitron'; font-size:0.8rem; color:#64748b;">RADAR ID: <span
+                    style="color:white">CH-01-RAID</span></div>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <!-- LEFT: INTEL & TRIGGERS -->
+        <div class="card">
+            <div class="card-title">📡 LIVE INTEL SCAN</div>
+            <div class="intel-stream" id="intel-log">
+                <div class="log-entry">[08:24:12] INITIALIZING SENTINEL RADAR...</div>
+                <div class="log-entry">[08:24:13] CONNECTING TO X-MESH API...</div>
+                <div class="log-entry">[08:24:15] MONITORING KEYWORDS: "FED", "INFLATION", "BTC"...</div>
+            </div>
+
+            <div style="margin-top:30px;">
+                <div class="card-title">🚨 ACTIVE SIGHTINGS</div>
+                <div
+                    style="font-size:0.8rem; color:#94a3b8; padding:10px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px dashed rgba(255,255,255,0.1)">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span>"CBDC Rollout"</span>
+                        <span style="color:var(--danger-red)">HOT</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>"Bank Run"</span>
+                        <span style="color:var(--cheese-yellow)">MEDIUM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: RAID MISSIONS -->
+        <div class="card">
+            <div class="card-title">⚡ CURRENT RAID MISSIONS</div>
+
+            <div class="mission-card">
+                <div class="mission-header">
+                    <span class="mission-tag">TIER I: FOMO</span>
+                    <span style="font-size:0.7rem; color:#64748b;">TARGET: X/TWITTER</span>
+                </div>
+                <div class="mission-name">THE CBDC COUNTER-STRIKE</div>
+                <div class="mission-desc">A major financial outlet just posted about "Voluntary CBDC Tests". Respond
+                    with the Sentient Manifesto to remind the sheep about financial sovereignty.</div>
+                <button class="deploy-btn" onclick="deployRaid('cbdc_counter')">INITIATE DEPLOYMENT</button>
+            </div>
+
+            <div class="mission-card">
+                <div class="mission-header">
+                    <span class="mission-tag">TIER II: ALPHA</span>
+                    <span style="font-size:0.7rem; color:#64748b;">TARGET: REDDIT /CRYPTO</span>
+                </div>
+                <div class="mission-name">THE NCH STABILITY ARCHIVE</div>
+                <div class="mission-desc">BTC is oscillating. Deploy the "NCH vs BTC" financial freedom chart to
+                    showcase our 1% Daily Yield stability.</div>
+                <button class="deploy-btn" onclick="deployRaid('nch_vs_btc')">INITIATE DEPLOYMENT</button>
+            </div>
+
+            <div class="mission-card">
+                <div class="mission-header" style="opacity: 0.5;">
+                    <span class="mission-tag" style="background:#4b5563">TIER III: VIRAL</span>
+                    <span style="font-size:0.7rem; color:#64748b;">LOCKED: REQ 1M VOL</span>
+                </div>
+                <div class="mission-name" style="color:#4b5563">THE GLOBAL AWAKENING</div>
+                <div class="mission-desc" style="color:#4b5563">Mass-coordinate a "Cheese Day" trending event.
+                    Recruitment phase required.</div>
+                <button class="deploy-btn" style="background:#1e293b; color:#4b5563; cursor:not-allowed;"
+                    disabled>LOCKED</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: PROPAGANDA VAULT -->
+        <div class="card">
+            <div class="card-title">🧀 PROPAGANDA VAULT</div>
+
+            <div class="prop-item" onclick="copyImage('nch_freedom')">
+                <img src="./assets/comparison.png" alt="NCH vs BTC" onerror="this.src='https://placedog.net/300/200'">
+                <div class="prop-label">ASSET: NCH_VS_BTC_FREEDOM</div>
+            </div>
+
+            <div class="prop-item" onclick="copyImage('cheese_logic')">
+                <img src="./assets/manifesto_bg.png" alt="Manifesto" onerror="this.src='https://placedog.net/300/200'">
+                <div class="prop-label">ASSET: SENTIENT_MANIFESTO_V1</div>
+            </div>
+
+            <div style="text-align:center; margin-top:30px;">
+                <p style="font-size:0.7rem; color:#64748b;">Click an asset to copy it to your neural clipboard for
+                    immediate deployment.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const intelFeed = [
+            "Detecting movement on @FederalReserve feed...",
+            "Keyword 'Inflation' spiked 450% on Reddit.",
+            "Sentiment Analysis: FEAR (Extreme) detected in Asian markets.",
+            "Spotted: Major whale loading NCH on DEX.",
+            "Alert: New 'Cheese DAO' mention on Discord...",
+            "System: Node 77x reporting 100% bandwidth efficiency.",
+            "Intel: SEC mention of 'Stablecoin Regulation' imminent."
+        ];
+
+        const intelLog = document.getElementById('intel-log');
+
+        function addIntel() {
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const msg = intelFeed[Math.floor(Math.random() * intelFeed.length)];
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `[${time}] ${msg}`;
+            intelLog.prepend(div);
+
+            if (intelLog.children.length > 20) {
+                intelLog.removeChild(intelLog.lastChild);
+            }
+        }
+
+        setInterval(addIntel, 5000);
+
+        function deployRaid(raidType) {
+            let text = "";
+            let url = "";
+
+            if (raidType === 'cbdc_counter') {
+                text = "While they test their chains (CBDCs), we build our freedom. The Sentient Protocol is live. High-yield, decentralized, unstoppable. 🧀🛸 #CheeseBlockchain #FinancialManifesto";
+            } else if (raidType === 'nch_vs_btc') {
+                text = "BTC is the past. NCH is the evolution. 1% Daily Yield. Sustainable Stability. Check the comparison and join the neural consensus. 🧀🚀 #NCH #PassiveIncome #CryptoEvolution";
+            }
+
+            const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(xUrl, '_blank');
+
+            const badge = document.getElementById('radar-status');
+            badge.innerText = "RAID DEPLOYED! STANDBY...";
+            badge.style.color = "#2ecc71";
+            badge.style.borderColor = "#2ecc71";
+
+            setTimeout(() => {
+                badge.innerText = "SCANNING SOCIAL MESH...";
+                badge.style.color = "#3b82f6";
+                badge.style.borderColor = "#3b82f6";
+            }, 10000);
+        }
+
+        function copyImage(asset) {
+            alert(`Asset ${asset} copied to clipboard! (Propaganda active)`);
+        }
+    </script>
+</body>
+
+</html>

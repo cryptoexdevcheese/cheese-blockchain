@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheese Notarized P2P | Sovereign Remote Notary & Ledger</title>
+    <meta name="description" content="Decentralized peer-to-peer remote online notarization system running directly via WebRTC data streams and the Cheese Blockchain.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260710_v2">
+    <!-- Font Awesome for premium iconography -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-cheese"></i>
+                <div class="logo-text">
+                    <span class="brand-name">Cheese P2P</span>
+                    <span class="brand-sub">Sovereign Notary</span>
+                </div>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="active" id="nav-workspace"><i class="fa-solid fa-handshake-angle"></i> Notary Workspace</li>
+                <li id="nav-ledger"><i class="fa-solid fa-database"></i> Blockchain Ledger</li>
+                <li id="nav-vault"><i class="fa-solid fa-vault"></i> Public Vault</li>
+                <li id="nav-node"><i class="fa-solid fa-server"></i> Governance Node</li>
+            </ul>
+
+            <!-- Wallet Connection Panel -->
+            <div class="wallet-status-card glass-panel">
+                <!-- State 1: Not connected (default on load) -->
+                <div id="wallet-choice-panel">
+                    <div class="status-header">
+                        <span class="dot disconnected" id="wallet-status-dot"></span>
+                        <span id="wallet-status-text" class="status-lbl">No Wallet Connected</span>
+                    </div>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0.5rem 0 0.75rem; line-height: 1.4;">Choose how to access the platform:</p>
+                    <button id="sidebar-connect-wallet-btn" class="btn-primary btn-full" style="margin-bottom: 0.4rem;"><i class="fa-solid fa-wallet"></i> Connect My Wallet</button>
+                    <button id="sidebar-manual-wallet-btn" class="btn-outline btn-full" style="font-size: 0.82rem; margin-bottom: 0.4rem;"><i class="fa-solid fa-keyboard"></i> Enter Address Manually</button>
+                    <button id="sidebar-guest-mode-btn" class="btn-outline btn-full" style="font-size: 0.82rem;"><i class="fa-solid fa-user"></i> Continue as Guest</button>
+                    
+                    <!-- Manual Address Input Box (Hidden by default) -->
+                    <div id="manual-wallet-input-container" class="hidden" style="margin-top: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 0.75rem;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--cheese-gold); display: block; margin-bottom: 0.35rem;">Enter Your Wallet Address:</label>
+                        <input type="text" id="manual-wallet-address-input" placeholder="0x... or public address" style="width: 100%; padding: 0.5rem; border-radius: 6px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: #fff; font-family: var(--font-mono); font-size: 0.78rem; outline: none; margin-bottom: 0.5rem;">
+                        <div style="display: flex; gap: 0.35rem;">
+                            <button id="btn-confirm-manual-wallet" class="btn-primary btn-small btn-full" style="font-size: 0.78rem; padding: 0.4rem;"><i class="fa-solid fa-check"></i> Connect</button>
+                            <button id="btn-cancel-manual-wallet" class="btn-outline btn-small btn-full" style="font-size: 0.78rem; padding: 0.4rem;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.35;"><i class="fa-solid fa-circle-info" style="color: var(--cheese-gold);"></i> Guests can notarize documents only. Connect a wallet or enter address for full access.</p>
+                </div>
+
+                <!-- State 2: Connected (shown after choice) -->
+                <div id="wallet-connected-panel" class="hidden">
+                    <div class="status-header">
+                        <span class="dot active" id="wallet-status-dot-connected"></span>
+                        <span id="wallet-status-text-connected" class="status-lbl">Wallet Connected</span>
+                    </div>
+                    <div class="status-address" id="wallet-address-display">0x0000...0000</div>
+                    <div class="status-balance" id="wallet-balance-display">0.0000 NCH</div>
+                    <button id="sidebar-disconnect-wallet-btn" class="btn-outline btn-full" style="margin-top: 0.5rem; border-color: rgba(255, 100, 100, 0.4); color: #ff6464; font-size: 0.82rem;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Disconnect / Logout</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: auto; padding: 15px; font-size: 0.75rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px;">
+                <a href="/node-installer.sh" style="color: var(--cheese-yellow); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; border: 1px dashed var(--cheese-yellow); padding: 8px; border-radius: 6px; background: rgba(255, 215, 0, 0.05);">
+                    <i class="fa-solid fa-terminal"></i> CLI Node Installer
+                </a>
+                <a href="#node-section" id="sidebar-gov-install-link" style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+                    <i class="fa-solid fa-building-shield"></i> Run Governance Node
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header section -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="page-title">P2P Notary Workspace</h1>
+                    <p id="page-description">Securely stream files peer-to-peer and notarize them directly on the Cheese Blockchain.</p>
+                </div>
+                <!-- Instant Hash/TxID Verification in Header -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="header-verification-search" placeholder="Verify Hash or TxID on-chain...">
+                        <button id="header-verify-btn" class="btn-primary btn-small">Verify</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- WORKSPACE SECTION -->
+            <section id="workspace-section" class="tab-content active-tab">
+                <!-- Workspace Mode Selector Tabs -->
+                <div class="workspace-mode-selector glass-panel">
+                    <button id="ws-mode-local" class="ws-mode-btn active"><i class="fa-solid fa-stamp"></i> Instant Local Stamp</button>
+                    <button id="ws-mode-p2p" class="ws-mode-btn"><i class="fa-solid fa-video"></i> Live P2P Notary Room</button>
+                </div>
+
+                <!-- INSTANT LOCAL STAMP PANEL (Default View) -->
+                <div id="local-stamp-panel" class="local-stamp-workspace">
+                    
+                    <!-- Progress Step Tracker -->
+                    <div class="step-tracker-container glass-panel">
+                        <div class="step-item active" id="step-track-1">
+                            <span class="step-idx">1</span>
+                            <div class="step-label">
+                                <strong>Select Asset</strong>
+                                <span class="step-desc" id="step-desc-1">Upload Document, Image, Audio, or Video</span>
+                            </div>
+                        </div>
+                        <div class="step-divider"></div>
+                        <div class="step-item" id="step-track-2">
+                            <span class="step-idx">2</span>
+                            <div class="step-label">
+                                <strong>Cryptographic Sign</strong>
+                                <span class="step-desc" id="step-desc-2">Authorize hash with wallet private key</span>
+                            </div>
+                        </div>
+                        <div class="step-divider"></div>
+                        <div class="step-item" id="step-track-3">
+                            <span class="step-idx">3</span>
+                            <div class="step-label">
+                                <strong>On-Chain Stamp</strong>
+                                <span class="step-desc" id="step-desc-3">Commit signature to the Cheese Blockchain</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-grid">
+                        <!-- Left Column: File upload & inspection preview -->
+                        <div class="room-column">
+                            <div class="file-sharing-card glass-panel" style="flex-grow: 1;">
+                                <h3><i class="fa-solid fa-file-shield"></i> Select File to Stamp</h3>
+                                
+                                <div id="local-file-upload-box">
+                                    <div class="p2p-upload-grid">
+                                        <div class="local-upload-cat-card" data-accept="*">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                            <span>Notarize Document</span>
+                                        </div>
+                                        <div class="local-upload-cat-card" data-accept="image/*">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>Notarize Picture</span>
+                                        </div>
+                                        <div class="local-upload-cat-card" data-accept="audio/*">
+                                            <i class="fa-solid fa-music"></i>
+                                            <span>Notarize Audio</span>
+                                        </div>
+                                        <div class="local-upload-cat-card" data-accept="video/*">
+                                            <i class="fa-solid fa-video"></i>
+                                            <span>Notarize Video</span>
+                                        </div>
+                                    </div>
+                                    <div class="dropzone-mini" id="local-dropzone-mini">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Or drag & drop any file here</span>
+                                    </div>
+                                    <input type="file" id="local-file-input" hidden>
+                                </div>
+
+                                <!-- Local File Progress -->
+                                <div id="local-file-progress-box" class="file-progress-container hidden">
+                                    <div class="progress-details">
+                                        <span>Generating Local SHA-256 Hash...</span>
+                                        <span id="local-progress-percentage">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="local-progress-fill-bar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Local File Preview Zone -->
+                                <div id="local-file-preview-zone" class="file-preview-container hidden">
+                                    <h4 class="preview-title">Document Inspection Preview</h4>
+                                    <div id="local-file-preview-content" class="preview-box"></div>
+                                    <div class="file-metadata-table">
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">File Name:</span>
+                                            <span class="meta-val" id="local-preview-file-name">document.pdf</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">File Type:</span>
+                                            <span class="meta-val" id="local-preview-file-type">application/pdf</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">SHA-256 Fingerprint:</span>
+                                            <span class="meta-val hash-text" id="local-preview-file-hash">0x0000...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Wallet signature & On-chain stamp -->
+                        <div class="room-column">
+                            <div class="identity-card glass-panel">
+                                <h3><i class="fa-solid fa-id-card"></i> Cryptographic Signee</h3>
+                                <div class="identity-group">
+                                    <div class="wallet-badge block-lbl">Your Public Wallet Address:</div>
+                                    <div class="address-box text-gold" id="local-session-address">0x0000...0000</div>
+                                    <div class="identity-verify-badge unverified" id="local-verify-status" style="margin-top: 1rem;">
+                                        <i class="fa-solid fa-circle-xmark"></i> Document Unsigned
+                                    </div>
+                                </div>
+                                <div class="client-actions-wrapper" style="margin-top: 1.5rem;">
+                                    <p class="lbl-small-muted">Before writing to the ledger, cryptographically sign the document hash to prove your authorization.</p>
+                                    <button id="btn-local-sign-identity" class="btn-primary btn-full" disabled><i class="fa-solid fa-signature"></i> Sign Document Fingerprint</button>
+                                </div>
+
+                                <!-- Optional Literal Signature (Local Stamp) -->
+                                <div class="signature-pad-section" id="local-signature-section" style="margin-top: 1rem;">
+                                    <h4><i class="fa-solid fa-pen-fancy"></i> Draw Your Signature (Optional)</h4>
+                                    <canvas id="local-signature-canvas" class="signature-canvas"></canvas>
+                                    <div class="signature-actions">
+                                        <button id="btn-local-sig-clear" class="btn-outline btn-small"><i class="fa-solid fa-eraser"></i> Clear</button>
+                                        <button id="btn-local-sig-accept" class="btn-primary btn-small"><i class="fa-solid fa-check"></i> Accept Signature</button>
+                                    </div>
+                                    <div class="signature-status" id="local-sig-status"><i class="fa-solid fa-circle-info"></i> No signature drawn (optional)</div>
+                                </div>
+                            </div>
+
+                            <div class="stamp-action-card glass-panel">
+                                <h3><i class="fa-solid fa-stamp"></i> Ledger Stamp Execution</h3>
+                                <p class="description">This writes the SHA-256 hash, your signed authorization, and the timestamp directly to the smart contract.</p>
+                                <button id="btn-local-stamp" class="btn-primary btn-full btn-large" disabled><i class="fa-solid fa-gavel"></i> Stamp & Notarize on Blockchain</button>
+                                <div class="validation-reason" id="local-stamp-validation-msg">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> You must upload and sign a file first.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETUP PANEL: Show when P2P mode is selected and disconnected -->
+                <div id="setup-panel" class="setup-container glass-panel hidden">
+                    <div class="setup-header">
+                        <i class="fa-solid fa-circle-nodes setup-icon animate-pulse"></i>
+                        <h2>Create or Join Notary Session</h2>
+                        <p>Initialize a secure WebRTC tunnel. All data is transmitted directly between devices without cloud routing.</p>
+                    </div>
+
+                    <div class="role-selector-grid">
+                        <!-- Role: Sender (Creates P2P Session) -->
+                        <div class="role-card glass-panel cursor-pointer" id="select-role-notary">
+                            <div class="role-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                            <h3>Act as Sender (Create P2P Session)</h3>
+                            <p>Upload or select your document, generate a P2P Session Code, and send the code to the Receiver / Notary.</p>
+                        </div>
+                        
+                        <!-- Role: Receiver (Joins P2P Session) -->
+                        <div class="role-card glass-panel cursor-pointer" id="select-role-client">
+                            <div class="role-icon"><i class="fa-solid fa-tower-broadcast"></i></div>
+                            <h3>Act as Receiver / Notary (Join P2P Session)</h3>
+                            <p>Enter the P2P Session Code sent by the Sender to receive the file stream, examine credentials, and stamp on-chain.</p>
+                        </div>
+                    </div>
+
+                    <!-- Setup Forms (Hidden initially) -->
+                    <div id="notary-setup-form" class="setup-form hidden">
+                        <div class="form-group">
+                            <label>Sender P2P Session Code</label>
+                            <div class="input-action-group">
+                                <input type="text" id="notary-session-id" readonly placeholder="Generating Session ID...">
+                                <button id="btn-copy-session-id" class="btn-outline"><i class="fa-solid fa-copy"></i> Copy Code</button>
+                            </div>
+                        </div>
+                        <div class="connection-status-msg">
+                            <span class="spinner-small"></span> Waiting for Receiver / Notary to enter code and connect...
+                        </div>
+                        <div class="dev-note">
+                            <strong>Instruction:</strong> Copy the P2P Session Code above and send it to the Receiver (Notary) so they can enter it and receive your file stream.
+                        </div>
+                    </div>
+
+                    <div id="client-setup-form" class="setup-form hidden">
+                        <div class="form-group">
+                            <label>Enter Sender P2P Session Code</label>
+                            <input type="text" id="client-target-session-id" placeholder="Paste the Sender's P2P Session Code here (e.g. CHZ-123456)">
+                        </div>
+                        <button id="btn-client-connect" class="btn-primary btn-full"><i class="fa-solid fa-plug"></i> Connect &amp; Receive File Stream</button>
+                        <div class="connection-status-msg hidden" id="client-connect-status" style="margin-top: 0.75rem; text-align: center;">
+                            <span class="spinner-small"></span> <span id="client-connect-status-text">Connecting to Sender Session...</span>
+                        </div>
+                    </div>
+
+                    <!-- Decentralized Handshake Fallback (Accordion) -->
+                    <div class="decentralized-handshake-accordion">
+                        <div class="accordion-header" id="toggle-manual-handshake">
+                            <span><i class="fa-solid fa-gears"></i> Show Manual Cryptographic Handshake (Sovereign Offline Mode)</span>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        </div>
+                        <div class="accordion-content hidden" id="manual-handshake-content">
+                            <p class="description">For air-gapped networks, you can manually copy and paste connection offer and answer keys between computers.</p>
+                            
+                            <div class="handshake-grid">
+                                <div class="handshake-column">
+                                    <label>Step 1: Generate Connection Offer (Host)</label>
+                                    <textarea id="handshake-offer" readonly placeholder="Click Create Session (Host) to generate Offer..."></textarea>
+                                    <button id="btn-copy-offer" class="btn-outline btn-full btn-small"><i class="fa-solid fa-copy"></i> Copy Offer Code</button>
+                                </div>
+                                <div class="handshake-column">
+                                    <label>Step 2: Paste Offer &amp; Generate Answer (Guest)</label>
+                                    <textarea id="handshake-offer-input" placeholder="Guest: Paste the Host's Offer here..."></textarea>
+                                    <button id="btn-generate-answer" class="btn-primary btn-full btn-small"><i class="fa-solid fa-bolt"></i> Generate Answer Code</button>
+                                </div>
+                            </div>
+                            <div class="handshake-grid" style="margin-top: 1rem;">
+                                <div class="handshake-column">
+                                    <label>Step 3: Copy Answer (Guest)</label>
+                                    <textarea id="handshake-answer" readonly placeholder="Answer Code will generate here..."></textarea>
+                                    <button id="btn-copy-answer" class="btn-outline btn-full btn-small"><i class="fa-solid fa-copy"></i> Copy Answer Code</button>
+                                </div>
+                                <div class="handshake-column">
+                                    <label>Step 4: Paste Answer (Host)</label>
+                                    <textarea id="handshake-answer-input" placeholder="Host: Paste the Guest's Answer here..."></textarea>
+                                    <button id="btn-accept-answer" class="btn-primary btn-full btn-small"><i class="fa-solid fa-check"></i> Establish Connection</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- P2P ROOM PANEL: Show when WebRTC is connected -->
+                <div id="notary-room-panel" class="notary-room hidden">
+                    <div class="room-grid">
+                        
+                        <!-- LEFT COLUMN: Video Feeds & Controls -->
+                        <div class="room-column">
+                            <!-- Video Grid -->
+                            <div class="video-grid">
+                                <!-- Local Feed (You) -->
+                                <div class="video-card glass-panel">
+                                    <div class="video-placeholder" id="notary-video-container">
+                                        <canvas id="notary-video-canvas" width="320" height="240" class="sim-video"></canvas>
+                                        <div class="scanline"></div>
+                                    </div>
+                                    <div class="video-label glass-panel">
+                                        <i class="fa-solid fa-video text-gold"></i> Your Local Feed (You)
+                                    </div>
+                                </div>
+
+                                <!-- Remote Peer Feed -->
+                                <div class="video-card glass-panel">
+                                    <div class="video-placeholder" id="client-video-container">
+                                        <canvas id="client-video-canvas" width="320" height="240" class="sim-video"></canvas>
+                                        <div class="scanline"></div>
+                                    </div>
+                                    <div class="video-label glass-panel">
+                                        <i class="fa-solid fa-satellite-dish"></i> Remote Peer Feed
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Connection Status Card -->
+                            <div class="connection-card glass-panel">
+                                <div class="card-item">
+                                    <span class="label">Session Status:</span>
+                                    <span class="value badge-success" id="connection-status-badge">CONNECTED</span>
+                                </div>
+                                <div class="card-item">
+                                    <span class="label">Data Encryption:</span>
+                                    <span class="value text-green"><i class="fa-solid fa-lock"></i> AES-256 (DTLS-SRTP)</span>
+                                </div>
+                                <button id="btn-hangup" class="btn-danger btn-full" style="margin-top: 1.5rem;"><i class="fa-solid fa-phone-slash"></i> Terminate Session</button>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Secure Document Sharing & Blockchain Seals -->
+                        <div class="room-column">
+                            <!-- Wallet Identity Verification Card -->
+                            <div class="identity-card glass-panel">
+                                <h3><i class="fa-solid fa-id-card"></i> Cryptographic Identity</h3>
+                                
+                                <div class="identity-group">
+                                    <div class="wallet-badge block-lbl">Notary Address:</div>
+                                    <div class="address-box text-gold" id="notary-session-address">0x0000...0000</div>
+                                    <div class="identity-verify-badge unverified" id="notary-verification-status" style="margin-top: 0.5rem;">
+                                        <i class="fa-solid fa-circle-info"></i> Notary Registry: Unchecked
+                                    </div>
+                                </div>
+
+                                <div class="identity-group border-top">
+                                    <div class="wallet-badge block-lbl">Client Address:</div>
+                                    <div class="address-box" id="client-session-address">Waiting for connection...</div>
+                                    <div class="identity-verify-badge unverified" id="client-verify-status">
+                                        <i class="fa-solid fa-circle-xmark"></i> Unverified Client Signature
+                                    </div>
+                                    
+                                    <!-- Citizen Action Button: Shown on Client's view -->
+                                    <div class="client-actions-wrapper hidden" id="client-sign-identity-box">
+                                        <p class="lbl-small-muted">You must cryptographically authorize the notary to register your files.</p>
+                                        <button id="btn-client-sign-identity" class="btn-primary btn-full"><i class="fa-solid fa-signature"></i> Sign Identity Signature</button>
+                                    </div>
+
+                                    <!-- Optional Literal Signature (Client P2P) -->
+                                    <div class="signature-pad-section" id="client-signature-section" style="margin-top: 1rem;">
+                                        <h4><i class="fa-solid fa-pen-fancy"></i> Draw Your Signature (Optional)</h4>
+                                        <canvas id="client-signature-canvas" class="signature-canvas"></canvas>
+                                        <div class="signature-actions">
+                                            <button id="btn-client-sig-clear" class="btn-outline btn-small"><i class="fa-solid fa-eraser"></i> Clear</button>
+                                            <button id="btn-client-sig-accept" class="btn-primary btn-small"><i class="fa-solid fa-check"></i> Accept Signature</button>
+                                        </div>
+                                        <div class="signature-status" id="client-sig-status"><i class="fa-solid fa-circle-info"></i> No signature drawn (optional)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- File Sharing Card -->
+                            <div class="file-sharing-card glass-panel">
+                                <h3><i class="fa-solid fa-folder-open"></i> P2P Shared Files</h3>
+                                
+                                <!-- File Upload Form (Available to both Client and Notary) -->
+                                <div id="p2p-file-upload-box">
+                                    <div class="p2p-upload-grid">
+                                        <div class="upload-cat-card" data-accept="*">
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                            <span>Select Document</span>
+                                        </div>
+                                        <div class="upload-cat-card" data-accept="image/*">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>Select Picture</span>
+                                        </div>
+                                        <div class="upload-cat-card" data-accept="audio/*">
+                                            <i class="fa-solid fa-music"></i>
+                                            <span>Select Audio</span>
+                                        </div>
+                                        <div class="upload-cat-card" data-accept="video/*">
+                                            <i class="fa-solid fa-video"></i>
+                                            <span>Select Video</span>
+                                        </div>
+                                    </div>
+                                    <div class="dropzone-mini" id="p2p-dropzone-mini">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Or drag & drop any file here</span>
+                                    </div>
+                                    <input type="file" id="p2p-file-input" hidden>
+                                </div>
+
+                                <!-- File Progress Indicator -->
+                                <div id="file-progress-box" class="file-progress-container hidden">
+                                    <div class="progress-details">
+                                        <span id="progress-file-name">file_name.pdf</span>
+                                        <span id="progress-percentage">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progress-fill-bar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- File Preview Zone -->
+                                <div id="file-preview-zone" class="file-preview-container hidden">
+                                    <h4 class="preview-title">Document Inspection Preview</h4>
+                                    <div id="file-preview-content" class="preview-box">
+                                        <!-- Rendered dynamically depending on file type -->
+                                    </div>
+                                    <div class="file-metadata-table">
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">File Name:</span>
+                                            <span class="meta-val" id="preview-file-name">document.pdf</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">File Type:</span>
+                                            <span class="meta-val" id="preview-file-type">application/pdf</span>
+                                        </div>
+                                        <div class="meta-row">
+                                            <span class="meta-lbl">File SHA-256 Hash:</span>
+                                            <span class="meta-val hash-text" id="preview-file-hash">0x0000...</span>
+                                        </div>
+                                    </div>
+                                    <!-- Explicit Send File to Peer Action Button -->
+                                    <button id="btn-send-p2p-file" class="btn-primary btn-full btn-large" style="margin-top: 1rem;"><i class="fa-solid fa-paper-plane"></i> Send File to Peer (P2P Stream)</button>
+                                </div>
+
+                                <!-- Received Files Folder -->
+                                <div class="received-files-card glass-panel hidden" id="received-files-container" style="margin-top: 1.5rem; border-color: rgba(255, 215, 0, 0.3);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                                        <h3 style="margin: 0;"><i class="fa-solid fa-folder-closed" style="color: var(--cheese-gold)"></i> Received Files Folder</h3>
+                                        <span class="identity-verify-badge verified" id="received-files-count">0 Files</span>
+                                    </div>
+                                    <div id="received-files-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                        <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.9rem;"><i class="fa-solid fa-inbox"></i> No received files in your folder yet.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Blockchain Stamp Execution (Only shown for Notary) -->
+                            <div class="stamp-action-card glass-panel hidden" id="notary-stamp-card">
+                                <h3><i class="fa-solid fa-stamp"></i> Ledger Stamp Execution</h3>
+                                <p class="description">Review the received document and the citizen's cryptographic signature. Stamping commits a non-repudiation seal on the CHEESE Blockchain ledger with your authenticated Notary credentials.</p>
+                                
+                                <div style="margin-bottom: 1rem; background: rgba(255, 215, 0, 0.08); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.25);">
+                                    <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: var(--cheese-yellow); font-size: 0.9rem; font-weight: bold;">
+                                        <input type="checkbox" id="chk-auto-stamp" checked style="width: 18px; height: 18px; accent-color: var(--cheese-yellow);">
+                                        ⚡ Auto-Stamp to Blockchain (Instant Execution upon File Receipt)
+                                    </label>
+                                </div>
+
+                                <button id="btn-notary-stamp" class="btn-primary btn-full btn-large" disabled><i class="fa-solid fa-gavel"></i> Stamp &amp; Notarize on Blockchain</button>
+                                <div class="validation-reason" id="notary-stamp-validation-msg">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Citizen must sign their identity before stamping.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- BLOCKCHAIN LEDGER SECTION -->
+            <section id="ledger-section" class="tab-content hidden">
+                <div class="glass-panel text-section">
+                    <h2><i class="fa-solid fa-database"></i> Sovereign Ledger Explorer</h2>
+                    <p class="description">Every document stamped by the Cheese Notary is indexed on-chain. Enter a document hash or TxID to verify its timeline, notary authority, and client identity.</p>
+
+                    <div class="verification-dashboard-search">
+                        <input type="text" id="ledger-search-input" placeholder="Enter SHA-256 Hash or Transaction Hash...">
+                        <button id="btn-ledger-search" class="btn-primary">Search Registry</button>
+                    </div>
+
+                    <!-- Search Result Box -->
+                    <div id="ledger-search-result" class="search-result-display hidden">
+                        <!-- Injected via javascript -->
+                    </div>
+
+                    <!-- Local Registry Ledger History -->
+                    <div class="history-table-container">
+                        <h3>Sovereign Notary Registry Ledger</h3>
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Document Name</th>
+                                    <th>File Type</th>
+                                    <th>Citizen Address</th>
+                                    <th>Notary Address</th>
+                                    <th>SHA-256 Hash</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-history-rows">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GOVERNANCE NODE SECTION -->
+            <section id="node-section" class="tab-content hidden">
+                <div class="glass-panel text-section">
+                    <h2><i class="fa-solid fa-server"></i> Governance Node Status</h2>
+                    <p class="description">Review the status of local government consensus nodes running on the Cheese Blockchain network.</p>
+                    
+                    <div class="nodes-grid">
+                        <div class="node-status-card glass-panel">
+                            <div class="status-indicator">
+                                <span class="dot active"></span>
+                                <h4>BSU Node (Benguet State University)</h4>
+                            </div>
+                            <div class="node-meta">
+                                <p><strong>IP:</strong> 192.168.10.45 (Local Intranet)</p>
+                                <p><strong>Block Height:</strong> <span class="sync-block-height">492,012</span></p>
+                                <p><strong>Status:</strong> Active / Syncing</p>
+                            </div>
+                        </div>
+
+                        <div class="node-status-card glass-panel">
+                            <div class="status-indicator">
+                                <span class="dot active"></span>
+                                <h4>DA-CAR Node (Dept of Agriculture)</h4>
+                            </div>
+                            <div class="node-meta">
+                                <p><strong>IP:</strong> 192.168.12.11</p>
+                                <p><strong>Block Height:</strong> <span class="sync-block-height">492,012</span></p>
+                                <p><strong>Status:</strong> Active / Syncing</p>
+                            </div>
+                        </div>
+
+                        <div class="node-status-card glass-panel">
+                            <div class="status-indicator">
+                                <span class="dot active"></span>
+                                <h4>LGU Benguet Validator Node</h4>
+                            </div>
+                            <div class="node-meta">
+                                <p><strong>IP:</strong> 192.168.1.100</p>
+                                <p><strong>Block Height:</strong> <span class="sync-block-height">492,012</span></p>
+                                <p><strong>Status:</strong> Active / Syncing</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Governance Node Installer Section -->
+                    <div class="governance-card glass-panel" style="margin-top: 2rem; border-color: rgba(77, 208, 225, 0.4); background: linear-gradient(135deg, rgba(0, 131, 143, 0.1) 0%, rgba(0, 96, 100, 0.2) 100%);">
+                        <h3 style="color: var(--cheese-yellow); margin-bottom: 0.5rem;"><i class="fa-solid fa-building-shield"></i> Run a Sovereign Agency Node</h3>
+                        <p class="lbl-small-muted" style="margin-bottom: 0.75rem;">Download the CHEESE Governance Node (Pure Validator — Zero Mining) to activate your local Private Sovereign Storage (PSS) Vault.</p>
+                        
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                            <a href="/releases/cheese-node/download-windows.bat" download="Install-Cheese-Governance-Node.bat" class="btn-primary btn-small" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;"><i class="fa-brands fa-windows"></i> Windows (.bat)</a>
+                            <a href="/releases/cheese-node/download-mac.command" download="Install-Cheese-Governance-Node.command" class="btn-outline btn-small" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;"><i class="fa-brands fa-apple"></i> macOS (.command)</a>
+                            <a href="/releases/cheese-node/download-linux.sh" download="Install-Cheese-Governance-Node.sh" class="btn-outline btn-small" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;"><i class="fa-brands fa-linux"></i> Linux (.sh)</a>
+                        </div>
+
+                        <p class="lbl-small-muted" style="font-size: 0.8rem; margin: 0;">
+                            <strong>Guarantee:</strong> 1-Click Setup, Zero-Mining (0% CPU), Isolated PSS Vault, Full Ledger Audit.
+                        </p>
+                    </div>
+
+                    <div class="governance-card glass-panel" style="margin-top: 2rem;">
+                        <h3>Sovereign Blockchain Node Configuration</h3>
+                        <p class="lbl-small-muted">Enter a custom blockchain node URL and deployed CheeseNotary smart contract address below to configure your workspace.</p>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>Deployed Node URL</label>
+                            <div class="input-action-group">
+                                <input type="text" id="deployed-node-url" value="" placeholder="http://localhost:8080">
+                                <button id="btn-save-node-url" class="btn-primary">Update Node URL</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label>CheeseNotary Contract Address (EVM)</label>
+                            <div class="input-action-group">
+                                <input type="text" id="deployed-contract-address" value="" placeholder="0x...">
+                                <button id="btn-save-contract" class="btn-primary">Update Contract</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label>NotaryRegistry Contract Address (Whitelist)</label>
+                            <div class="input-action-group">
+                                <input type="text" id="notary-registry-address-input" value="" placeholder="0x... (Optional — for notary whitelist verification)">
+                                <button id="btn-save-registry" class="btn-primary">Save Registry</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PUBLIC VAULT SECTION -->
+            <section id="vault-section" class="tab-content hidden">
+                <div class="glass-panel text-section">
+                    <h2><i class="fa-solid fa-vault"></i> Sovereign Public Notary Vault</h2>
+                    <p class="description">Browse all documents ever notarized on the Cheese Blockchain. Every entry is immutable and publicly verifiable.</p>
+
+                    <div class="vault-controls">
+                        <div class="vault-filter-group">
+                            <button class="vault-filter-btn active" data-filter="all">All</button>
+                            <button class="vault-filter-btn" data-filter="document"><i class="fa-solid fa-file-pdf"></i> Documents</button>
+                            <button class="vault-filter-btn" data-filter="image"><i class="fa-solid fa-image"></i> Images</button>
+                            <button class="vault-filter-btn" data-filter="audio"><i class="fa-solid fa-music"></i> Audio</button>
+                            <button class="vault-filter-btn" data-filter="video"><i class="fa-solid fa-video"></i> Video</button>
+                        </div>
+                        <div class="vault-search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="vault-search-input" placeholder="Search by hash, filename, or address...">
+                        </div>
+                    </div>
+
+                    <div class="vault-stats" id="vault-stats"></div>
+
+                    <div class="vault-grid" id="vault-grid">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <div class="vault-empty hidden" id="vault-empty">
+                        <i class="fa-solid fa-box-open"></i>
+                        <p>No notarized documents found on the ledger yet.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Search Result Modal -->
+    <div id="verificationModal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-btn modal-close-btn">&times;</span>
+            <h2 class="modal-title"><i class="fa-solid fa-magnifying-glass"></i> On-Chain Verification</h2>
+            <div id="modalResultContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="lib/ethers.min.js"></script>
+    <script src="../blockchain-api.js"></script>
+    <script src="notary-verification.js"></script>
+    <script src="script.js?v=20260710_v3"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{
+    "hosting": {
+        "public": "public",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "headers": [
+            {
+                "source": "**/*.@(js|mjs)",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/javascript; charset=utf-8"
+                    },
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache, no-store, must-revalidate"
+                    }
+                ]
+            },
+            {
+                "source": "**/*.css",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "text/css; charset=utf-8"
+                    }
+                ]
+            },
+            {
+                "source": "**/*.html",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "text/html; charset=utf-8"
+                    }
+                ]
+            },
+            {
+                "source": "**/*.@(png|jpg|jpeg|gif|svg|ico)",
+                "headers": [
+                    {
+                        "key": "Access-Control-Allow-Origin",
+                        "value": "*"
+                    },
+                    {
+                        "key": "Cache-Control",
+                        "value": "public, max-age=3600"
+                    }
+                ]
+            }
+        ],
+        "rewrites": [
+            {
+                "source": "/notary",
+                "destination": "/notary/index.html"
+            },
+            {
+                "source": "/notary/**",
+                "destination": "/notary/index.html"
+            },
+            {
+                "source": "/dex",
+                "destination": "/dex/index.html"
+            },
+            {
+                "source": "/dex/**",
+                "destination": "/dex/index.html"
+            },
+            {
+                "source": "/wallet",
+                "destination": "/wallet/index.html"
+            },
+            {
+                "source": "/wallet/**",
+                "destination": "/wallet/index.html"
+            },
+            {
+                "source": "/mining",
+                "destination": "/mining/index.html"
+            },
+            {
+                "source": "/mining/**",
+                "destination": "/mining/index.html"
+            },
+            {
+                "source": "/explorer",
+                "destination": "/explorer/index.html"
+            },
+            {
+                "source": "/explorer/**",
+                "destination": "/explorer/index.html"
+            },
+            {
+                "source": "/whitepaper",
+                "destination": "/whitepaper.html"
+            },
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ],
+        "cleanUrls": true,
+        "trailingSlash": false
+    }
+}

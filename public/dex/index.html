@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🧀 CHEESE DEX | High-Performance Multi-Chain Trading</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta name="theme-color" content="#FFD700">
+    <meta name="description" content="Trade tokens on the CHEESE blockchain decentralized exchange">
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="/dex/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CHEESE DEX">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Cache Purge Script -->
+    <script>
+        // GLOBAL CACHE PURGE - V5.4.2 - SEAMLESS TRANSACTION FIX
+        try {
+            const VERSION = '5.5.0';
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentV = urlParams.get('v');
+            const force = urlParams.get('force') === 'true';
+
+            if (currentV === VERSION) {
+                localStorage.setItem('dexVersion', VERSION);
+                console.log('✅ VERSION MATCH: ' + VERSION);
+            } else {
+                const savedVersion = localStorage.getItem('dexVersion');
+                if (sessionStorage.getItem('last_refresh_v') === VERSION) {
+                    console.log('⚠️ Already refreshed to ' + VERSION + ' in this session.');
+                } else if (savedVersion !== VERSION || force) {
+                    if (savedVersion && savedVersion > VERSION && !force) {
+                        console.log('⚠️ Downgrade skipped.');
+                    } else {
+                        console.log('🔄 Reloading to ' + VERSION);
+                        sessionStorage.setItem('last_refresh_v', VERSION);
+                        localStorage.setItem('dexVersion', VERSION);
+                        if (savedVersion !== VERSION) {
+                            if ('caches' in window) caches.keys().then(ns => ns.forEach(n => caches.delete(n)));
+                        }
+                        window.location.replace(window.location.origin + window.location.pathname + '?v=' + VERSION + '&t=' + Date.now());
+                    }
+                }
+            }
+        } catch (e) { }
+    </script>
+
+    <!-- Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="/config.js?v=4.2.2"></script>
+    <script src="/wallet/wallet-core.js?v=4.1"></script>
+    <script src="/wallet/wallet-security.js?v=4.1"></script>
+    <script src="/wallet/token-metadata.js"></script>
+    <script src="/wallet/blockchain-api.js?v=6.0.2"></script>
+    <script src="dex-logic-v2.js?v=6.0.2" defer></script>
+
+
+    <!-- Global config now handled entirely by dex-logic-v2.js -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --cheese-gold: #FFD700;
+            --cheese-orange: #FF8C00;
+            --cheese-brown: #8B4513;
+            --bg-dark: #050508;
+            --bg-card: rgba(20, 20, 35, 0.65);
+            --bg-card-hover: rgba(30, 30, 50, 0.75);
+            --border-color: rgba(255, 215, 0, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --success: #00ffaa;
+            --error: #ff4757;
+            --warning: #ffa502;
+            --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
+            --gradient-dark: linear-gradient(180deg, #050508 0%, #101018 100%);
+            --glow-gold: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050508 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
+        }
+
+        /* CRITICAL MOBILE FIX - Force all elements to fit screen */
+        html {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+        }
+
+        .timeframe-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            width: fit-content;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .tf-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tf-select {
+            background: #131722;
+            color: var(--cheese-gold);
+            border: 1px solid var(--cheese-gold);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .tf-select:hover {
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .tf-select option {
+            background: #131722;
+            color: var(--cheese-gold);
+        }
+
+        /* Settings Modal Specifics */
+        .settings-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .settings-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .settings-item label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .settings-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: white;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .settings-input:focus {
+            border-color: var(--cheese-gold);
+        }
+
+        .nav-link {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-right: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--cheese-gold);
+        }
+
+        *,
+        *::before,
+        *::after {
+            max-width: 100vw !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
+        img,
+        video,
+        iframe,
+        embed,
+        object {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 165, 0, 0.08) 0%, transparent 50%),
+                var(--bg-dark);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(20, 20, 31, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1100;
+            /* Above charts and dropdowns */
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .connect-btn {
+            background: var(--gradient-gold);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .connected {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: fit-content;
+            max-width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
+        }
+
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari/Brave */
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--gradient-gold);
+            color: var(--bg-dark);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--cheese-gold);
+        }
+
+        /* Cards - Glassmorphism */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover {
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Swap Interface */
+        .swap-container {
+            max-width: 480px;
+        }
+
+        .token-input-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .token-input-box:focus-within {
+            border-color: var(--cheese-gold);
+        }
+
+        .token-input-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .token-input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .token-amount {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .token-amount::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .token-select {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .token-select:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--cheese-gold);
+        }
+
+        .token-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .token-symbol {
+            font-weight: 600;
+        }
+
+        .swap-arrow {
+            display: flex;
+            justify-content: center;
+            margin: -0.5rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .swap-arrow-btn {
+            background: var(--bg-card);
+            border: 3px solid var(--border-color);
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+        }
+
+        .swap-arrow-btn:hover {
+            background: var(--cheese-gold);
+            color: var(--bg-dark);
+            border-color: var(--cheese-gold);
+            transform: rotate(180deg);
+        }
+
+        /* Swap Details */
+        .swap-details {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .swap-detail-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .swap-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .swap-detail-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            background: var(--gradient-gold);
+            background-size: 200% auto;
+            color: #000;
+            border: none;
+            padding: 1rem;
+            border-radius: 16px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: shine 3s infinite linear;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Pool List */
+        .pool-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pool-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 100px;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .pool-item:hover {
+            background: rgba(255, 215, 0, 0.05);
+            border-color: var(--cheese-gold);
+            transform: translateX(5px);
+        }
+
+        .pool-pair {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pool-icons {
+            display: flex;
+        }
+
+        .pool-icons .token-icon:nth-child(2) {
+            margin-left: -8px;
+        }
+
+        .pool-name {
+            font-weight: 600;
+        }
+
+        .pool-stat {
+            text-align: center;
+        }
+
+        .pool-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .pool-stat-value {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .btn-small {
+            background: var(--gradient-gold);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Chart Panel */
+        .chart-panel {
+            grid-column: 2;
+            grid-row: 1 / 3;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-panel {
+                grid-column: 1;
+                grid-row: auto;
+            }
+        }
+
+        .chart-container {
+            height: 400px;
+            background: #131722;
+            border-radius: 16px;
+            display: block !important;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #00d4aa, #00a085);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ff4757, #c44040);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Slippage Settings */
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .slippage-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slippage-btn.active {
+            background: var(--cheese-gold);
+            color: var(--bg-dark);
+            border-color: var(--cheese-gold);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+
+            html,
+            body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            .header {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .logo-icon {
+                font-size: 1.5rem;
+            }
+
+            .connect-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .main-container {
+                padding: 1rem;
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            .left-panel {
+                max-width: 100% !important;
+            }
+
+            .tab-nav {
+                width: 100% !important;
+                flex-wrap: nowrap !important;
+                justify-content: flex-start !important;
+                padding: 0.5rem 1rem !important;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 2rem;
+                background: rgba(20, 20, 31, 1) !important;
+                /* Solid background on mobile to prevent bleed */
+                border: 1px solid var(--border-color);
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .card,
+            .swap-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 1rem;
+                overflow: hidden;
+                /* Prevent internal content leakage */
+            }
+
+            .token-amount {
+                font-size: 1.25rem;
+                min-width: 0;
+            }
+
+            .token-input-row {
+                flex-wrap: nowrap;
+            }
+
+            .token-select {
+                flex-shrink: 0;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .token-symbol {
+                font-size: 0.875rem;
+            }
+
+            .pool-item {
+                grid-template-columns: 1fr !important;
+                text-align: center;
+                gap: 0.75rem;
+            }
+
+            .pool-pair {
+                justify-content: center;
+            }
+
+            .pool-stat {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.25rem 0;
+            }
+
+            .btn-small {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .chart-panel {
+                order: -1;
+                grid-column: 1 !important;
+                grid-row: auto !important;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
+
+            .notification {
+                left: 10px;
+                right: 10px;
+                max-width: calc(100% - 20px);
+            }
+
+            .modal {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 1rem;
+            }
+        }
+
+        /* Deep Mobile Optimization (Merged & Hardened) */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.5rem 0.75rem !important;
+            }
+
+            .logo {
+                font-size: 1.1rem !important;
+            }
+
+            .connect-btn {
+                padding: 0.35rem 0.6rem !important;
+                font-size: 0.7rem !important;
+                min-width: 100px !important;
+            }
+
+            .wallet-btn-container {
+                gap: 0.4rem !important;
+            }
+
+            .main-container {
+                padding: 0.5rem !important;
+                gap: 0.75rem !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            .card {
+                padding: 0.75rem !important;
+                border-radius: 16px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .token-amount {
+                font-size: 1.1rem !important;
+            }
+
+            .token-select {
+                padding: 0.4rem 0.6rem !important;
+                font-size: 0.8rem !important;
+            }
+
+            .tab-nav {
+                gap: 0.25rem !important;
+                padding: 0.4rem !important;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.8rem !important;
+                white-space: nowrap !important;
+            }
+
+            .btn-primary {
+                padding: 0.85rem !important;
+                font-size: 1rem !important;
+            }
+
+            .chart-container {
+                height: 180px !important;
+            }
+
+            .pool-item {
+                padding: 0.75rem !important;
+            }
+        }
+
+        /* Add Liquidity Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        /* Convert Token Dropdown */
+        .convert-token-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .convert-token-option:hover {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--cheese-gold);
+        }
+
+        .convert-token-option:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+
+        .convert-token-option:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* Hidden by default */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Ultra-Premium Enhancements */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .background-animation {
+            display: none;
+        }
+
+        /* Disable old CSS bg in favor of Canvas */
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-container,
+        .header {
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .connected {
+            animation: pulse-green 2s infinite;
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.4);
+            background: var(--success);
+            color: #000;
+            font-weight: 800;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 170, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 255, 170, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 170, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bgCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.4;"></canvas>
+    <div class="background-animation"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <img src="/wallet-logos/cheese-blockchain-128.png" class="logo-img" alt="CHEESE logo"
+                style="width: 32px; height: 32px; border-radius: 8px;">
+            <span>CHEESE DEX</span>
+        </div>
+        <div class="nav-right">
+            <div class="wallet-btn-container">
+                <button id="connectBtn" class="btn-primary connect-btn" onclick="connectWallet()">
+                    <span id="connectText">Connect Wallet</span>
+                </button>
+                <button id="logoutBtn" class="logout-btn" onclick="disconnectWallet()" style="display: none;"
+                    title="Logout">
+                    🚪
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; 
+         background: linear-gradient(135deg, #FFD700, #FF8C00); padding: 12px 15px; z-index: 9999;
+         box-shadow: 0 -4px 20px rgba(0,0,0,0.3); animation: slideUpBanner 0.5s ease;">
+        <div
+            style="display: flex; align-items: center; justify-content: space-between; max-width: 600px; margin: 0 auto;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 2rem;">🧀</span>
+                <div>
+                    <div style="font-weight: 700; color: #000; font-size: 0.95em;">Install CHEESE DEX</div>
+                    <div style="font-size: 0.8em; color: #333;">Trade faster with the installed app</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button id="pwa-install-btn" style="background: #000; color: #FFD700; border: none; 
+                        padding: 8px 16px; border-radius: 20px; font-weight: 700; cursor: pointer;">Install</button>
+                <button id="pwa-dismiss-btn" style="background: transparent; border: 2px solid #000; color: #000;
+                        padding: 6px 12px; border-radius: 20px; font-weight: 600; cursor: pointer;">Later</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes slideUpBanner {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="swap">🔄 Swap</button>
+                <!-- wNCH bridge/convert retired -->
+                <button class="tab-btn" data-tab="pools">💧 Pools</button>
+                <button class="tab-btn" data-tab="positions">📊 Positions</button>
+                <button class="tab-btn" data-tab="p2p">🤝 P2P</button>
+                <button class="tab-btn" data-tab="notary">📜 Notary</button>
+            </nav>
+
+            <!-- Swap Tab -->
+            <div class="tab-content" id="swap-tab">
+                <div class="card swap-container">
+                    <div class="card-header">
+                        <h2 class="card-title">Swap</h2>
+                        <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+                    </div>
+
+                    <!-- Slippage Settings -->
+                    <div class="settings-row hidden" id="slippageSettings">
+                        <span style="color: var(--text-secondary); font-size: 0.875rem;">Slippage:</span>
+                        <button class="slippage-btn active" data-slippage="0.1">0.1%</button>
+                        <button class="slippage-btn" data-slippage="0.5">0.5%</button>
+                        <button class="slippage-btn" data-slippage="1">1%</button>
+                    </div>
+
+                    <!-- From Token -->
+                    <div class="token-input-box">
+                        <div class="token-input-label">
+                            <span>From</span>
+                            <span>Balance: <span id="fromBalance">0.00</span></span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="token-amount" id="fromAmount" placeholder="0.0"
+                                oninput="updateQuote()">
+                            <div class="token-select" id="fromToken" onclick="openTokenSelect('from')">
+                                <div class="token-icon" style="background: var(--cheese-gold);"><img src="/wallet-logos/cheese-blockchain-128.png"
+                                        style="width: 24px; height: 24px; border-radius: 50%;"></div>
+                                <span class="token-symbol">NCH</span>
+                                <span>▼</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Swap Arrow -->
+                    <div class="swap-arrow">
+                        <button class="swap-arrow-btn" onclick="swapTokenPositions()">↕</button>
+                    </div>
+
+                    <!-- To Token -->
+                    <div class="token-input-box">
+                        <div class="token-input-label">
+                            <span>To</span>
+                            <span>Balance: <span id="toBalance">0.00</span></span>
+                        </div>
+                        <div class="token-input-row">
+                            <input type="number" class="token-amount" id="toAmount" placeholder="0.0" readonly>
+                            <div class="token-select" id="toToken" onclick="openTokenSelect('to')">
+                                <div class="token-icon" style="background: var(--success);">💵</div>
+                                <span class="token-symbol">USDT</span>
+                                <span>▼</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Swap Details -->
+                    <div class="swap-details" id="swapDetails">
+                        <div class="swap-detail-row">
+                            <span>Rate</span>
+                            <span class="swap-detail-value" id="swapRate">1 NCH = —</span>
+                        </div>
+                        <div class="swap-detail-row">
+                            <span>Price Impact</span>
+                            <span class="swap-detail-value" id="priceImpact">
+                                < 0.01%</span>
+                        </div>
+                        <div class="swap-detail-row">
+                            <span>Gas Fee (NCH)</span>
+                            <span class="swap-detail-value" id="swapFee">0.1 NCH</span>
+                        </div>
+                        <div class="swap-detail-row">
+                            <span>Minimum Received</span>
+                            <span class="swap-detail-value" id="minReceived">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <button class="btn-primary" id="swapBtn" onclick="executeSwap()">
+                        Swap
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bridge and Convert tabs retired — wNCH deprecated -->
+            <!-- Pools Tab -->
+            <div class="tab-content hidden" id="pools-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Liquidity Pools</h2>
+                        <button class="btn-small" onclick="openCreatePool()">+ Create Pool</button>
+                    </div>
+
+                    <div class="pool-list" id="poolList">
+                        <!-- Pools loaded dynamically from API -->
+                        <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                            Loading pools...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Positions Tab -->
+            <div class="tab-content hidden" id="positions-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Your Positions</h2>
+                    </div>
+
+                    <div id="positionsList">
+                        <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                            Connect wallet to view your positions
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content hidden" id="p2p-tab">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;" id="p2p-split-container">
+                    <!-- Left Column: Orders list & User's Active Trades -->
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="card" style="margin-bottom: 0;">
+                            <div class="card-header">
+                                <h2 class="card-title">🤝 P2P Orders</h2>
+                                <button class="btn-small" onclick="openCreateP2POrder()">+ Create Order</button>
+                            </div>
+
+                            <!-- P2P Tabs: Buy / Sell -->
+                            <div style="display: flex; gap: 0.5rem; margin: 1rem;">
+                                <button class="slippage-btn active" id="p2pBuyTab" onclick="switchP2PTab('buy')"
+                                    style="flex: 1; background: var(--success); color: #000;">🟢 Buy NCH</button>
+                                <button class="slippage-btn" id="p2pSellTab" onclick="switchP2PTab('sell')" style="flex: 1;">🔴
+                                    Sell NCH</button>
+                            </div>
+
+                            <!-- P2P Order List (loaded from API) -->
+                            <div id="p2pOrderList" style="max-height: 250px; overflow-y: auto; padding: 0 1rem 1rem 1rem;">
+                                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading P2P orders...</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">💼 My Active Trades</h2>
+                                <button class="btn-small" onclick="loadUserP2PTrades()" title="Refresh trades list" style="padding: 4px 8px; font-size: 0.75rem;">🔄 Refresh</button>
+                            </div>
+                            <div id="p2pUserTradesList" style="max-height: 200px; overflow-y: auto; padding: 1rem;">
+                                <p style="color: var(--text-secondary); text-align: center; font-size: 0.875rem;">No active trades. Select an order above to start trading.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Chat Room & Escrow Manager -->
+                    <div class="card" id="p2pActiveTradeDetails" style="display: none; height: 500px; display: flex; flex-direction: column; padding: 0; overflow: hidden; margin-bottom: 0;">
+                        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 class="card-title" id="p2pTradeTitle" style="font-size: 1rem; margin-bottom: 2px;">Trade #----</h3>
+                                <span id="p2pTradeStatusBadge" class="badge" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; display: inline-block;">-</span>
+                            </div>
+                            <button onclick="closeActiveTradeDetails()" style="background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0 5px;">&times;</button>
+                        </div>
+                        
+                        <!-- Trade Escrow Actions Panel -->
+                        <div id="p2pTradeActions" style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color); padding: 1rem; font-size: 0.85rem;">
+                            <!-- Content will be dynamically inserted here -->
+                        </div>
+
+                        <!-- Immutable Chat Messages area -->
+                        <div id="p2pChatMessages" style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; background: rgba(0,0,0,0.2);">
+                            <!-- Messages inserted here -->
+                        </div>
+
+                        <!-- Chat input form -->
+                        <div style="padding: 0.75rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem; background: var(--card-bg); align-items: center;">
+                            <input type="text" id="p2pChatInput" placeholder="Type a message..." class="settings-input" style="flex: 1; margin: 0; background: var(--bg-color); height: 36px; font-size: 0.875rem;" onkeydown="if(event.key === 'Enter') sendP2PChatMessage()">
+                            <button class="btn btn-primary" onclick="sendP2PChatMessage()" style="padding: 0 1.25rem; font-size: 0.85rem; height: 36px;">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notary Tab -->
+            <div class="tab-content hidden" id="notary-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📜 Blockchain Notary</h2>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,212,170,0.1)); 
+                                border: 1px solid var(--success); border-radius: 12px; 
+                                padding: 1rem; margin-bottom: 1.5rem;">
+                        <div style="font-weight: 600; color: var(--success); margin-bottom: 0.5rem;">
+                            Document Verification
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            Securely hash and timestamp your important documents on the Cheese Blockchain.
+                        </div>
+                    </div>
+
+                    <div class="search-container" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem;">
+                        <input type="text" id="hashSearch" class="settings-input" placeholder="Verify Hash or TxID..." style="flex: 1;">
+                        <button id="searchBtn" class="btn-primary btn-small">Verify</button>
+                    </div>
+
+                    <div class="upload-section">
+                        <div id="dropzone" class="dropzone" style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 3rem 1rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                            <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">Drag & Drop your file here</h3>
+                            <p style="color: var(--text-secondary);">or click to browse files</p>
+                            <input type="file" id="fileInput" hidden>
+                        </div>
+                    </div>
+
+                    <div id="processingArea" class="processing-area hidden" style="text-align: center; padding: 2rem;">
+                        <div class="spinner" style="margin: 0 auto 1rem auto;"></div>
+                        <h3 style="color: var(--text-main);">Generating SHA-256 Hash...</h3>
+                        <p style="color: var(--text-secondary);">Preparing to stamp on the Cheese Blockchain.</p>
+                    </div>
+
+                    <div id="resultArea" class="result-area hidden" style="text-align: center; padding: 2rem;">
+                        <div class="success-icon" style="color: var(--success); font-size: 3rem; margin-bottom: 1rem;">✓</div>
+                        <h3 style="color: var(--text-main); margin-bottom: 1.5rem;">Successfully Stamped!</h3>
+                        
+                        <div class="hash-box" style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; text-align: left;">
+                            <label style="font-size: 0.75rem; color: var(--text-secondary);">Cheese Hash (SHA-256):</label>
+                            <div class="hash-value" id="hashValue" style="color: var(--cheese-gold); font-family: monospace; word-break: break-all; margin-top: 0.5rem;">...</div>
+                        </div>
+                        
+                        <div class="tx-box" style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: left;">
+                            <label style="font-size: 0.75rem; color: var(--text-secondary);">Transaction ID:</label>
+                            <div class="tx-value" id="txValue" style="color: var(--cheese-gold); font-family: monospace; word-break: break-all; margin-top: 0.5rem;">...</div>
+                        </div>
+                        
+                        <button id="resetBtn" class="btn-outline" style="width: 100%;">Stamp Another File</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Panel - Chart & Stats -->
+        <div class="chart-panel card">
+            <div class="card-header">
+                <h2 class="card-title">📈 NCH / USDT</h2>
+            </div>
+
+            <div class="timeframe-selector">
+                <span class="tf-label">Timeframe</span>
+                <select class="tf-select" id="timeframeSelect">
+                    <option value="1m">1m</option>
+                    <option value="5m">5m</option>
+                    <option value="15m">15m</option>
+                    <option value="30m">30m</option>
+                    <option value="1h" selected>1h</option>
+                    <option value="4h">4h</option>
+                    <option value="1d">1d</option>
+                    <option value="1w">1w</option>
+                    <option value="1mo">1mo</option>
+                </select>
+
+                <div style="display: flex; gap: 5px; margin-left: auto;">
+                    <button class="slippage-btn active" id="typeCandle" onclick="setChartType('candle')"
+                        style="padding: 4px 8px; font-size: 12px;">🕯️ Candle</button>
+                    <button class="slippage-btn" id="typeLine" onclick="setChartType('line')"
+                        style="padding: 4px 8px; font-size: 12px;">📈 Line</button>
+                </div>
+            </div>
+
+            <div class="chart-container" id="priceChart"
+                style="width: 100%; background: #131722; position: relative; z-index: 1;">
+            </div>
+
+            <!-- Password Prompt Modal (Simplified) -->
+            <div id="passwordModal" class="modal-overlay hidden">
+                <div class="modal" style="max-width: 400px; border: 2px solid var(--cheese-gold);">
+                    <div class="modal-header">
+                        <h3>🔐 Confirm Transaction</h3>
+                        <button class="modal-close" onclick="closePasswordModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="passwordPromptText" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            Enter your wallet password to confirm this transaction.
+                        </p>
+                        <div class="token-input-box" style="margin-bottom: 1.5rem;">
+                            <input type="password" id="walletPassword" placeholder="••••••••" 
+                                style="width: 100%; background: transparent; border: none; color: white; font-size: 1.25rem; outline: none;">
+                        </div>
+                        <button id="confirmPasswordBtn" class="btn-primary">
+                            Confirm Transaction
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Price</div>
+                    <div class="stat-value" id="currentPrice">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Change</div>
+                    <div class="stat-value" style="color: var(--success);" id="priceChange">+5.2%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Volume</div>
+                    <div class="stat-value" id="volume24h">$12,450</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Pools</div>
+                    <div class="stat-value" id="totalPools">3</div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Liquidity Modal -->
+    <div class="modal-overlay hidden" id="addLiquidityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add Liquidity</h3>
+                <button class="modal-close" onclick="closeModal('addLiquidityModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="token-input-box">
+                    <div class="token-input-label">
+                        <span id="liquidityToken0">NCH</span>
+                        <span>Balance: <span id="liquidityBalance0">0.00</span></span>
+                    </div>
+                    <div class="token-input-row">
+                        <input type="number" class="token-amount" id="liquidityAmount0" placeholder="0.0"
+                            oninput="updateLiquidityPrice()">
+                    </div>
+                </div>
+
+                <div style="text-align: center; padding: 0.5rem; color: var(--text-secondary);">+</div>
+
+                <div class="token-input-box">
+                    <div class="token-input-label">
+                        <span id="liquidityToken1">USDT</span>
+                        <span>Balance: <span id="liquidityBalance1">0.00</span></span>
+                    </div>
+                    <div class="token-input-row">
+                        <input type="number" class="token-amount" id="liquidityAmount1" placeholder="0.0"
+                            oninput="updateLiquidityPrice()">
+                    </div>
+                </div>
+
+                <!-- Price / Pool Share Display -->
+                <div
+                    style="background: rgba(255,255,255,0.05); padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; text-align: center;">
+                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Initial Price / Pool Ratio</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: var(--cheese-gold); margin: 0.25rem 0;"
+                        id="liquidityPriceDisplay">-</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);" id="liquidityPriceLabel">Enter
+                        amounts</div>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <button class="btn-primary" onclick="addLiquidity()">Add Liquidity</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settingsModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>⚙️ Security & Settings</h3>
+                <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-grid">
+                    <div class="settings-item">
+                        <label>🔗 Wallet Address</label>
+                        <input type="text" id="settingsAddress" class="settings-input" readonly
+                            placeholder="Not connected">
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                        Transactions are signed through your CHEESE Wallet password or MetaMask — never by pasting a private key here.
+                    </p>
+                    <div style="margin-top: 1rem;">
+                        <button class="btn-primary" onclick="openCheeseWalletForAuth('Authorize CHEESE DEX')">Unlock CHEESE Wallet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Particle System
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x > width) this.x = 0;
+                if (this.x < 0) this.x = width;
+                if (this.y > height) this.y = 0;
+                if (this.y < 0) this.y = height;
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(255, 215, 0, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        initParticles();
+        animateParticles();
+    </script>
+
+    <!-- PWA Install Detection Script -->
+    <script>
+        // PWA Install Prompt for DEX
+        let deferredPrompt = null;
+
+        // Check if app is already installed
+        const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
+
+        // Check if user dismissed the banner recently (24 hours)
+        const dismissedAt = localStorage.getItem('dex-pwa-dismissed');
+        const wasDismissedRecently = dismissedAt && (Date.now() - parseInt(dismissedAt)) < 24 * 60 * 60 * 1000;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            // Show banner only if not installed and not dismissed recently
+            if (!isAppInstalled && !wasDismissedRecently) {
+                setTimeout(() => {
+                    const banner = document.getElementById('pwa-install-banner');
+                    if (banner) banner.style.display = 'block';
+                }, 5000); // Show after 5 seconds on DEX
+            }
+        });
+
+        // Install button click
+        document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                console.log('DEX PWA install result:', result.outcome);
+                deferredPrompt = null;
+            }
+            document.getElementById('pwa-install-banner').style.display = 'none';
+        });
+
+        // Dismiss button click
+        document.getElementById('pwa-dismiss-btn')?.addEventListener('click', () => {
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            localStorage.setItem('dex-pwa-dismissed', Date.now().toString());
+        });
+
+        // Hide banner if app gets installed
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            console.log('🎉 CHEESE DEX installed!');
+        });
+    </script>    <script src="/notary/script.js" defer></script>
+</body>
+
+</html>

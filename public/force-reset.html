@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHEESE Wallet - Force Reset</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #000;
+            color: #ffd700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .log {
+            margin-top: 20px;
+            color: #0f0;
+            font-family: monospace;
+            text-align: left;
+            max-width: 80%;
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧹 Cleaning Wallet Environment...</h1>
+    <div id="log" class="log">Initializing...</div>
+
+    <script>
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        async function nuke() {
+            log('Starting cleanup...');
+
+            // 1. Unregister Service Workers
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const reg of regs) {
+                    await reg.unregister();
+                    log(`🗑️ Unregistered SW: ${reg.scope}`);
+                }
+                if (regs.length === 0) log('✅ No Service Workers found.');
+            } else {
+                log('ℹ️ Service Workers not supported.');
+            }
+
+            // 2. Clear Caches
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                for (const key of keys) {
+                    await caches.delete(key);
+                    log(`🗑️ Deleted Cache: ${key}`);
+                }
+            }
+
+            // 3. Clear Storage
+            localStorage.clear();
+            log('🗑️ LocalStorage cleared.');
+            sessionStorage.clear();
+            log('🗑️ SessionStorage cleared.');
+
+            log('✨ CLEANUP COMPLETE!');
+            log('🚀 Redirecting to fresh wallet in 3 seconds...');
+
+            setTimeout(() => {
+                window.location.href = 'index.html?v=NUCLEAR_RESET_' + Date.now();
+            }, 3000);
+        }
+
+        nuke();
+    </script>
+</body>
+
+</html>

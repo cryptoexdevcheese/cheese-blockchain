@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>NCH Sovereign Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=4.1">
+    <script>
+        // GLOBAL CACHE PURGE - V5.1.0 - SUPER FORCE REFRESH
+        try {
+            const version = '5.3.0';
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            // Allow manual override
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceUpdate = urlParams.get('force');
+
+            if (localStorage.getItem('explorerVersion') !== version || forceUpdate === 'true') {
+                console.log('Explorer v5.2.0 detected - SUPER FORCE REFRESH');
+
+                // Update Version Only
+                localStorage.setItem('explorerVersion', version);
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        for (let name of names) {
+                            caches.delete(name);
+                        }
+                    });
+                }
+
+                // Unregister Service Workers
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(regs => {
+                        for (let reg of regs) {
+                            reg.unregister();
+                        }
+                    });
+                }
+
+                // Force Reload
+                setTimeout(() => {
+                    const cleanUrl = window.location.href.split('?')[0];
+                    window.location.replace(cleanUrl);
+                }, 500);
+            }
+        } catch (e) { console.error('Cache clear error:', e); }
+    </script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <span class="logo-icon">
+                    <img src="logo-36.png" srcset="logo-72.png 2x" width="36" height="36" alt="NCH Logo" style="border-radius:50%;display:block;">
+                </span>
+                <span class="logo-text">NCH Sovereign Explorer</span>
+                <span id="live-indicator" class="live-indicator" title="Real-time updates active">
+                    <span class="live-dot"></span>
+                    <span class="live-text">LIVE</span>
+                </span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-page="home">Home</a>
+                <a href="#" class="nav-link" data-page="blocks">Blocks</a>
+                <a href="#" class="nav-link" data-page="transactions">Transactions</a>
+                <a href="/node-installer.sh" class="installer-link" style="color: #ffcc00; font-weight: 700; border-bottom: 2px dashed #ffcc00; display: inline-flex; align-items: center; gap: 4px;" download>💻 Node Installer</a>
+            </nav>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input"
+                    placeholder="Search by Address / Tx Hash / Block">
+                <button id="search-btn" class="search-btn" title="Search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+                <button onclick="explorer.manualRefresh()" class="refresh-btn" title="Refresh now"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+            </div>
+        </div>
+    </header>
+
+    <style>
+        /* Live Indicator Styles */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 255, 0, 0.15);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 12px;
+            font-size: 11px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse-live 1.5s ease-in-out infinite;
+        }
+
+        .live-text {
+            color: #00ff00;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulse-live {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.9);
+            }
+        }
+
+        .live-indicator.pulse .live-dot {
+            animation: pulse-flash 0.5s ease;
+        }
+
+        @keyframes pulse-flash {
+            0% {
+                background: #00ff00;
+            }
+
+            50% {
+                background: #ffd700;
+                transform: scale(1.5);
+            }
+
+            100% {
+                background: #00ff00;
+            }
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+            transform: rotate(180deg);
+        }
+
+        /* New Block Notification Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <!-- Stats Overview -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="total-blocks">-</div>
+                        <div class="stat-label">Total Blocks</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1l4 4-4 4M3 6.1h18M7 21.9l-4-4 4-4M21 17.9H3"></path></svg></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="total-transactions">-</div>
+                        <div class="stat-label">Transactions</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="2" y1="12" x2="4" y2="12"></line></svg></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="mining-reward">-</div>
+                        <div class="stat-label">Mining Reward</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="difficulty">-</div>
+                        <div class="stat-label">Difficulty</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Latest Blocks & Transactions -->
+            <section class="data-section">
+                <div class="data-panel">
+                    <div class="panel-header">
+                        <h2>Latest Blocks</h2>
+                        <a href="#" class="view-all" data-page="blocks">View All →</a>
+                    </div>
+                    <div class="panel-content" id="latest-blocks">
+                        <div class="loading">Loading blocks...</div>
+                    </div>
+                </div>
+                <div class="data-panel">
+                    <div class="panel-header">
+                        <h2>Latest Transactions</h2>
+                        <a href="#" class="view-all" data-page="transactions">View All →</a>
+                    </div>
+                    <div class="panel-content" id="latest-transactions">
+                        <div class="loading">Loading transactions...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Blocks Page -->
+        <div id="blocks-page" class="page">
+            <div class="page-header">
+                <h1>Blocks</h1>
+                <p>All blocks on the CHEESE blockchain</p>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Block</th>
+                            <th>Age</th>
+                            <th>Txns</th>
+                            <th>Miner</th>
+                            <th>Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blocks-table-body">
+                        <tr>
+                            <td colspan="5" class="loading">Loading blocks...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Transactions Page -->
+        <div id="transactions-page" class="page">
+            <div class="page-header">
+                <h1>Transactions</h1>
+                <p>All transactions on the CHEESE blockchain</p>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tx Hash</th>
+                            <th>Block</th>
+                            <th>Age</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+                        <tr>
+                            <td colspan="6" class="loading">Loading transactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Address Page -->
+        <div id="address-page" class="page">
+            <div class="page-header">
+                <h1>Address Details</h1>
+                <p id="current-address">Enter an address to view</p>
+            </div>
+            <div class="address-info" id="address-info" style="display: none;">
+                <div class="address-card">
+                    <div class="address-header">
+                        <span class="address-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M7 15h0M2 9.5h20"></path></svg></span>
+                        <span class="address-value" id="address-display">-</span>
+                        <button class="copy-btn" onclick="copyAddress()">Copy</button>
+                    </div>
+                    <div class="balance-row">
+                        <span class="balance-label">Balance:</span>
+                        <span class="balance-value" id="address-balance">0.00 NCH</span>
+                    </div>
+                </div>
+                <div class="transactions-section">
+                    <h3>Transactions</h3>
+                    <div id="address-transactions">
+                        <div class="loading">Loading transactions...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="no-data" id="address-prompt">
+                <p>Use the search bar above to look up any address</p>
+            </div>
+        </div>
+
+        <!-- Block Detail Page -->
+        <div id="block-detail-page" class="page">
+            <div class="page-header">
+                <h1>Block Details</h1>
+                <p id="block-number">Block #-</p>
+            </div>
+            <div class="detail-card" id="block-detail-card">
+                <div class="detail-row">
+                    <span class="detail-label">Block Height:</span>
+                    <span class="detail-value" id="detail-block-height">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timestamp:</span>
+                    <span class="detail-value" id="detail-block-time">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Transactions:</span>
+                    <span class="detail-value" id="detail-block-txns">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Hash:</span>
+                    <span class="detail-value hash" id="detail-block-hash">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Previous Hash:</span>
+                    <span class="detail-value hash" id="detail-prev-hash">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Nonce:</span>
+                    <span class="detail-value" id="detail-nonce">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Difficulty:</span>
+                    <span class="detail-value" id="detail-difficulty">-</span>
+                </div>
+            </div>
+            <div class="block-transactions">
+                <h3>Block Transactions</h3>
+                <div id="block-transactions-list">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Detail Page -->
+        <div id="tx-detail-page" class="page">
+            <div class="page-header">
+                <h1>Transaction Details</h1>
+            </div>
+            <div class="detail-card" id="tx-detail-card">
+                <div class="detail-row">
+                    <span class="detail-label">Transaction Hash:</span>
+                    <span class="detail-value hash" id="detail-tx-hash">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Block:</span>
+                    <span class="detail-value link" id="detail-tx-block">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timestamp:</span>
+                    <span class="detail-value" id="detail-tx-time">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">From:</span>
+                    <span class="detail-value link" id="detail-tx-from">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">To:</span>
+                    <span class="detail-value link" id="detail-tx-to">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value amount" id="detail-tx-amount">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value" id="detail-tx-type">-</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>NCH Sovereign Explorer &copy; 2026</p>
+            <div class="footer-links">
+                <a href="/" target="_blank">Website</a>
+                <a href="/wallet/" target="_blank">Wallet</a>
+                <a href="/dex/" target="_blank">DEX</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="explorer.js?v=5.3.1"></script>
+</body>
+
+</html>

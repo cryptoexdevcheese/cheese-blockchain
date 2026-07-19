@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHEESE BLOCKCHAIN | Revolutionary AI-Powered Finance</title>
+    <meta name="description"
+        content="World's most advanced AI blockchain. 27 AI/ML models. Quantum-resistant, AI governance, cross-chain, biometric auth, smart contract generator, energy optimization. Trade on CHEESE DEX.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Mobile Responsive Fixes -->
+    <!-- Mobile Responsive Fixes (v2) -->
+    <!-- Mobile Responsive Fixes (v2) - MOVED TO BOTTOM OF HEAD -->
+    <!-- Config Injection -->
+    <script>
+        // NUCLEAR CACHE BUSTER v6.2.1-FIX
+        const CURRENT_VERSION = '6.2.1-FIX';
+
+        async function runNuclearWipe() {
+            try {
+                const storedVersion = localStorage.getItem('site_version_deployed');
+                if (storedVersion !== CURRENT_VERSION) {
+                    console.log("🚀 Version Mismatch. Running Nuclear Wipe...");
+
+                    // 1. Clear Storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    localStorage.setItem('site_version_deployed', CURRENT_VERSION);
+
+                    // 2. Clear Caches
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        for (let key of keys) await caches.delete(key);
+                    }
+
+                    // 3. Unregister SW
+                    if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let reg of regs) await reg.unregister();
+                    }
+
+                    // 4. Force Reload with Cache-Busting Para
+                    window.location.href = window.location.origin + window.location.pathname + '?v=' + CURRENT_VERSION + '&t=' + Date.now();
+                }
+
+                // Clean URL from query params to ensure clean address bar (V6.2.1 ADDITION)
+                if (window.location.search.includes('v=')) {
+                    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+                    console.log('✅ URL Suffix purged from address bar.');
+                }
+            } catch (e) {
+                console.error("Wipe failed", e);
+            }
+        }
+        runNuclearWipe();
+    </script>
+    <style>
+        :root {
+            --gold: #FFD700;
+            --gold-dark: #D4AF00;
+            --orange: #FF8C00;
+            --purple: #8B5CF6;
+            --cyan: #06B6D4;
+            --dark: #030014;
+            --dark-purple: #0B0020;
+        }
+
+        .btn-wallet {
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        }
+        .btn-wallet:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            filter: brightness(1.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--dark);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.2;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
+            animation: nebulaMove 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes nebulaMove {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            100% {
+                transform: scale(1.1) rotate(5deg);
+            }
+        }
+
+        /* ===== FLOATING 3D CHEESE ===== */
+        .floating-3d-cheese {
+            position: fixed;
+            top: 50%;
+            right: 10%;
+            transform: translateY(-50%);
+            font-size: 400px;
+            opacity: 0.03;
+            z-index: -1;
+            animation: floatCheese 10s infinite ease-in-out;
+            filter: blur(2px);
+        }
+
+        @keyframes floatCheese {
+
+            0%,
+            100% {
+                transform: translateY(-50%) rotateY(0deg) rotateX(0deg);
+            }
+
+            25% {
+                transform: translateY(-55%) rotateY(10deg) rotateX(5deg);
+            }
+
+            50% {
+                transform: translateY(-45%) rotateY(0deg) rotateX(-5deg);
+            }
+
+            75% {
+                transform: translateY(-52%) rotateY(-10deg) rotateX(5deg);
+            }
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(30px);
+            background: rgba(3, 0, 20, 0.5);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00, #FFD700);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            animation: logoSpin 20s infinite linear;
+        }
+
+        @keyframes logoSpin {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FFD700, #FF8C00);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #FFD700;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .nav-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10rem 4rem 6rem;
+            position: relative;
+        }
+
+        .hero-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.2));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge .pulse {
+            width: 10px;
+            height: 10px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulseBadge 2s infinite;
+        }
+
+        @keyframes pulseBadge {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 .line1 {
+            display: block;
+            background: linear-gradient(90deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h1 .line2 {
+            display: block;
+            background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FFD700 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .hero h1 .line3 {
+            display: block;
+            font-size: 0.5em;
+            background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 550px;
+            line-height: 1.8;
+            margin-bottom: 3rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1.25rem 2.5rem;
+            border-radius: 60px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            color: #000;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            border-color: #FFD700;
+            color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* ===== 3D CHEESE VISUAL ===== */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cheese-3d {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            animation: float3D 6s infinite ease-in-out;
+        }
+
+        @keyframes float3D {
+
+            0%,
+            100% {
+                transform: translateY(0) rotateY(0deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotateY(15deg);
+            }
+        }
+
+        .cheese-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+            filter: blur(60px);
+            animation: glowPulse 3s infinite ease-in-out;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        .cheese-main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 200px;
+            filter: drop-shadow(0 0 80px rgba(255, 215, 0, 0.5));
+        }
+
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+
+        .orbit-1 {
+            width: 300px;
+            height: 300px;
+            margin: -150px 0 0 -150px;
+        }
+
+        .orbit-2 {
+            width: 400px;
+            height: 400px;
+            margin: -200px 0 0 -200px;
+            animation-direction: reverse;
+            animation-duration: 25s;
+        }
+
+        .orbit-3 {
+            width: 500px;
+            height: 500px;
+            margin: -250px 0 0 -250px;
+            animation-duration: 30s;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        /* ===== STATS FLOATING ===== */
+        .stats-float {
+            position: absolute;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            animation: floatStats 4s infinite ease-in-out;
+        }
+
+        @keyframes floatStats {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .stats-float h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-float p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-1 {
+            top: 10%;
+            left: -20%;
+        }
+
+        .stat-2 {
+            bottom: 20%;
+            left: -10%;
+            animation-delay: 1s;
+        }
+
+        .stat-3 {
+            top: 20%;
+            right: -20%;
+            animation-delay: 2s;
+        }
+
+        .stat-4 {
+            bottom: 10%;
+            right: -10%;
+            animation-delay: 0.5s;
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            padding: 8rem 4rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header .overline {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #8B5CF6;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            position: relative;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            transition: all 0.4s;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FFD700, transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.02);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6rem;
+            font-weight: 900;
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            color: rgba(255, 255, 255, 0.02);
+            line-height: 1;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .feature-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.8;
+        }
+
+        /* ===== ECOSYSTEM ===== */
+        .ecosystem {
+            padding: 8rem 4rem;
+            position: relative;
+        }
+
+        .ecosystem-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .eco-card {
+            position: relative;
+            padding: 3rem;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
+            text-align: center;
+            transition: all 0.4s;
+            overflow: hidden;
+        }
+
+        .eco-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .eco-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .eco-card:hover::before {
+            opacity: 1;
+        }
+
+        .eco-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            display: block;
+        }
+
+        .eco-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .eco-card p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        /* ===== TOKENOMICS ===== */
+        .tokenomics {
+            padding: 8rem 4rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 215, 0, 0.02) 50%, transparent 100%);
+        }
+
+        .token-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .token-visual {
+            position: relative;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .token-ring {
+            position: absolute;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            animation: tokenRing 10s linear infinite;
+        }
+
+        .ring-1 {
+            width: 200px;
+            height: 200px;
+        }
+
+        .ring-2 {
+            width: 300px;
+            height: 300px;
+            animation-direction: reverse;
+        }
+
+        .ring-3 {
+            width: 400px;
+            height: 400px;
+        }
+
+        @keyframes tokenRing {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .token-center {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .token-center .big-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD700, #FF8C00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 60px rgba(255, 215, 0, 0.5);
+        }
+
+        .token-center p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .token-info h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .token-list {
+            list-style: none;
+        }
+
+        .token-list li {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .token-list li span {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .token-list li strong {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            color: #FFD700;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            padding: 10rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            filter: blur(100px);
+        }
+
+        .cta-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .cta-section p {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 6rem 4rem 3rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand .logo {
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-brand p {
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.8;
+        }
+
+        .footer-links h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: #FFD700;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #FFD700;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .ecosystem-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .token-main {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ===== MOBILE RESPONSIVE - FIT TO SCREEN ===== */
+        @media (max-width: 768px) {
+
+            /* Force content to fit screen */
+            html,
+            body {
+                overflow-x: hidden !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+            }
+
+            * {
+                max-width: 100vw !important;
+            }
+
+            /* Navigation */
+            nav {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 1rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                width: 100%;
+                justify-content: flex-start;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-links::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-links a {
+                white-space: nowrap;
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-cta {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .logo-icon {
+                font-size: 1.5rem;
+            }
+
+            /* Hero Section - Compact */
+            .hero {
+                padding: 6rem 1rem 2rem;
+                min-height: auto;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem !important;
+                line-height: 1.2;
+                letter-spacing: 0;
+            }
+
+            .hero h1 .line3 {
+                font-size: 0.6em;
+            }
+
+            .hero p {
+                font-size: 0.95rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .hero-badge {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                gap: 0.75rem;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.9rem 1.5rem;
+                font-size: 0.9rem;
+            }
+
+            /* Hide COMPLEX 3D elements on mobile (orbits cause clutter) */
+            /* Keep .floating-3d-cheese and .stats-float visible - styled in mobile-fix.css */
+            .cheese-3d,
+            .hero-visual {
+                display: none !important;
+            }
+
+            /* Sections - Reduce padding */
+            .features,
+            .ecosystem,
+            .tokenomics,
+            section[style*="padding: 8rem"] {
+                padding: 3rem 1rem !important;
+            }
+
+            .section-header {
+                margin-bottom: 2rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .section-header p {
+                font-size: 0.9rem;
+            }
+
+            .section-header .overline {
+                font-size: 0.7rem;
+                letter-spacing: 2px;
+            }
+
+            /* Features Grid - Single column */
+            .features-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
+            }
+
+            .feature-card {
+                padding: 1.25rem;
+                border-radius: 16px;
+            }
+
+            .feature-card h3 {
+                font-size: 1.1rem;
+            }
+
+            .feature-card p {
+                font-size: 0.85rem;
+            }
+
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .feature-number {
+                font-size: 3rem;
+            }
+
+            /* Ecosystem Grid */
+            .ecosystem-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem;
+            }
+
+            .eco-card {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+
+            .eco-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+
+            .eco-card h3 {
+                font-size: 1.2rem;
+            }
+
+            /* Token/Why Section Grids */
+            .token-main,
+            div[style*="grid-template-columns: repeat(2"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            .token-visual {
+                height: 250px;
+            }
+
+            .token-center .big-number {
+                font-size: 2.5rem;
+            }
+
+            /* CTA Section */
+            .cta-section h2 {
+                font-size: 1.5rem !important;
+            }
+
+            .cta-section p {
+                font-size: 0.9rem;
+            }
+
+            /* Footer - Single column */
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem;
+            }
+
+            footer {
+                padding: 2rem 1rem !important;
+            }
+
+            .footer-brand p {
+                font-size: 0.85rem;
+            }
+
+            .footer-links h4 {
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .footer-links ul {
+                gap: 0.25rem;
+            }
+
+            .footer-links a {
+                font-size: 0.85rem;
+            }
+
+            .footer-bottom {
+                padding-top: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Extra Small - Phones */
+        @media (max-width: 480px) {
+            nav {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .logo {
+                font-size: 1rem;
+            }
+
+            .nav-cta {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.7rem;
+            }
+
+            .hero {
+                padding: 5rem 0.75rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem !important;
+            }
+
+            .hero p {
+                font-size: 0.85rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .feature-card,
+            .eco-card {
+                padding: 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.3rem !important;
+            }
+
+            footer {
+                padding: 1.5rem 0.75rem !important;
+            }
+        }
+    </style>
+    <!-- External Mobile Fixes must be loaded AFTER inline styles to override them -->
+    <link rel="stylesheet" href="mobile-fix.css?v=10.1">
+</head>
+
+<body>
+    <!-- Stars Background -->
+    <div class="stars-container" id="stars"></div>
+    <div class="nebula"></div>
+    <div class="floating-3d-cheese">🧀</div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <span class="logo-icon">🧀</span>
+            <span>CHEESE</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#notary" style="color: #FFD700;">🔐 Notary</a></li>
+            <li><a href="/explorer/">🔍 Explorer</a></li>
+            <li><a href="/developer.html" style="color: #FFD700;">🧠 AIaaS Portal</a></li>
+            <li><a href="/node-installer.sh" style="color: #ffcc00; font-weight: 700;" download>💻 CLI Node Installer</a></li>
+            <li><a href="#tokenomics">Tokenomics</a></li>
+            <li><a href="/whitepaper.html">📜 Whitepaper</a></li>
+        </ul>
+        <a href="/notary/" class="nav-cta">
+            🔐 Notary Service
+        </a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="pulse"></span>
+                    WORLD'S FIRST AI-POWERED BLOCKCHAIN
+                </div>
+                <h1>
+                    <span class="line1">THE FUTURE OF</span>
+                    <span class="line2">DECENTRALIZED FINANCE</span>
+                    <span class="line3">POWERED BY ARTIFICIAL INTELLIGENCE</span>
+                </h1>
+                <p>The only blockchain with 27 real AI/ML models including neural networks, LSTM, Transformers, and
+                    Reinforcement Learning. Fixed 21M supply like Bitcoin. 1.7 million times more energy efficient.
+                    Self-learning network with persistent weights.</p>
+                <div class="hero-cta">
+                    <a href="#features" class="btn btn-primary">
+                        🧠 View Features
+                    </a>
+                    <a href="/notary/" class="btn btn-secondary">
+                        🔐 File Notary
+                    </a>
+                    <a href="/node-installer.sh" class="btn btn-secondary" style="border-color: #ffcc00; color: #ffcc00; background: rgba(255, 204, 0, 0.05);" download>
+                        💻 CLI Node Installer
+                    </a>
+                </div>
+                <div class="wallet-integration-section" style="margin-top: 25px; padding: 18px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p style="font-size: 0.85rem; font-weight: 700; color: #ffb703; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+                        ⚡ Instant 1-Click Network & 🧀 NCH Logo Importer
+                    </p>
+                    <div class="wallet-buttons-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button onclick="addWalletNetwork('metamask')" class="btn-wallet" style="background: linear-gradient(135deg, #f6851b 0%, #e2761b 100%); color: white;">
+                            🦊 MetaMask
+                        </button>
+                        <button onclick="addWalletNetwork('trust')" class="btn-wallet" style="background: linear-gradient(135deg, #3375BB 0%, #0500FF 100%); color: white;">
+                            🛡️ Trust Wallet
+                        </button>
+                        <button onclick="addWalletNetwork('binance')" class="btn-wallet" style="background: linear-gradient(135deg, #F3BA2F 0%, #E0A000 100%); color: #111; font-weight: 700;">
+                            🟡 Binance Web3
+                        </button>
+                        <button onclick="addWalletNetwork('coinbase')" class="btn-wallet" style="background: linear-gradient(135deg, #0052FF 0%, #0036B3 100%); color: white;">
+                            🔵 Coinbase
+                        </button>
+                        <button onclick="addWalletNetwork('bitget')" class="btn-wallet" style="background: linear-gradient(135deg, #00F0FF 0%, #00A3FF 100%); color: #111; font-weight: 700;">
+                            ⚡ Bitget
+                        </button>
+                        <button onclick="addWalletNetwork('tokenpocket')" class="btn-wallet" style="background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%); color: white;">
+                            🔷 TokenPocket
+                        </button>
+                    </div>
+
+                    <!-- Transparency & Native Coin Network Parameters -->
+                    <div class="network-transparency-card" style="margin-top: 20px; padding: 18px; background: rgba(11, 0, 32, 0.7); backdrop-filter: blur(12px); border-radius: 14px; border: 1px solid rgba(255, 215, 0, 0.25); text-align: left;">
+                        <h4 style="color: #FFD700; font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            ⚙️ Official Network & Native Coin Parameters
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.82rem; color: #e2e8f0;">
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">Network Name</strong>
+                                <span style="font-weight: 600; color: #fff;">CHEESE Blockchain</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">Native Coin Symbol</strong>
+                                <span style="font-weight: 700; color: #FFD700;">NCH (Native Layer-1 Coin)</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">Chain ID</strong>
+                                <span style="font-weight: 600; color: #fff;">20250 <code style="color: #38bdf8; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">(0x4f1a)</code></span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">Decimals</strong>
+                                <span style="font-weight: 600; color: #fff;">6</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); grid-column: 1 / -1;">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">EVM Mirror Contract Address (For Web3 Wallet 🧀 Logo Auto-Matching)</strong>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px;">
+                                    <code style="color: #4ade80; font-family: monospace; font-size: 0.8rem; word-break: break-all;">0x000000000000000000000000000000000000c8ee</code>
+                                    <button onclick="navigator.clipboard.writeText('0x000000000000000000000000000000000000c8ee'); alert('📋 EVM Mirror Contract Address copied!');" style="background: rgba(255, 215, 0, 0.15); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.4); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 600; flex-shrink: 0;">📋 Copy Address</button>
+                                </div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">RPC URL</strong>
+                                <span style="font-family: monospace; color: #38bdf8; font-size: 0.78rem;">https://cheeseblockchain.com/api/rpc</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase;">Block Explorer</strong>
+                                <a href="https://cheeseblockchain.com/explorer/" target="_blank" style="color: #38bdf8; text-decoration: underline; font-size: 0.78rem; font-family: monospace;">https://cheeseblockchain.com/explorer/</a>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.04); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); grid-column: 1 / -1;">
+                                <strong style="color: #94a3b8; display: block; font-size: 0.72rem; text-transform: uppercase; margin-bottom: 4px;">⚡ Multi-Role CLI Node Installer (Governance / Mining / Hybrid)</strong>
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255, 204, 0, 0.15);">
+                                    <code style="color: #ffcc00; font-family: monospace; font-size: 0.78rem; word-break: break-all;">curl -s https://cheeseblockchain.com/node-installer.sh | bash</code>
+                                    <button onclick="navigator.clipboard.writeText('curl -s https://cheeseblockchain.com/node-installer.sh | bash'); alert('📋 Node Installer command copied to clipboard!');" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.4); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-weight: 600; flex-shrink: 0;">📋 Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="cheese-3d">
+                    <div class="cheese-glow"></div>
+                    <div class="orbit orbit-1">
+                        <div class="orbit-dot" style="top:-6px;left:50%;"></div>
+                    </div>
+                    <div class="orbit orbit-2">
+                        <div class="orbit-dot" style="top:50%;right:-6px;"></div>
+                    </div>
+                    <div class="orbit orbit-3">
+                        <div class="orbit-dot" style="bottom:-6px;left:50%;"></div>
+                    </div>
+                    <div class="cheese-main">🧀</div>
+                </div>
+                <div class="stats-float stat-1">
+                    <h4>21M</h4>
+                    <p>Max Supply</p>
+                </div>
+                <div class="stats-float stat-2">
+                    <h4>27</h4>
+                    <p>AI/ML Models</p>
+                </div>
+                <div class="stats-float stat-3">
+                    <h4>0.3%</h4>
+                    <p>DEX Fee</p>
+                </div>
+                <div class="stats-float stat-4">
+                    <h4>1min</h4>
+                    <p>Block Time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <p class="overline">Revolutionary Technology</p>
+            <h2>27 AI/ML Models</h2>
+            <p>World's most advanced AI blockchain. Quantum-resistant, AI governance, cross-chain, biometric auth, smart contract generator, energy optimization. CHEESE is the future.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-number">01</div>
+                <div class="feature-icon">🔍</div>
+                <h3>Fraud Detection</h3>
+                <p>Real-time ML-powered transaction validation that detects anomalies before they occur.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">02</div>
+                <div class="feature-icon">🧠</div>
+                <h3>Self-Learning</h3>
+                <p>The network continuously learns and improves from every transaction.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">03</div>
+                <div class="feature-icon">🐋</div>
+                <h3>Whale Alerts</h3>
+                <p>AI detection of large movements with market impact analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">04</div>
+                <div class="feature-icon">📊</div>
+                <h3>Predictive Analytics</h3>
+                <p>Forecasts network behavior and optimizes fee estimation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">05</div>
+                <div class="feature-icon">🛡️</div>
+                <h3>Contract Scanner</h3>
+                <p>Scans smart contracts for vulnerabilities before deployment.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">06</div>
+                <div class="feature-icon">🌱</div>
+                <h3>Energy Efficient</h3>
+                <p>1.7 million times more efficient than Bitcoin. A+ green rating.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">07</div>
+                <div class="feature-icon">🔒</div>
+                <h3>Quantum-Resistant</h3>
+                <p>Post-quantum cryptography protects against future quantum computing attacks.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">08</div>
+                <div class="feature-icon">🏛️</div>
+                <h3>AI Governance</h3>
+                <p>Automated protocol decisions with community sentiment analysis and voting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">09</div>
+                <div class="feature-icon">🌉</div>
+                <h3>Cross-Chain Bridge</h3>
+                <p>Intelligent interoperability with 8 major blockchains and route optimization.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">10</div>
+                <div class="feature-icon">🤖</div>
+                <h3>Contract Generator</h3>
+                <p>AI writes optimized smart contracts automatically with 25+ templates.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">11</div>
+                <div class="feature-icon">🔐</div>
+                <h3>Biometric Auth</h3>
+                <p>Next-gen security with facial, fingerprint, voice, iris, and behavioral biometrics.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-number">12</div>
+                <div class="feature-icon">⚡</div>
+                <h3>Energy Optimizer</h3>
+                <p>AI-powered renewable energy monitoring and carbon footprint reduction.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blockchain Notary Section -->
+    <section class="notary-section" id="notary"
+        style="padding: 8rem 4rem; background: linear-gradient(180deg, transparent 0%, rgba(255, 215, 0, 0.03) 50%, transparent 100%);">
+        <div class="section-header">
+            <p class="overline">🔐 Blockchain Notary Service</p>
+            <h2>Immutable Document Timestamps</h2>
+            <p>Record any document's digital fingerprint on the blockchain for tamper-proof proof of existence</p>
+        </div>
+        
+        <div class="notary-grid"
+            style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem;">
+            <div class="feature-card"
+                style="background: rgba(255, 215, 0, 0.05); border-color: rgba(255, 215, 0, 0.3); text-align: center;">
+                <div class="feature-icon" style="background: rgba(255, 215, 0, 0.1); font-size: 3rem;">📄</div>
+                <h3>Any File Type</h3>
+                <p>Notarize documents, images, videos, audio, code - any digital file gets a permanent timestamp</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); text-align: center;">
+                <div class="feature-icon" style="background: rgba(16, 185, 129, 0.1); font-size: 3rem;">🔒</div>
+                <h3>SHA-256 Security</h3>
+                <p>Military-grade cryptographic hashing ensures your document fingerprint is unique and tamper-proof</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.3); text-align: center;">
+                <div class="feature-icon" style="background: rgba(139, 92, 246, 0.1); font-size: 3rem;">⛓️</div>
+                <h3>On-Chain Proof</h3>
+                <p>Your document hash is permanently recorded on the CHEESE blockchain - accessible forever</p>
+            </div>
+        </div>
+
+        <div class="notary-workflow"
+            style="max-width: 1000px; margin: 0 auto; background: rgba(0, 0, 0, 0.3); padding: 2rem; border-radius: 20px; border: 1px solid rgba(255, 215, 0, 0.2);">
+            <h3 style="text-align: center; margin-bottom: 2rem; color: #FFD700;">🚀 How It Works</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center;">
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+                    <h4 style="color: #FFD700; margin-bottom: 0.5rem;">1. Upload File</h4>
+                    <p style="font-size: 0.9rem; color: #aaa;">Drag & drop any file into the wallet</p>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔐</div>
+                    <h4 style="color: #FFD700; margin-bottom: 0.5rem;">2. Calculate Hash</h4>
+                    <p style="font-size: 0.9rem; color: #aaa;">SHA-256 fingerprint generated locally</p>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⛓️</div>
+                    <h4 style="color: #FFD700; margin-bottom: 0.5rem;">3. Record On-Chain</h4>
+                    <p style="font-size: 0.9rem; color: #aaa;">Hash stored permanently on blockchain</p>
+                </div>
+                <div>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📜</div>
+                    <h4 style="color: #FFD700; margin-bottom: 0.5rem;">4. Get Proof</h4>
+                    <p style="font-size: 0.9rem; color: #aaa;">Transaction hash serves as immutable proof</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="/wallet/" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                🔐 Try Notary Service - Only 0.05 NCH
+            </a>
+            <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">
+                Files are never uploaded - only their digital fingerprint is recorded
+            </p>
+        </div>
+    </section>
+
+    <!-- Why CHEESE Section -->
+    <section class="why-better" id="why"
+        style="padding: 8rem 4rem; background: linear-gradient(180deg, transparent 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);">
+        <div class="section-header">
+            <p class="overline">Why CHEESE?</p>
+            <h2>What Makes Us Different</h2>
+            <p>Built from scratch with AI at its core - not retrofitted</p>
+        </div>
+        <div class="why-grid"
+            style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+            <div class="feature-card"
+                style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                <div class="feature-icon" style="background: rgba(16, 185, 129, 0.1);">⚡</div>
+                <h3>1.7 Million� More Efficient</h3>
+                <p>Bitcoin uses 1,700 kWh per transaction. CHEESE uses 0.001 kWh. That's 1.7 million times more energy
+                    efficient with an A+ green rating.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(139, 92, 246, 0.05); border-color: rgba(139, 92, 246, 0.2);">
+                <div class="feature-icon" style="background: rgba(139, 92, 246, 0.1);">🧠</div>
+                <h3>AI-Native Architecture</h3>
+                <p>Not an AI layer added on top - AI is built into the core consensus. The network literally learns and
+                    improves with every block.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2);">
+                <div class="feature-icon" style="background: rgba(6, 182, 212, 0.1);">🔒</div>
+                <h3>ML Fraud Prevention</h3>
+                <p>Every transaction passes through ML validators that detect suspicious patterns, preventing hacks
+                    before they happen.</p>
+            </div>
+            <div class="feature-card"
+                style="background: rgba(255, 215, 0, 0.05); border-color: rgba(255, 215, 0, 0.2);">
+                <div class="feature-icon">💎</div>
+                <h3>Bitcoin-Like Scarcity</h3>
+                <p>Fixed 21M supply that can never be increased. Halving every year. No minting, no inflation. True
+                    digital scarcity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Full Ecosystem -->
+    <section class="ecosystem" id="ecosystem">
+        <div class="section-header">
+            <p class="overline">Complete Platform</p>
+            <h2>CHEESE Ecosystem</h2>
+            <p>A complete suite of products for the decentralized future</p>
+        </div>
+        <div class="ecosystem-grid-4"
+            style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+            <div class="eco-card">
+                <span class="eco-icon">💼</span>
+                <h3>CHEESE Wallet</h3>
+                <p>Secure native wallet for NCH, USDT, and USDC on Cheese Blockchain</p>
+                <a href="/wallet/" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Open Wallet</a>
+            </div>
+            <div class="eco-card">
+                <span class="eco-icon">🔄</span>
+                <h3>CHEESE DEX</h3>
+                <p>Trade tokens with 0.3% fees. Become a liquidity provider</p>
+                <a href="/dex/" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Launch DEX</a>
+            </div>
+            <div class="eco-card">
+                <span class="eco-icon">🤖</span>
+                <h3>AI Trading Bot</h3>
+                <p>Automated high-frequency trading powered by Cheese AI.</p>
+                <a href="javascript:alert('AI Trading Bot is running in autonomous mode. Please check local console.');"
+                    class="btn btn-secondary" style="padding: 0.75rem 1.5rem;">Access Bot</a>
+            </div>
+            <div class="eco-card" style="border: 1px dashed #ffcc00;">
+                <span class="eco-icon">💻</span>
+                <h3>Node Installer</h3>
+                <p>Deploy your own node. Supports Governance, Mining, or full Hybrid capabilities.</p>
+                <a href="/node-installer.sh" class="btn btn-primary" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #ffcc00 0%, #f5a623 100%); color: #000;" download>Download Installer</a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Tokenomics -->
+    <section class="tokenomics" id="tokenomics">
+        <div class="token-main">
+            <div class="token-visual">
+                <div class="token-ring ring-1"></div>
+                <div class="token-ring ring-2"></div>
+                <div class="token-ring ring-3"></div>
+                <div class="token-center">
+                    <div class="big-number">21M</div>
+                    <p>Fixed Supply</p>
+                </div>
+            </div>
+            <div class="token-info">
+                <h2>Bitcoin-Like Tokenomics</h2>
+                <ul class="token-list">
+                    <li><span>Total Supply</span><strong>21,000,000 NCH</strong></li>
+                    <li><span>Mineable</span><strong>90.5%</strong></li>
+                    <li><span>Founder Allocation</span><strong>9.5%</strong></li>
+                    <li><span>Halving Period</span><strong>~1 Year</strong></li>
+                    <li><span>Inflation</span><strong>0% (Fixed)</strong></li>
+                </ul>
+            </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2>Join the Revolution</h2>
+        <p>Be part of the world's first AI-powered blockchain</p>
+        <div class="cta-buttons">
+            <a href="/notary/" class="btn btn-primary">🔐 File Notary</a>
+            <a href="#features" class="btn btn-secondary">🧠 Learn More</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo">
+                    <span class="logo-icon">🧀</span>
+                    <span>CHEESE</span>
+                </div>
+                <p>The world's first AI-powered blockchain. Built for the future of decentralized finance.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Products</h4>
+                <ul>
+                    <li><a href="/wallet/index.html">Wallet</a></li>
+                    <li><a href="/dex/index.html" target="_blank">DEX</a></li>
+                    <li><a href="/wallet/index.html">Bridge</a></li>
+                    <li><a href="#">Trading Bot</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/wallet/">Wallet</a></li>
+                    <li><a href="/dex/">DEX</a></li>
+                    <li><a href="/wallet/index.html#bridge">Bridge</a></li>
+                    <li><a href="/whitepaper.html">📜 Whitepaper</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Network</h4>
+                <ul>
+                    <li><a href="#">Status</a></li>
+                    <li><a href="#">Stats</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4>Contact Us</h4>
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px;">
+                    <select id="contactTopic" onchange="updateContactLink()"
+                        style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 8px; background: #000; color: #fff; border: 1px solid #333;">
+                        <option value="Inquiry">General Inquiry</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Liquidity">Liquidity</option>
+                    </select>
+                    <a id="contactEmailBtn" href="mailto:cryptoexdevcheese@gmail.com?subject=General Inquiry"
+                        class="btn btn-sm btn-primary"
+                        style="width: 100%; justify-content: center; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; padding: 0.5rem; border-radius: 8px;">
+                        ✉️ Email Us
+                    </a>
+                    <div
+                        style="margin-top: 0.5rem; font-size: 0.75rem; color: #888; word-break: break-all; text-align: center;">
+                        <a href="mailto:cryptoexdevcheese@gmail.com"
+                            style="color: #888; text-decoration: none;">cryptoexdevcheese@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 CHEESE Blockchain. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Stars Script -->
+    <script>
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+    </script>
+    <script src="/blockchain-meta-config.js?v=2.0.0"></script>
+    <script>
+        function updateContactLink() {
+            const topic = document.getElementById('contactTopic').value;
+            const btn = document.getElementById('contactEmailBtn');
+            btn.href = `mailto:cryptoexdevcheese@gmail.com?subject=${encodeURIComponent(topic)}`;
+        }
+    </script>
+    <script>
+        // Helper to extract valid request-capable provider object
+        function unwrapProvider(obj) {
+            if (!obj) return null;
+            if (typeof obj.request === 'function' || typeof obj.sendAsync === 'function' || typeof obj.send === 'function') {
+                return obj;
+            }
+            if (obj.ethereum && (typeof obj.ethereum.request === 'function' || typeof obj.ethereum.sendAsync === 'function')) {
+                return obj.ethereum;
+            }
+            if (obj.provider && (typeof obj.provider.request === 'function' || typeof obj.provider.sendAsync === 'function')) {
+                return obj.provider;
+            }
+            return null;
+        }
+
+        // Universal Provider Resolver for Mobile & Desktop Web3 Wallets
+        function getActiveWalletProvider(walletType = 'metamask') {
+            // 1. Check EIP-6963 Multi-Injected Providers Array
+            if (window.ethereum && Array.isArray(window.ethereum.providers)) {
+                let matched = null;
+                if (walletType === 'binance') matched = window.ethereum.providers.find(p => p.isBinance || p.isBinanceWeb3Wallet);
+                else if (walletType === 'trust') matched = window.ethereum.providers.find(p => p.isTrust || p.isTrustWallet);
+                else if (walletType === 'coinbase') matched = window.ethereum.providers.find(p => p.isCoinbaseWallet);
+                else if (walletType === 'bitget') matched = window.ethereum.providers.find(p => p.isBitKeep || p.isBitget);
+                else if (walletType === 'tokenpocket') matched = window.ethereum.providers.find(p => p.isTokenPocket);
+                else if (walletType === 'metamask') matched = window.ethereum.providers.find(p => p.isMetaMask);
+
+                const unwrapped = unwrapProvider(matched);
+                if (unwrapped) return unwrapped;
+            }
+
+            // 2. Check Wallet-Specific Standalone Injected Objects
+            if (walletType === 'binance' && window.binancew3w) {
+                const p = unwrapProvider(window.binancew3w);
+                if (p) return p;
+            }
+            if (walletType === 'trust' && window.trustwallet) {
+                const p = unwrapProvider(window.trustwallet);
+                if (p) return p;
+            }
+            if (walletType === 'bitget' && (window.bitkeep || window.bitget)) {
+                const p = unwrapProvider(window.bitkeep) || unwrapProvider(window.bitget);
+                if (p) return p;
+            }
+            if (walletType === 'coinbase' && window.coinbaseWalletExtension) {
+                const p = unwrapProvider(window.coinbaseWalletExtension);
+                if (p) return p;
+            }
+            if (walletType === 'tokenpocket' && window.tp) {
+                const p = unwrapProvider(window.tp);
+                if (p) return p;
+            }
+
+            // 3. Fallback to Primary Mobile Injected Provider (window.ethereum)
+            if (window.ethereum) {
+                const p = unwrapProvider(window.ethereum);
+                if (p) return p;
+            }
+
+            return null;
+        }
+
+        // Safe Cross-Wallet RPC Request Invoker
+        async function safeRequest(provider, method, params = []) {
+            if (!provider) throw new Error('No valid Web3 provider available.');
+
+            // EIP-1193 standard request
+            if (typeof provider.request === 'function') {
+                return await provider.request({ method, params });
+            }
+
+            // Legacy sendAsync (Trust / TokenPocket mobile)
+            if (typeof provider.sendAsync === 'function') {
+                return new Promise((resolve, reject) => {
+                    provider.sendAsync({ method, params, jsonrpc: '2.0', id: Date.now() }, (err, response) => {
+                        if (err) return reject(err);
+                        if (response && response.error) return reject(response.error);
+                        resolve(response ? response.result : null);
+                    });
+                });
+            }
+
+            // Legacy send
+            if (typeof provider.send === 'function') {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const res = provider.send(method, params);
+                        if (res && typeof res.then === 'function') {
+                            res.then(resolve).catch(reject);
+                        } else {
+                            resolve(res);
+                        }
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            }
+
+            throw new Error('Wallet provider method execution not supported.');
+        }
+
+        async function addWalletNetwork(walletType = 'metamask') {
+            const provider = getActiveWalletProvider(walletType);
+
+            if (!provider) {
+                alert(`❌ ${walletType.toUpperCase()} Wallet not detected!\n\nIf you are on mobile, please open https://cheeseblockchain.com inside your wallet app's built-in Web3 browser.`);
+                window.open('https://metamask.io/download/', '_blank');
+                return;
+            }
+
+            const CONFIG = window.CHEESE_METAMASK_CONFIG || {
+                NETWORK: {
+                    chainId: '0x4f1a',
+                    chainName: 'CHEESE Blockchain',
+                    nativeCurrency: { name: 'Native Cheesecoin', symbol: 'NCH', decimals: 18 },
+                    rpcUrls: ['https://cheeseblockchain.com/api/rpc'],
+                    blockExplorerUrls: ['https://cheeseblockchain.com/explorer/'],
+                    iconUrls: ['https://cheeseblockchain.com/wallet-logos/cheese-blockchain-256.png']
+                }
+            };
+
+            try {
+                // Step 1: Attempt wallet_addEthereumChain directly (EIP-3085)
+                try {
+                    await safeRequest(provider, 'wallet_addEthereumChain', [CONFIG.NETWORK]);
+                } catch (addError) {
+                    console.warn('wallet_addEthereumChain prompt note:', addError);
+                    // If add fails (e.g. if wallet requires switch when chain is already added), try switch
+                    try {
+                        await safeRequest(provider, 'wallet_switchEthereumChain', [{ chainId: CONFIG.NETWORK.chainId || '0x4f1a' }]);
+                    } catch (switchErr) {
+                        console.warn('wallet_switchEthereumChain note:', switchErr);
+                    }
+                }
+
+                // Step 2: Auto Import NCH Token with 🧀 Logo (EIP-747)
+                setTimeout(async () => {
+                    try {
+                        await safeRequest(provider, 'wallet_watchAsset', {
+                            type: 'ERC20',
+                            options: {
+                                address: '0x000000000000000000000000000000000000c8ee',
+                                symbol: 'NCH',
+                                decimals: 6,
+                                image: 'https://cheeseblockchain.com/wallet-logos/cheese-blockchain-256.png'
+                            }
+                        });
+                    } catch (watchErr) {
+                        console.warn('NCH token logo prompt deferred:', watchErr);
+                    }
+                }, 800);
+
+                alert('✅ CHEESE Network & NCH 🧀 Logo imported successfully to your wallet!');
+            } catch (error) {
+                console.error('Wallet Setup Error:', error);
+                alert('❌ Wallet Setup Error: ' + (error.message || 'Cancelled by user'));
+            }
+        }
+
+        // Legacy Alias
+        function addToMetaMask() {
+            addWalletNetwork('metamask');
+        }
+    </script>
+    <!-- AI Support Chatbot -->
+
+</body>
+
+</html>

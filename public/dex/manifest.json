@@ -1,0 +1,16 @@
+{
+    "name": "CHEESE DEX V5.0",
+    "short_name": "CHEESE DEX",
+    "description": "Trade tokens on the CHEESE blockchain decentralized exchange",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#050508",
+    "theme_color": "#FFD700",
+    "icons": [
+        {
+            "src": "/wallet-logos/cheese-blockchain-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        }
+    ]
+}
