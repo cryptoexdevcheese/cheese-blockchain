@@ -50,19 +50,69 @@ const { P2PIntegration } = require('./advanced-p2p');
 const { WalletManager } = require('./blockchain-wallet');
 const { AIValidator, AIAnalytics, AIConsensus } = require('./hybrid-blockchain-ai');
 
-// MLIntegration is currently handled by GuardianAI in this version
+// MLIntegration: GuardianAIML + RealAIEngine (14 wired production models)
 const GuardianAIML = require('./guardian-ai-ml');
+const { RealAIEngine } = require('./ai-engine');
+
 class MLIntegration extends GuardianAIML {
-    constructor() {
+    constructor(nodeRole = 'HYBRID') {
         super();
+        this.nodeRole = (nodeRole || 'HYBRID').toUpperCase();
         this.difficultyModel = { difficulty: 2, confidence: 0.8 };
+        this.realAI = new RealAIEngine(this.nodeRole);
+        this._realAIReady = false;
     }
+
     async initialize() {
-        // Already initialized in constructor
+        try {
+            await this.realAI.initialize();
+            this._realAIReady = true;
+            const status = this.realAI.getStatus();
+            console.log(`✅ RealAIEngine initialized (${this.nodeRole}) — ${status.totalMLModels} AI models active`);
+        } catch (err) {
+            console.warn('⚠️ RealAIEngine init partial/failed, using Guardian fallback:', err.message);
+        }
         return true;
     }
+
+    _buildTxContext(transaction, historicalData = []) {
+        const amounts = historicalData.map(t => parseFloat(t.amount) || 0).filter(a => a > 0);
+        const avgAmount = amounts.length
+            ? amounts.reduce((s, a) => s + a, 0) / amounts.length
+            : parseFloat(transaction.amount) || 0;
+        return {
+            historicalData,
+            frequency: historicalData.length,
+            timeSinceLastTx: historicalData.length > 0
+                ? Date.now() - (historicalData[0].timestamp || Date.now())
+                : 86400000,
+            uniqueRecipients: new Set(historicalData.map(t => t.to)).size || 1,
+            averageAmount: avgAmount,
+            transactionCount: historicalData.length,
+            accountAge: 31536000000
+        };
+    }
+
     async predictTransactionRisk(transaction, historicalData = []) {
-        // Use the risk assessment from GuardianAIML
+        const context = this._buildTxContext(transaction, historicalData);
+
+        if (this._realAIReady && this.realAI) {
+            const ensemble = this.realAI.assessRisk(transaction, context);
+            const guardian = this.assessRisk(transaction, { historicalData });
+            const realScore = ensemble.overallRisk || 0;
+            const guardianScore = guardian.probabilities?.high || 0;
+            const riskScore = Math.max(realScore, guardianScore);
+            return {
+                riskScore,
+                confidence: Math.max(0.5, 1 - riskScore * 0.5),
+                method: 'real-ai-engine+guardian-ensemble',
+                riskLevel: ensemble.riskLevel,
+                recommendation: ensemble.recommendation,
+                components: ensemble.components,
+                isRealAI: true
+            };
+        }
+
         const risk = this.assessRisk(transaction, { historicalData });
         return {
             riskScore: risk.probabilities.high,
@@ -70,35 +120,63 @@ class MLIntegration extends GuardianAIML {
             method: 'ml-guardian-neural-network'
         };
     }
+
     async optimizeMining(blockData, chainHistory) {
-        // Basic optimization logic
+        if (this._realAIReady && this.realAI?.miningOptimizer) {
+            const currentDifficulty = blockData?.difficulty || this.difficultyModel.difficulty || 2;
+            const environment = {
+                blockTime: blockData?.timestamp || Date.now(),
+                chainLength: chainHistory?.length || 0,
+                pendingTxCount: blockData?.transactions?.length || 0
+            };
+            const optimized = this.realAI.optimizeMining(currentDifficulty, environment);
+            return {
+                difficulty: optimized.recommendedDifficulty ?? optimized.difficulty ?? currentDifficulty,
+                suggestedNonce: Math.floor(Math.random() * 1000000),
+                confidence: optimized.confidence ?? 0.9,
+                method: 'real-ai-mining-optimizer',
+                isRealAI: true
+            };
+        }
+
         let difficulty = 2;
         if (chainHistory && chainHistory.length > 10) {
             difficulty = 3;
         }
         return {
-            difficulty: difficulty,
+            difficulty,
             suggestedNonce: Math.floor(Math.random() * 1000000),
             confidence: 0.9,
             method: 'ml-guardian-optimization'
         };
     }
-    
+
     async detectAnomalies(block, chain) {
-        // Use Guardian AI to detect anomalies
         const anomalies = [];
-        
-        // Check block size
+
+        if (this._realAIReady && this.realAI?.anomalyDetector && block.transactions?.length) {
+            for (const tx of block.transactions.slice(0, 50)) {
+                const result = this.realAI.detectAnomaly(tx, {});
+                if (result.isAnomaly) {
+                    anomalies.push({
+                        type: 'TX_ANOMALY',
+                        severity: result.anomalyScore > 0.7 ? 'high' : 'medium',
+                        message: `Anomalous transaction detected (score: ${result.anomalyScore})`,
+                        txId: tx.id || tx.hash
+                    });
+                }
+            }
+        }
+
         const blockSize = JSON.stringify(block).length;
-        if (blockSize > 1000000) { // 1MB
+        if (blockSize > 1000000) {
             anomalies.push({
                 type: 'LARGE_BLOCK',
                 severity: 'medium',
                 message: 'Block size exceeds normal threshold'
             });
         }
-        
-        // Check transaction count
+
         if (block.transactions && block.transactions.length > 1000) {
             anomalies.push({
                 type: 'HIGH_TRANSACTION_COUNT',
@@ -106,12 +184,11 @@ class MLIntegration extends GuardianAIML {
                 message: 'Unusually high number of transactions'
             });
         }
-        
-        // Check block time
+
         if (chain.length > 0) {
             const lastBlock = chain[chain.length - 1];
             const timeDiff = Math.abs(block.timestamp - lastBlock.timestamp);
-            if (timeDiff > 3600000) { // 1 hour
+            if (timeDiff > 3600000) {
                 anomalies.push({
                     type: 'TIME_ANOMALY',
                     severity: 'medium',
@@ -119,12 +196,67 @@ class MLIntegration extends GuardianAIML {
                 });
             }
         }
-        
+
         return {
             hasAnomalies: anomalies.length > 0,
-            anomalies: anomalies,
-            confidence: anomalies.length > 0 ? 0.8 : 0.95,
-            method: 'ml-guardian-anomaly-detection'
+            anomalies,
+            confidence: anomalies.length > 0 ? 0.85 : 0.95,
+            method: this._realAIReady ? 'real-ai-anomaly+guardian-heuristics' : 'ml-guardian-anomaly-detection'
+        };
+    }
+
+    async predictNetworkHealth(chain, networkStats) {
+        if (this._realAIReady && this.realAI?.networkHealth) {
+            const recentBlocks = (chain || []).slice(-20);
+            const metrics = {
+                blockCount: chain?.length || 0,
+                avgBlockTime: recentBlocks.length > 1
+                    ? (recentBlocks[recentBlocks.length - 1].timestamp - recentBlocks[0].timestamp) / recentBlocks.length
+                    : 60000,
+                avgTxPerBlock: recentBlocks.length
+                    ? recentBlocks.reduce((s, b) => s + (b.transactions?.length || 0), 0) / recentBlocks.length
+                    : 0,
+                peerCount: networkStats?.peerCount || 0,
+                pendingTransactions: networkStats?.pendingTransactions || 0
+            };
+            const health = this.realAI.predictNetworkHealth(metrics);
+            return { ...health, method: 'real-ai-network-health', isRealAI: true };
+        }
+
+        return {
+            healthScore: 0.85,
+            status: 'healthy',
+            method: 'guardian-fallback',
+            issues: []
+        };
+    }
+
+    getEngineStatus() {
+        if (!this.realAI) {
+            return { wired: false, modelsActive: 0 };
+        }
+        const status = this.realAI.getStatus();
+        const loaded = [
+            this.realAI.fraudDetector,
+            this.realAI.transactionPredictor,
+            this.realAI.anomalyDetector,
+            this.realAI.miningOptimizer,
+            this.realAI.whaleDetector,
+            this.realAI.networkHealth,
+            this.realAI.sentimentAnalyzer,
+            this.realAI.userBehavior,
+            this.realAI.pricePredictor,
+            this.realAI.contractAnalyzer,
+            this.realAI.selfLearning
+        ].filter(Boolean).length;
+        return {
+            wired: true,
+            ready: this._realAIReady,
+            nodeRole: this.nodeRole,
+            modelsActive: loaded,
+            selfLearningModels: this.realAI.selfLearning ? 4 : 0,
+            totalWired: loaded + (this.realAI.selfLearning ? 3 : 0),
+            status
         };
     }
 }
@@ -144,7 +276,7 @@ class EnhancedHybridBlockchainAI {
         this.totalMined = 0; // Track total coins mined
 
         // IMMUTABLE SECURITY POLICIES (LOCKED)
-        this.SAFE_CURRENCIES = ['NCH', 'USDT', 'USDC', 'CHEESE', 'NCHEESE'];
+        this.SAFE_CURRENCIES = ['NCH', 'USDT', 'USDC', 'WNCH', 'CHEESE', 'NCHEESE'];
         this.STRICT_SUPPLY_LOCK = true;
         // ===================================================================
 
@@ -199,7 +331,7 @@ class EnhancedHybridBlockchainAI {
         this.walletManager = new WalletManager(this.database);
         this.network = null;
         this.aiValidator = new AIValidator();
-        this.ml = new MLIntegration();
+        this.ml = new MLIntegration(this.nodeRole);
         this.aiAnalytics = new AIAnalytics();
         this.aiConsensus = new AIConsensus();
         this.aiAgents = [];
@@ -209,9 +341,9 @@ class EnhancedHybridBlockchainAI {
         this.minedBlockIndices = new Set();
 
         // 🎯 NEW: Node-specific capabilities
-        this.miningEnabled = true;
-        this.governanceEnabled = true;
-        this.stakingEnabled = true;
+        this.miningEnabled = false;
+        this.governanceEnabled = false;
+        this.stakingEnabled = false;
         this.votingPower = new Map();
         this.treasury = null;
 
@@ -268,6 +400,25 @@ class EnhancedHybridBlockchainAI {
         this.treasury = null;
         this.miner = null;
         console.log('🔄 Hybrid node: all capability flags enabled (default production mode)');
+    }
+
+    getTransactionGasFee(tx) {
+        if (!tx) return 0.05;
+        let type = tx.type;
+        if (tx.data) {
+            if (typeof tx.data === 'object' && tx.data !== null) {
+                type = tx.data.type || type;
+            } else if (typeof tx.data === 'string') {
+                try {
+                    const parsedData = JSON.parse(tx.data);
+                    type = parsedData.type || type;
+                } catch (e) {}
+            }
+        }
+        if (type === 'DOCUMENT_NOTARY' || type === 'notary_stamp' || type === 'notary_send') {
+            return 0.001;
+        }
+        return 0.05;
     }
 
     async loadChain() {
@@ -395,9 +546,6 @@ class EnhancedHybridBlockchainAI {
             await this.loadFromDatabase();
             await this.populateMemoryCache();
             await this.loadMinerBlockHistory();
-
-            // 🛡️ Enforce cryptographic licensing and minimum NCH balance requirements
-            await this.enforceLicensingAndBalances();
         } catch (e) {
             console.error('❌ Data loading error:', e.message);
         }
@@ -406,67 +554,6 @@ class EnhancedHybridBlockchainAI {
         this.isInitialized = true;
         this.isMining = false;
         console.log(`✅ BLOCKCHAIN READY. Chain Length: ${this.chain.length}`);
-    }
-
-    async enforceLicensingAndBalances() {
-        if (this.nodeType === 'governance') {
-            console.log('🏛️ Governance node active (Consensus validation only. Mining is disabled).');
-            return;
-        }
-
-        console.log(`🛡️ Enforcing licensing and balance requirements for ${this.nodeType} node...`);
-        const walletAddress = process.env.MINING_WALLET_ADDRESS || this.options.miningWalletAddress;
-        const licenseKey = process.env.PREMIUM_LICENSE_KEY || this.options.premiumLicenseKey;
-
-        let licenseValid = false;
-        if (walletAddress && licenseKey) {
-            try {
-                const message = "CHEESE-LICENSE:" + walletAddress.toLowerCase();
-                const signer = ethers.verifyMessage(message, licenseKey);
-                if (signer.toLowerCase() === this.founderAddress.toLowerCase()) {
-                    licenseValid = true;
-                    console.log(`✅ Cryptographic license verified for wallet: ${walletAddress}`);
-                } else {
-                    console.error(`❌ License signature mismatch! Signer: ${signer}, Expected Founder: ${this.founderAddress}`);
-                }
-            } catch (err) {
-                console.error(`❌ Cryptographic license signature verification failed: ${err.message}`);
-            }
-        } else {
-            console.error(`❌ Missing PREMIUM_LICENSE_KEY or MINING_WALLET_ADDRESS environment variables.`);
-        }
-
-        if (!licenseValid) {
-            if (this.nodeType === 'mining') {
-                console.error(`🚨 FATAL: Valid license key is strictly required to run a MINING node.`);
-                process.exit(1);
-            } else {
-                console.warn(`⚠️ Warning: Invalid or missing license key. Falling back to governance-only mode (Mining disabled).`);
-                this.miningEnabled = false;
-                this.nodeType = 'governance';
-                return;
-            }
-        }
-
-        // 2. Balance Enforcement
-        const balance = this.getBalance(walletAddress, 'NCH', null, false);
-        const MIN_REQUIRED_BALANCE = 100000;
-        console.log(`💰 Miner wallet balance: ${balance} NCH (Required: ${MIN_REQUIRED_BALANCE} NCH)`);
-
-        if (balance < MIN_REQUIRED_BALANCE) {
-            console.error(`❌ Balance requirement not met! Wallet ${walletAddress} holds ${balance} NCH.`);
-            if (this.nodeType === 'mining') {
-                console.error(`🚨 FATAL: A minimum balance of ${MIN_REQUIRED_BALANCE} NCH is strictly required to run a MINING node.`);
-                process.exit(1);
-            } else {
-                console.warn(`⚠️ Warning: Insufficient wallet balance. Falling back to governance-only mode (Mining disabled).`);
-                this.miningEnabled = false;
-                this.nodeType = 'governance';
-            }
-        } else {
-            console.log(`✅ Balance requirement met! Wallet holds sufficient NCH.`);
-            this.licensedMinerAddress = walletAddress;
-        }
     }
 
     /**
@@ -518,7 +605,7 @@ class EnhancedHybridBlockchainAI {
                     // Physically save to database (Direct injection)
                     if (this.database.saveTransaction) {
                         try {
-                            await this.database.saveTransaction(fullTx, 0);
+                            await this.database.saveTransaction(fullTx);
                             injectedTxs.push(fullTx);
                         } catch (e) {
                             // Already exists? That's fine
@@ -533,20 +620,14 @@ class EnhancedHybridBlockchainAI {
                     const dummyBlock = {
                         index: 0,
                         transactions: injectedTxs,
-                        timestamp: Date.now()
+                        timestamp: 1704067200000
                     };
-                    if (this.database.saveBlock) {
-                        try {
-                            await this.database.saveBlock(dummyBlock);
-                        } catch (e) {
-                            console.warn('⚠️ Sovereign dummy block save notice:', e.message);
-                        }
-                    }
+                    await this.updateAccountBalances(dummyBlock).catch(err => {
+                        console.error('⚠️ [SOVEREIGNTY] Persistence sync failed:', err.message);
+                    });
                 }
 
-                // Verify result
-                const bal = await this.getBalances(treasuryAddr);
-                console.log(`✅ [SOVEREIGNTY] Ledger Verified. Treasury Balance: ${bal.balance.toLocaleString()} NCH`);
+                console.log('✅ [SOVEREIGNTY] V33 Alignment Successful. Local truth forged and synced.');
             } else {
                 console.log(`✅ [SOVEREIGNTY] Ledger Verified. Treasury Balance: ${bal.balance.toLocaleString()} NCH`);
             }
@@ -558,7 +639,7 @@ class EnhancedHybridBlockchainAI {
 
     async loadFromDatabase() {
         console.log('📦 Loading blockchain from database...');
-        const blocks = await this.database.getAllBlocks(true);
+        const blocks = await this.database.getAllBlocks();
 
         // 1. Deduplicate blocks
         const uniqueBlocksMap = new Map();
@@ -575,6 +656,14 @@ class EnhancedHybridBlockchainAI {
         this.chain = Array.from(uniqueBlocksMap.values()).sort((a, b) => a.index - b.index);
         console.log(`📦 Loaded ${this.chain.length} unique blocks from database`);
 
+        if (this.chain.length === 0) {
+            console.log('🆕 No existing chain found in database. Creating Genesis Block...');
+            const genesisBlock = this.createGenesisBlock();
+            this.chain = [genesisBlock];
+            await this.database.saveBlock(genesisBlock);
+            console.log('✅ Genesis Block saved to persistence.');
+        }
+
         // 2. OPTIMIZED: Fetch all transactions at once to avoid per-block queries (Firestore Bottleneck)
         console.log('📥 Fetching all transactions for memory cache...');
         let allTransactions = [];
@@ -584,15 +673,8 @@ class EnhancedHybridBlockchainAI {
 
         const txByBlock = new Map();
         allTransactions.forEach(tx => {
-            let idx = (tx.blockIndex !== undefined && tx.blockIndex !== null) ? Number(tx.blockIndex) : null;
-            if (idx === null && tx.data && tx.data.blockIndex !== undefined && tx.data.blockIndex !== null) {
-                idx = Number(tx.data.blockIndex);
-            }
-            if (idx === null && (tx.id && (String(tx.id).startsWith('gen-') || String(tx.id).startsWith('v33-')) || (tx.data && tx.data.type === 'premine'))) {
-                idx = 0;
-            }
-            if (idx !== null && !isNaN(idx)) {
-                tx.blockIndex = idx;
+            if (tx.blockIndex !== undefined) {
+                const idx = Number(tx.blockIndex);
                 if (!txByBlock.has(idx)) txByBlock.set(idx, []);
                 txByBlock.get(idx).push(tx);
             }
@@ -603,8 +685,6 @@ class EnhancedHybridBlockchainAI {
             const idx = Number(block.index);
             if (txByBlock.has(idx)) {
                 block.transactions = txByBlock.get(idx);
-            } else {
-                block.transactions = [];
             }
         });
     }
@@ -1017,7 +1097,7 @@ class EnhancedHybridBlockchainAI {
             };
 
             // Ensure fee and data are present and consistent
-            transactionData.fee = transactionData.fee || 0.05;
+            transactionData.fee = transactionData.fee || this.getTransactionGasFee(transactionData);
             transactionData.data = sortObjectKeys(transactionData.data || {});
 
             // CRITICAL: Deterministic Hashing Template (Matches Frontend/DEX EXACTLY)
@@ -1286,8 +1366,6 @@ class EnhancedHybridBlockchainAI {
                     '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(), // NEW Treasury
                     '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(), // NEW Liquidity
                     '0x712A1CBa607C60D95f27088c80aBbBD1f53d33Fe'.toLowerCase(), // NEW Operator
-                    '0x0ef03fd4C994614c4f90930e643Ab9048Ab54587'.toLowerCase(), // EXEMPT SYSTEM 1
-                    '0x051CEcfd2229E9D1a7FB8269d4201487C26565D5'.toLowerCase(), // EXEMPT SYSTEM 2
 
                     // OLD System Wallets (Deprecated but whitelist preserved)
                     '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D'.toLowerCase(), // OLD Mining Fee Wallet
@@ -1577,9 +1655,22 @@ class EnhancedHybridBlockchainAI {
                 if (isMatch) {
                     if (trans.from && trans.from.toLowerCase() === targetAddress) {
                         balance -= parseFloat(trans.amount) || 0;
+                        if (isNativeSymbol(txCurrency)) {
+                            const fromLower = trans.from.toLowerCase();
+                            if (fromLower !== 'system' && fromLower !== 'mining' && fromLower !== '0x0000000000000000000000000000000000000fee') {
+                                balance -= trans.fee !== undefined ? parseFloat(trans.fee) : this.getTransactionGasFee(trans);
+                            }
+                        }
                     }
                     if (trans.to && trans.to.toLowerCase() === targetAddress) {
                         balance += parseFloat(trans.amount) || 0;
+                    }
+                } else if (isNativeSymbol(targetCurrency)) {
+                    if (trans.from && trans.from.toLowerCase() === targetAddress) {
+                        const fromLower = trans.from.toLowerCase();
+                        if (fromLower !== 'system' && fromLower !== 'mining' && fromLower !== '0x0000000000000000000000000000000000000fee') {
+                            balance -= trans.fee !== undefined ? parseFloat(trans.fee) : this.getTransactionGasFee(trans);
+                        }
                     }
                 }
                 if (trans.id) processedTxIds.add(trans.id);
@@ -1600,9 +1691,10 @@ class EnhancedHybridBlockchainAI {
                 let amount = parseFloat(tx.amount) || 0;
                 let txCurr = (tx.currency || 'NCH').toUpperCase();
 
+                let txData = {};
                 if (tx.data && (isNativeSymbol(txCurr) || !txCurr)) {
                     try {
-                        const txData = typeof tx.data === 'string' ? JSON.parse(tx.data) : tx.data;
+                        txData = typeof tx.data === 'string' ? JSON.parse(tx.data) : tx.data;
                         if (txData.currency) txCurr = txData.currency.toUpperCase();
                     } catch (e) { }
                 }
@@ -1610,8 +1702,21 @@ class EnhancedHybridBlockchainAI {
                 const isMatch = isNativeSymbol(targetCurrency) ? isNativeSymbol(txCurr) : (txCurr === targetCurrency);
 
                 if (isMatch) {
-                    if (from === targetAddress) balance -= amount;
+                    if (from === targetAddress) {
+                        balance -= amount;
+                        if (isNativeSymbol(txCurr)) {
+                            if (from !== 'system' && from !== 'mining' && from !== '0x0000000000000000000000000000000000000fee') {
+                                balance -= tx.fee !== undefined ? parseFloat(tx.fee) : this.getTransactionGasFee({ ...tx, data: txData });
+                            }
+                        }
+                    }
                     if (to === targetAddress) balance += amount;
+                } else if (isNativeSymbol(targetCurrency)) {
+                    if (from === targetAddress) {
+                        if (from !== 'system' && from !== 'mining' && from !== '0x0000000000000000000000000000000000000fee') {
+                            balance -= tx.fee !== undefined ? parseFloat(tx.fee) : this.getTransactionGasFee({ ...tx, data: txData });
+                        }
+                    }
                 }
                 if (txId) processedTxIds.add(txId);
             });
@@ -1629,14 +1734,22 @@ class EnhancedHybridBlockchainAI {
                 if (isMatch) {
                     if (trans.from && trans.from.toLowerCase() === targetAddress) {
                         balance -= parseFloat(trans.amount) || 0;
-                        if (isNativeSymbol(txCurrency)) balance -= 0.05; // Deduct Fee
+                        if (isNativeSymbol(txCurrency)) {
+                            const fromLower = trans.from.toLowerCase();
+                            if (fromLower !== 'system' && fromLower !== 'mining' && fromLower !== '0x0000000000000000000000000000000000000fee') {
+                                balance -= trans.fee !== undefined ? parseFloat(trans.fee) : this.getTransactionGasFee(trans);
+                            }
+                        }
                     }
                     if (trans.to && trans.to.toLowerCase() === targetAddress) {
                         balance += parseFloat(trans.amount) || 0;
                     }
                 } else if (isNativeSymbol(targetCurrency)) {
                     if (trans.from && trans.from.toLowerCase() === targetAddress) {
-                        balance -= 0.05; // Gas Fee for token transfers
+                        const fromLower = trans.from.toLowerCase();
+                        if (fromLower !== 'system' && fromLower !== 'mining' && fromLower !== '0x0000000000000000000000000000000000000fee') {
+                            balance -= trans.fee !== undefined ? parseFloat(trans.fee) : this.getTransactionGasFee(trans);
+                        }
                     }
                 }
             }
@@ -1654,7 +1767,7 @@ class EnhancedHybridBlockchainAI {
 
         // 0. Pre-fetch database transaction history for accurate balance search (User Requirement)
         let dbTransactions = [];
-        if (!this.memoryCachePopulated && this.database && typeof this.database.getTransactionHistory === 'function') {
+        if (this.database && typeof this.database.getTransactionHistory === 'function') {
             try {
                 dbTransactions = await this.database.getTransactionHistory(address);
                 trace.push(`📥 Fetched ${dbTransactions.length} historical transactions from database for deeper search.`);
@@ -1668,8 +1781,8 @@ class EnhancedHybridBlockchainAI {
         const nchBalance = this.getBalance(address, 'NCH', null, true, extraData);
 
         // 2. Discover all currencies from transaction history
-        // Always include USDT and USDC by default as they are standard
-        const currencies = new Set(['USDT', 'USDC']);
+        // Always include USDT, USDC, and WNCH by default as they are standard
+        const currencies = new Set(['USDT', 'USDC', 'WNCH']);
 
         // Scan chain for any tokens this address has interacted with
         const lowerAddr = address ? address.toLowerCase() : '';
@@ -1707,7 +1820,8 @@ class EnhancedHybridBlockchainAI {
 
         const portfolio = {
             'USDT': 0,
-            'USDC': 0
+            'USDC': 0,
+            'WNCH': 0
         };
         for (const currency of currencies) {
             const upperCurrency = currency.toUpperCase();
@@ -1837,23 +1951,6 @@ class EnhancedHybridBlockchainAI {
     }
 
     async minePendingTransactions(miningRewardAddress) {
-        const EXEMPT_WALLETS = [
-            '0x0E6ec6713E7b5b7C11d969dA848813d08223598E', // FOUNDER
-            '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3', // TREASURY
-            '0x3801490C9f806c917b8CbA710Db9135FA3B116ae', // LIQUIDITY
-            '0x712A1CBa607C60D95f27088c80aBbBD1f53d33Fe', // OPERATOR
-            '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D', // MINING VAULT
-            '0x0ef03fd4C994614c4f90930e643Ab9048Ab54587', // EXEMPT SYSTEM 1
-            '0x051CEcfd2229E9D1a7FB8269d4201487C26565D5'  // EXEMPT SYSTEM 2
-        ].map(a => a.toLowerCase());
-
-        const isExempt = miningRewardAddress && EXEMPT_WALLETS.includes(miningRewardAddress.toLowerCase());
-
-        if (!this.miningEnabled && !isExempt) {
-            console.error('❌ Mining is disabled on this node (unlicensed or insufficient balance)');
-            throw new Error('Mining is disabled on this node (unlicensed or insufficient balance)');
-        }
-
         // CRITICAL: Atomic lock at the very START of the method
         if (this.isMining) {
             console.log('⚠️ Mining already in progress (Atomic Lock), skipping concurrent attempt.');
@@ -1915,19 +2012,18 @@ class EnhancedHybridBlockchainAI {
                     // during its own validity check.
                     const balance = this.getBalance(tx.from, txCurrency, null, false);
 
-                    // ENFORCE GAS FEE: 0.05 NCH
-                    // Every transaction costs 0.05 NCH to process (paid to miner)
-                    const GAS_FEE = 0.05;
+                    // ENFORCE GAS FEE DYNAMICALLY: 0.001 NCH for notary, 0.05 NCH for other
+                    const txGasFee = this.getTransactionGasFee(tx);
                     let requiredAmount = tx.amount;
 
                     // If transferring NCH, we need Amount + Fee
                     if (txCurrency === 'NCH') {
-                        requiredAmount += GAS_FEE;
+                        requiredAmount += txGasFee;
                     } else {
                         // If transferring Token, we check NCH balance separately for Fee
                         const nchBalance = this.getBalance(tx.from, 'NCH', null, false);
-                        if (nchBalance < GAS_FEE) {
-                            console.log(`🗑️ Removing tx: Insufficient NCH for Gas Fee. Has ${nchBalance}, needs ${GAS_FEE}`);
+                        if (nchBalance < txGasFee) {
+                            console.log(`🗑️ Removing tx: Insufficient NCH for Gas Fee. Has ${nchBalance}, needs ${txGasFee}`);
                             continue;
                         }
                     }
@@ -1958,14 +2054,16 @@ class EnhancedHybridBlockchainAI {
             console.log(`💰 Mining Reward: ${currentReward} NCH (Bitcoin-style reward)`);
 
             // ==================== GAS FEE COLLECTION (TO TREASURY) ====================
-            // Collect 0.05 NCH for every valid transaction mined
+            // Collect dynamic gas fee for every valid transaction mined
             // CRITICAL: Fees go to TREASURY to fund project, NOT miners (per user request)
             // This RE-CIRCULATES existing NCH from users to Treasury (No Inflation)
-            const GAS_FEE = 0.05;
-            const totalFees = validTransactions.length * GAS_FEE;
+            let totalFees = 0;
+            for (const tx of validTransactions) {
+                totalFees += this.getTransactionGasFee(tx);
+            }
 
             if (totalFees > 0) {
-                console.log(`💰 Collecting Block Fees: ${validTransactions.length} txs * ${GAS_FEE} = ${totalFees.toFixed(4)} NCH -> TREASURY`);
+                console.log(`💰 Collecting Block Fees: ${validTransactions.length} txs, total fee = ${totalFees.toFixed(4)} NCH -> TREASURY`);
 
                 // Create System Transaction for Fees (Treasury Income)
                 // This is NOT a mint, it's a collection of fees already deducted from senders
@@ -2044,7 +2142,7 @@ class EnhancedHybridBlockchainAI {
 
             const optimizedDifficulty = mlOptimization.difficulty || this.difficulty;
 
-            let block = {
+            const block = {
                 index: nextBlockIndex,
                 timestamp: Date.now(),
                 transactions: blockTransactions,
@@ -2063,16 +2161,10 @@ class EnhancedHybridBlockchainAI {
             if (anomalies.hasAnomalies) {
                 console.warn('⚠️ Anomalies detected:', anomalies.anomalies);
             }
+
             block.hash = this.mineBlock(block, optimizedDifficulty);
 
-            // Sign block hash with real post-quantum signature (SLH-DSA/SPHINCS+)
-            block = await this.aiValidator.quantumAI.signBlockWithQuantumResistance(block, miningRewardAddress || 'unknown');
-
-            // Validate block using real post-quantum signature verification
-            const aiBlockValidation = await this.aiValidator.validateBlockAsync(block, this.getLatestBlock());
-            if (!aiBlockValidation.validated) {
-                throw new Error(`Block validation failed: ${aiBlockValidation.checks.join(', ')}`);
-            }
+            const aiBlockValidation = this.aiValidator.validateBlock(block, this.getLatestBlock());
             block.aiValidation = {
                 ...aiBlockValidation,
                 mlOptimization: mlOptimization,

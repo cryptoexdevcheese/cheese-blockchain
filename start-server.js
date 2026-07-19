@@ -6,17 +6,76 @@
 
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const http = require('http');
-const WebSocket = require('ws');
-
+const crypto = require('crypto');
 
 const app = express();
+
+// HTTP server wrapper & WebRTC P2P Signaling Server
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ noServer: true });
+const signalingRooms = new Map();
+
+wss.on('connection', (ws, req) => {
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const roomId = url.searchParams.get('room');
+
+    if (!roomId) {
+        ws.close(1008, 'Room ID required');
+        return;
+    }
+
+    if (!signalingRooms.has(roomId)) {
+        signalingRooms.set(roomId, new Set());
+    }
+
+    const room = signalingRooms.get(roomId);
+    room.add(ws);
+    console.log(`📡 Notary P2P signaling peer joined room: ${roomId} (Total in room: ${room.size})`);
+
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            if (data.type === 'ping') {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'pong' }));
+                }
+                return;
+            }
+            room.forEach(peer => {
+                if (peer !== ws && peer.readyState === WebSocket.OPEN) {
+                    peer.send(JSON.stringify(data));
+                }
+            });
+        } catch (e) {
+            console.error('❌ Signaling message error:', e.message);
+        }
+    });
+
+    ws.on('close', () => {
+        room.delete(ws);
+        if (room.size === 0) {
+            signalingRooms.delete(roomId);
+        }
+        console.log(`📡 Notary P2P signaling peer left room: ${roomId}`);
+    });
+});
+
+server.on('upgrade', (request, socket, head) => {
+    const pathname = new URL(request.url, `http://${request.headers.host || 'localhost'}`).pathname;
+    if (pathname === '/notary-signaling') {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+            wss.emit('connection', ws, request);
+        });
+    }
+});
 const PORT = process.env.PORT || 8080;
 const P2P_PORT = process.env.P2P_PORT || (process.env.RENDER ? 4002 : 4001);
-const HARDCODED_API_KEY = 'REDACTED_DEX_API_KEY';
+const HARDCODED_API_KEY = '154db3748b7be24621d9f6a8e90619e150f865de65d72e979fbcbe37876afbf8';
 const API_KEY = process.env.API_KEY || HARDCODED_API_KEY;
 console.log('🔑 API Key loaded:', API_KEY ? 'SET' : 'MISSING');
 const NODE_ROLE = process.env.NODE_ROLE ? process.env.NODE_ROLE.toUpperCase() : 'HYBRID';
@@ -85,8 +144,21 @@ const PUBLIC_ENDPOINTS = [
     '/pools',
     '/market-prices',
     '/positions',
-    '/turn-credentials',
-    '/p2p',
+    '/api/ai',
+    '/api/mining',
+    '/api/node',
+    '/api/supply',
+    '/api/balance',
+    '/api/transactions',
+    '/api/transaction',
+    '/api/blocks',
+    '/api/block',
+    '/api/health',
+    '/api/status',
+    '/api/rpc',
+    '/api/pss',
+    '/api/notary',
+    '/api/turn-credentials'
 ];
 
 // API Key middleware
@@ -96,8 +168,15 @@ const authenticateAPI = (req, res, next) => {
     // Always allow OPTIONS (preflight CORS)
     if (req.method === 'OPTIONS') return next();
 
-    // Allow public read-only endpoints without API key
-    const isPublic = PUBLIC_ENDPOINTS.some(ep => req.path.includes(ep));
+    const fullPath = req.originalUrl || req.url || req.path;
+    const isPublic = PUBLIC_ENDPOINTS.some(ep => {
+        const relativeEp = ep.startsWith('/api/') ? ep.slice(4) : ep;
+        return req.path.startsWith(relativeEp) || 
+               req.path === relativeEp || 
+               fullPath.startsWith(ep) || 
+               fullPath.startsWith(`/api${ep}`);
+    });
+
     if (isPublic) return next();
 
     // Allow if API key matches
@@ -144,19 +223,19 @@ app.get('/api/node/info', (req, res) => {
         MINING: {
             description: 'Specialized block production node',
             capabilities: ['block_mining', 'fraud_detection', 'anomaly_detection', 'fee_optimization', 'whale_detection'],
-            aiModels: 5,
+            aiModels: 8,
             endpoints: ['/api/mine', '/api/mempool', '/api/miners/*']
         },
         GOVERNANCE: {
             description: 'Analytics and governance node',
             capabilities: ['governance_voting', 'smart_contract_analysis', 'price_prediction', 'sentiment_analysis', 'deep_learning', 'explorer_api'],
-            aiModels: 11,
+            aiModels: 19,
             endpoints: ['/api/governance/*', '/api/blocks', '/api/transactions', '/api/wallet/*']
         },
         HYBRID: {
             description: 'Full-capability node (Mining + Governance)',
             capabilities: ['ALL'],
-            aiModels: 15,
+            aiModels: 27,
             endpoints: ['ALL']
         }
     };
@@ -168,11 +247,9 @@ app.get('/api/node/info', (req, res) => {
         roleInfo: roleCapabilities[NODE_ROLE] || roleCapabilities.HYBRID,
         network: {
             totalAIModels: 27,
-            distributedAcross: '3 specialized node types + ecosystem integration layers',
+            distributedAcross: '3 specialized node types',
             pythonModels: 6,
-            jsModels: 15,
-            tensorflowJsModels: 3,
-            cloudAndLLMModels: 3
+            jsModels: 21
         },
         advantages: {
             vsBitcoin: '1000x more scalable with AI security',
@@ -206,12 +283,147 @@ app.all(['/rpc', '/api/rpc'], async (req, res) => {
     return await rpcBridge.handleRequest(req, res);
 });
 
+// ============================================================
+// TURN Relay Credential Endpoint (Critical for cross-network P2P)
+// Provides ICE server configuration including TURN relay servers
+// that enable P2P connections across different networks, carriers,
+// and countries (required when direct STUN-only connection fails).
+// ============================================================
+app.get(['/api/turn-credentials', '/turn-credentials'], async (req, res) => {
+    try {
+        // Base STUN servers (always included)
+        const stunServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' }
+        ];
+
+        let turnServers = [];
+
+        // === Strategy 1: Metered.ca TURN API (Recommended for production) ===
+        // Set METERED_API_KEY in your .env file after signing up at metered.ca
+        const meteredApiKey = process.env.METERED_API_KEY;
+        if (meteredApiKey) {
+            try {
+                const meteredRes = await fetch(
+                    `https://cheese.metered.live/api/v1/turn/credentials?apiKey=${meteredApiKey}`,
+                    { signal: AbortSignal.timeout(5000) }
+                );
+                if (meteredRes.ok) {
+                    const meteredServers = await meteredRes.json();
+                    turnServers = meteredServers;
+                    console.log('📡 TURN credentials served via Metered.ca API');
+                }
+            } catch (meteredErr) {
+                console.warn('⚠️ Metered.ca TURN API unavailable, using fallback:', meteredErr.message);
+            }
+        }
+
+        // === Strategy 2: Self-hosted coturn with HMAC credentials ===
+        // Set TURN_SERVER, TURN_SECRET in .env for self-hosted coturn
+        if (turnServers.length === 0 && process.env.TURN_SERVER && process.env.TURN_SECRET) {
+            const turnServer = process.env.TURN_SERVER;
+            const turnSecret = process.env.TURN_SECRET;
+            const ttl = 86400; // 24-hour credential TTL
+            const unixExpiry = Math.floor(Date.now() / 1000) + ttl;
+            const username = `${unixExpiry}:cheese-notary`;
+            const hmac = crypto.createHmac('sha1', turnSecret);
+            hmac.update(username);
+            const credential = hmac.digest('base64');
+
+            turnServers = [
+                {
+                    urls: `turn:${turnServer}:3478?transport=udp`,
+                    username: username,
+                    credential: credential
+                },
+                {
+                    urls: `turn:${turnServer}:3478?transport=tcp`,
+                    username: username,
+                    credential: credential
+                },
+                {
+                    urls: `turns:${turnServer}:443?transport=tcp`,
+                    username: username,
+                    credential: credential
+                }
+            ];
+            console.log('📡 TURN credentials served via self-hosted coturn (HMAC)');
+        }
+
+        // === Strategy 3: Static TURN credentials from environment ===
+        // Set TURN_URLS, TURN_USERNAME, TURN_CREDENTIAL in .env
+        if (turnServers.length === 0 && process.env.TURN_URLS) {
+            const turnUrls = process.env.TURN_URLS.split(',').map(u => u.trim());
+            turnServers = [{
+                urls: turnUrls,
+                username: process.env.TURN_USERNAME || '',
+                credential: process.env.TURN_CREDENTIAL || ''
+            }];
+            console.log('📡 TURN credentials served from static environment config');
+        }
+
+        // === Strategy 4: Free public relay fallback for development/testing ===
+        // These are rate-limited free TURN servers — NOT for heavy production use
+        if (turnServers.length === 0) {
+            turnServers = [
+                {
+                    urls: 'turn:relay1.expressturn.com:443',
+                    username: 'ef4LIMIT0RJZJ5BVQG',
+                    credential: 'B0xQuZYDaVrPfIjK'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turns:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ];
+            console.log('📡 TURN credentials: using free public relay fallback (configure METERED_API_KEY or TURN_SERVER for production)');
+        }
+
+        res.json({
+            success: true,
+            iceServers: [...stunServers, ...turnServers],
+            ttl: 86400,
+            provider: meteredApiKey ? 'metered' : (process.env.TURN_SERVER ? 'coturn' : (process.env.TURN_URLS ? 'static' : 'free-relay')),
+            timestamp: Date.now()
+        });
+
+    } catch (err) {
+        console.error('❌ TURN credential generation failed:', err);
+        // Emergency fallback — always return at least STUN
+        res.json({
+            success: false,
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun.cloudflare.com:3478' }
+            ],
+            error: 'TURN credentials unavailable, STUN-only mode'
+        });
+    }
+});
+
 // Load the full API routes IMMEDIATELY
 require('./blockchain-server-routes')(app, () => blockchain, () => blockchainReady);
 
 // Mount P2P Management Routes
 const p2pRoutes = require('./p2p-server-routes');
 app.use('/api/p2p', p2pRoutes(() => blockchain?.network));
+
+// Mount PSS (Private Sovereign Storage) Routes
+const pssRoutes = require('./pss-storage');
+app.use('/api/pss', pssRoutes);
 
 try {
 } catch (innerMountError) {
@@ -282,10 +494,10 @@ async function initializeBlockchain() {
         try {
             const HeadlessSystemMiner = require('./headless-system-miner');
             const systemMiner = new HeadlessSystemMiner(blockchain, { 
-                interval: 300000 // Mine every 5 minutes (300s) across the 7 exempted wallets
+                interval: 180000 // Mine every 3 minutes
             });
             systemMiner.start();
-            console.log('⛏️  Headless System Miner integrated and started (5-min interval across 7 exempted wallets).');
+            console.log('⛏️  Headless System Miner integrated and started.');
         } catch (minerError) {
             console.error('❌ Failed to start Headless System Miner:', minerError.message);
         }
@@ -323,75 +535,9 @@ initializeBlockchain();
 
 // Start server if run directly
 if (require.main === module) {
-    const server = http.createServer(app);
-
-    // ==================== NOTARY P2P WEBSOCKET SIGNALING ====================
-    const wss = new WebSocket.Server({ noServer: true });
-    const signalingRooms = new Map(); // Map<roomId, Set<ws>>
-
-    wss.on('connection', (ws, req) => {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const roomId = url.searchParams.get('room');
-
-        if (!roomId) {
-            ws.close(1008, 'Room ID required');
-            return;
-        }
-
-        if (!signalingRooms.has(roomId)) {
-            signalingRooms.set(roomId, new Set());
-        }
-
-        const room = signalingRooms.get(roomId);
-        room.add(ws);
-        console.log(`📡 Notary P2P: Peer joined room ${roomId} (Total: ${room.size})`);
-
-        // Notify sender that receiver is ready
-        if (room.size === 2) {
-            room.forEach(peer => {
-                if (peer !== ws && peer.readyState === WebSocket.OPEN) {
-                    peer.send(JSON.stringify({ ready: true }));
-                }
-            });
-        }
-
-        ws.on('message', (message) => {
-            try {
-                const data = JSON.parse(message);
-                room.forEach(peer => {
-                    if (peer !== ws && peer.readyState === WebSocket.OPEN) {
-                        peer.send(JSON.stringify(data));
-                    }
-                });
-            } catch (e) {
-                console.error('❌ Signaling error:', e.message);
-            }
-        });
-
-        ws.on('close', () => {
-            room.delete(ws);
-            if (room.size === 0) {
-                signalingRooms.delete(roomId);
-            }
-            console.log(`📡 Notary P2P: Peer left room ${roomId}`);
-        });
-    });
-
-    server.on('upgrade', (request, socket, head) => {
-        const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
-
-        if (pathname === '/notary-signaling') {
-            wss.handleUpgrade(request, socket, head, (ws) => {
-                wss.emit('connection', ws, request);
-            });
-        } else {
-            socket.destroy();
-        }
-    });
-
     server.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 CHEESE Blockchain Core (v1.0.2) listening on port ${PORT}`);
-        console.log(`📡 WebRTC Signaling available at /notary-signaling`);
+        console.log(`🚀 CHEESE Blockchain Core (v1.0.1) listening on port ${PORT}`);
+        console.log(`📡 WebRTC Signaling server active at /notary-signaling`);
     });
 
     process.on('SIGTERM', () => {
