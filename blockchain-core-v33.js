@@ -286,7 +286,7 @@ class EnhancedHybridBlockchainAI {
 
         // Save options for fallback
         this.options = options;
-        this.nodeType = options.nodeType || process.env.CHEESE_NODE_TYPE || 'hybrid';
+        this.nodeType = options.nodeType || process.env.CHEESE_NODE_TYPE || (options.nodeRole ? options.nodeRole.toLowerCase() : 'hybrid');
         this.nodeRole = options.nodeRole || 'HYBRID';
         console.log(`🛡️ NODE ROLE CONFIGURED AS: ${this.nodeRole}`);
 

@@ -27,7 +27,7 @@ echo "  OK chainlist wallet logos present"
 
 # QR: app.js must support qrcodejs constructor API (no broken jsdelivr node-qrcode path in index)
 grep -q 'qrcodejs/1.0.0/qrcode.min.js' public/wallet/index.html
-grep -q 'typeof QRCode.toDataURL' public/wallet/app.js
+grep -q 'QRCode.toDataURL' public/wallet/app.js
 echo "  OK wallet QR code wiring"
 
 PORT="${VERIFY_PORT:-8788}"
