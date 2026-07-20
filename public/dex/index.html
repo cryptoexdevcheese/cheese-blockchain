@@ -18,32 +18,22 @@
 
     <!-- Cache Purge Script -->
     <script>
-        // GLOBAL CACHE PURGE - V5.4.2 - SEAMLESS TRANSACTION FIX
+        // GLOBAL CACHE PURGE - V6.1.0 - FORCE REFRESH & SW UNREGISTER
         try {
-            const VERSION = '5.5.0';
-            const urlParams = new URLSearchParams(window.location.search);
-            const currentV = urlParams.get('v');
-            const force = urlParams.get('force') === 'true';
-
-            if (currentV === VERSION) {
+            const VERSION = '6.1.0';
+            const savedVersion = localStorage.getItem('dexVersion');
+            if (savedVersion !== VERSION) {
+                console.log('🔄 New DEX Version v' + VERSION + ' detected. Purging legacy cache...');
                 localStorage.setItem('dexVersion', VERSION);
-                console.log('✅ VERSION MATCH: ' + VERSION);
-            } else {
-                const savedVersion = localStorage.getItem('dexVersion');
-                if (sessionStorage.getItem('last_refresh_v') === VERSION) {
-                    console.log('⚠️ Already refreshed to ' + VERSION + ' in this session.');
-                } else if (savedVersion !== VERSION || force) {
-                    if (savedVersion && savedVersion > VERSION && !force) {
-                        console.log('⚠️ Downgrade skipped.');
-                    } else {
-                        console.log('🔄 Reloading to ' + VERSION);
-                        sessionStorage.setItem('last_refresh_v', VERSION);
-                        localStorage.setItem('dexVersion', VERSION);
-                        if (savedVersion !== VERSION) {
-                            if ('caches' in window) caches.keys().then(ns => ns.forEach(n => caches.delete(n)));
-                        }
-                        window.location.replace(window.location.origin + window.location.pathname + '?v=' + VERSION + '&t=' + Date.now());
-                    }
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(regs => {
+                        for (let reg of regs) reg.unregister();
+                    });
                 }
             }
         } catch (e) { }
@@ -53,12 +43,12 @@
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="/config.js?v=4.2.2"></script>
-    <script src="/wallet/wallet-core.js?v=4.1"></script>
-    <script src="/wallet/wallet-security.js?v=4.1"></script>
-    <script src="/wallet/token-metadata.js"></script>
-    <script src="/wallet/blockchain-api.js?v=6.0.2"></script>
-    <script src="dex-logic-v2.js?v=6.0.2" defer></script>
+    <script src="/config.js?v=6.1.0"></script>
+    <script src="/wallet/wallet-core.js?v=6.1.0"></script>
+    <script src="/wallet/wallet-security.js?v=6.1.0"></script>
+    <script src="/wallet/token-metadata.js?v=6.1.0"></script>
+    <script src="/wallet/blockchain-api.js?v=6.1.0"></script>
+    <script src="dex-logic-v2.js?v=6.1.0" defer></script>
 
 
     <!-- Global config now handled entirely by dex-logic-v2.js -->
