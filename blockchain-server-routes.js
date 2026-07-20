@@ -1267,7 +1267,6 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
     // ==================== BLOCK DATA ENDPOINTS (EXPLORER SUPPORT) ====================
 
-    // Get range of blocks (Pagination / Explorer)
     app.get('/api/blocks/range', (req, res) => {
         try {
             const blockchain = getBlockchain();
@@ -1275,17 +1274,20 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
             const start = parseInt(req.query.start);
             const end = parseInt(req.query.end);
-
-            // Default to last 20 blocks if no range specified
             const length = blockchain.chain.length;
-            const defaultStart = Math.max(0, length - 20);
-            const defaultEnd = Math.max(0, length - 1);
 
-            const safeStart = isNaN(start) ? defaultStart : Math.max(0, start);
-            const safeEnd = isNaN(end) ? defaultEnd : Math.min(length - 1, end);
-
-            console.log(`📡 Fetching blocks from ${safeStart} to ${safeEnd}`);
-            const blocks = blockchain.chain.slice(safeStart, safeEnd + 1);
+            let blocks = [];
+            if (!isNaN(start) && !isNaN(end)) {
+                console.log(`📡 Fetching blocks with indices between ${start} and ${end}`);
+                blocks = blockchain.chain.filter(b => b.index >= start && b.index <= end);
+            } else {
+                const defaultStart = Math.max(0, length - 20);
+                const defaultEnd = Math.max(0, length - 1);
+                const safeStart = isNaN(start) ? defaultStart : Math.max(0, start);
+                const safeEnd = isNaN(end) ? defaultEnd : Math.min(length - 1, end);
+                console.log(`📡 Fetching blocks from array offsets ${safeStart} to ${safeEnd}`);
+                blocks = blockchain.chain.slice(safeStart, safeEnd + 1);
+            }
             
             res.json({
                 success: true,

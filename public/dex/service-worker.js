@@ -3,7 +3,7 @@
  * Forcing cache purge for mobile users
  */
 
-const CACHE_NAME = 'cheese-dex-v26-546-purge';
+const CACHE_NAME = 'cheese-dex-v27-610-purge';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();

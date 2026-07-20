@@ -1,6 +1,6 @@
 // CRITICAL: V27 - BUTTON FIX + SHOWSCREEN METHOD - MAY 6 2026
 // Force clear ALL old caches
-const CACHE_NAME = 'cheese-wallet-v4.1';
+const CACHE_NAME = 'cheese-wallet-v6.1.0';
 const urlsToCache = [
     './',
     './index.html',
