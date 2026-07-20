@@ -145,8 +145,6 @@ b.timestamp
 live_app.js
 master
 git
-{
-
 # Audit results
 audit-raw.json
 audit-results-*.json

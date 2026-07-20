@@ -1356,10 +1356,12 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
     app.get('/api/blockchain', (req, res) => {
         const blockchain = getBlockchain();
         if (!blockchain) return res.status(503).json({ success: false, error: 'Empty' });
+        const len = blockchain.chain.length;
         res.json({
             success: true,
-            chainLength: blockchain.chain.length,
-            lastHash: blockchain.chain.length > 0 ? blockchain.chain[blockchain.chain.length - 1].hash : '',
+            chainLength: len,
+            latestHeight: len > 0 ? blockchain.chain[len - 1].index : 0,
+            lastHash: len > 0 ? blockchain.chain[len - 1].hash : '',
             difficulty: blockchain.difficulty,
             miningReward: blockchain.miningReward,
             pendingTransactions: blockchain.pendingTransactions.length
@@ -1372,6 +1374,7 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const blockchain = getBlockchain();
             if (!blockchain) return res.status(503).json({ success: false, error: 'Blockchain initializing' });
             
+            const len = blockchain.chain.length;
             const aiStatus = {
                 active: true,
                 count: AI_MODELS.length,
@@ -1388,9 +1391,10 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
             res.json({
                 success: true,
-                chainLength: blockchain.chain.length,
+                chainLength: len,
+                latestHeight: len > 0 ? blockchain.chain[len - 1].index : 0,
                 totalTransactions: blockchain.chain.reduce((acc, b) => acc + (b.transactions ? b.transactions.length : 0), 0),
-                lastHash: blockchain.chain.length > 0 ? blockchain.chain[blockchain.chain.length - 1].hash : '',
+                lastHash: len > 0 ? blockchain.chain[len - 1].hash : '',
                 difficulty: blockchain.difficulty,
                 miningReward: blockchain.miningReward,
                 pendingTransactions: blockchain.pendingTransactions.length,

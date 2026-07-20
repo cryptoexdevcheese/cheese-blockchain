@@ -284,7 +284,10 @@ class CheeseExplorer {
             }
         }
 
-        document.getElementById('total-blocks').textContent = this.blockchain.chainLength || '-';
+        const chainLength = this.blockchain.chainLength || (this.latestBlocks && this.latestBlocks.length > 0 ? this.latestBlocks[0].index + 1 : 0);
+        const latestHeight = this.latestBlocks && this.latestBlocks.length > 0 ? this.latestBlocks[0].index : Math.max(0, chainLength - 1);
+
+        document.getElementById('total-blocks').textContent = chainLength > 0 ? `${chainLength} (Height #${latestHeight})` : '-';
         document.getElementById('total-transactions').textContent = totalTxns;
         document.getElementById('mining-reward').textContent = (this.blockchain.miningReward || 1) + ' NCH';
         document.getElementById('difficulty').textContent = this.blockchain.difficulty || '-';
