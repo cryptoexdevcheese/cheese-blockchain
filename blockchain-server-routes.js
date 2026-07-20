@@ -1356,12 +1356,15 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
     app.get('/api/blockchain', (req, res) => {
         const blockchain = getBlockchain();
         if (!blockchain) return res.status(503).json({ success: false, error: 'Empty' });
-        const len = blockchain.chain.length;
+        const rawLen = blockchain.chain.length;
+        const maxIndex = rawLen > 0 ? blockchain.chain[rawLen - 1].index : 0;
+        const effectiveLen = Math.max(rawLen, maxIndex + 1);
+
         res.json({
             success: true,
-            chainLength: len,
-            latestHeight: len > 0 ? blockchain.chain[len - 1].index : 0,
-            lastHash: len > 0 ? blockchain.chain[len - 1].hash : '',
+            chainLength: effectiveLen,
+            latestHeight: maxIndex,
+            lastHash: rawLen > 0 ? blockchain.chain[rawLen - 1].hash : '',
             difficulty: blockchain.difficulty,
             miningReward: blockchain.miningReward,
             pendingTransactions: blockchain.pendingTransactions.length
@@ -1374,7 +1377,10 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const blockchain = getBlockchain();
             if (!blockchain) return res.status(503).json({ success: false, error: 'Blockchain initializing' });
             
-            const len = blockchain.chain.length;
+            const rawLen = blockchain.chain.length;
+            const maxIndex = rawLen > 0 ? blockchain.chain[rawLen - 1].index : 0;
+            const effectiveLen = Math.max(rawLen, maxIndex + 1);
+
             const aiStatus = {
                 active: true,
                 count: AI_MODELS.length,
@@ -1391,10 +1397,10 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
             res.json({
                 success: true,
-                chainLength: len,
-                latestHeight: len > 0 ? blockchain.chain[len - 1].index : 0,
+                chainLength: effectiveLen,
+                latestHeight: maxIndex,
                 totalTransactions: blockchain.chain.reduce((acc, b) => acc + (b.transactions ? b.transactions.length : 0), 0),
-                lastHash: len > 0 ? blockchain.chain[len - 1].hash : '',
+                lastHash: rawLen > 0 ? blockchain.chain[rawLen - 1].hash : '',
                 difficulty: blockchain.difficulty,
                 miningReward: blockchain.miningReward,
                 pendingTransactions: blockchain.pendingTransactions.length,
