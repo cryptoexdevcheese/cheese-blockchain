@@ -125,8 +125,10 @@ const authenticateAPI = (req, res, next) => {
         '/bridge/in'
     ];
 
-    const isExemptGet = exemptGetPaths.some(p => req.path === p || req.path.startsWith(`${p}/`) || req.path.startsWith(p));
-    const isExemptPost = exemptPostPaths.some(p => req.path === p);
+    const cleanPath = req.path.replace(/^\/api/, '');
+
+    const isExemptGet = exemptGetPaths.some(p => cleanPath === p || cleanPath.startsWith(`${p}/`) || cleanPath.startsWith(p));
+    const isExemptPost = exemptPostPaths.some(p => cleanPath === p || cleanPath.startsWith(`${p}/`));
 
     if (req.method === 'GET' && isExemptGet) {
         return next();
@@ -294,6 +296,51 @@ async function initializeDEX() {
 
     if (dex.pools.length < originalCount) {
         console.log(`✅ Pruned ${originalCount - dex.pools.length} unauthorized pools. Only NCH/USDT remains.`);
+    }
+
+    // Seed Initial Active P2P Orders if empty
+    try {
+        const p2pCol = dex.storage.collection('dex_p2p_orders');
+        const p2pSnapshot = await p2pCol.where('status', '==', 'active').get();
+        if (p2pSnapshot.empty || p2pSnapshot.docs.length === 0) {
+            console.log('🤝 Seeding initial active P2P market orders...');
+            const initialOrders = [
+                {
+                    creatorAddress: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3',
+                    tokenOffered: 'NCH',
+                    amountOffered: 5000,
+                    tokenWanted: 'USDT',
+                    amountWanted: 110,
+                    status: 'active',
+                    createdAt: Date.now()
+                },
+                {
+                    creatorAddress: '0x9a4E604Ccef19f1ab9A4509dccB2F00D244d394E',
+                    tokenOffered: 'USDT',
+                    amountOffered: 500,
+                    tokenWanted: 'NCH',
+                    amountWanted: 22727,
+                    status: 'active',
+                    createdAt: Date.now() - 3600000
+                },
+                {
+                    creatorAddress: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3',
+                    tokenOffered: 'NCH',
+                    amountOffered: 10000,
+                    tokenWanted: 'USDT',
+                    amountWanted: 220,
+                    status: 'active',
+                    createdAt: Date.now() - 7200000
+                }
+            ];
+
+            for (const ord of initialOrders) {
+                await p2pCol.add(ord);
+            }
+            console.log('✅ Initial P2P orders seeded successfully');
+        }
+    } catch (p2pErr) {
+        console.warn('⚠️ P2P order seeding skipped:', p2pErr.message);
     }
 
     console.log('');
