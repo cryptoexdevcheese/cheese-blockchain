@@ -421,9 +421,13 @@ require('./blockchain-server-routes')(app, () => blockchain, () => blockchainRea
 const p2pRoutes = require('./p2p-server-routes');
 app.use('/api/p2p', p2pRoutes(() => blockchain?.network));
 
-// Mount PSS (Private Sovereign Storage) Routes
-const pssRoutes = require('./pss-storage');
-app.use('/api/pss', pssRoutes);
+// Mount PSS (Private Sovereign Storage) Routes safely
+try {
+    const pssRoutes = require('./pss-storage');
+    app.use('/api/pss', pssRoutes);
+} catch (pssErr) {
+    console.warn('⚠️ PSS Storage routes failed to load:', pssErr.message);
+}
 
 try {
 } catch (innerMountError) {

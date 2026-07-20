@@ -1,8 +1,9 @@
-const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
+let multer;
+try {
+    multer = require('multer');
+} catch (e) {
+    console.warn('⚠️ Multer not installed on server, using fallback upload handler for PSS.');
+}
 
 const router = express.Router();
 const VAULT_DIR = path.join(process.cwd(), 'pss_vault');
@@ -12,11 +13,19 @@ const TEMP_DIR = path.join(VAULT_DIR, 'temp');
 if (!fs.existsSync(VAULT_DIR)) fs.mkdirSync(VAULT_DIR, { recursive: true });
 if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 
-// Setup multer for handling file uploads
-const upload = multer({ dest: TEMP_DIR, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit
+// Setup multer for handling file uploads if available
+const upload = multer ? multer({ dest: TEMP_DIR, limits: { fileSize: 50 * 1024 * 1024 } }) : null;
+
+const uploadMiddleware = (req, res, next) => {
+    if (upload) {
+        return upload.single('pssFile')(req, res, next);
+    }
+    // Fallback if multer is missing
+    next();
+};
 
 // POST /api/pss/upload - Receive physical file and save to PSS Vault
-router.post('/upload', upload.single('pssFile'), (req, res) => {
+router.post('/upload', uploadMiddleware, (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
