@@ -2010,6 +2010,8 @@ async function loadMarketPrices() {
         console.error('Failed to load market prices:', error);
     }
 }
+loadMarketPrices();
+setInterval(loadMarketPrices, 3000);
 
 // Get price for a token
 function getTokenPrice(symbol) {
