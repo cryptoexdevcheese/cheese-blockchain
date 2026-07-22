@@ -1322,7 +1322,10 @@ async function executeSwap() {
         let txHash;
         try {
             if (isWeb3Wallet && ethProvider) {
-                const hexAmount = '0x' + BigInt(Math.floor(fromAmount * 1000000)).toString(16);
+                const normIn = normalizeDexToken(tokenIn);
+                const is18Dec = normIn === 'NCH' || normIn === 'ETH';
+                const scale = is18Dec ? 1e18 : 1e6;
+                const hexAmount = '0x' + BigInt(Math.floor(fromAmount * scale)).toString(16);
                 if (typeof safeRequest === 'function') {
                     txHash = await safeRequest(ethProvider, 'eth_sendTransaction', [{
                         from: userWallet,
