@@ -584,12 +584,42 @@ function initSwapTokenIcons() {
 }
 
 
-// Wallet modal opens only when user clicks Connect (not on page load)
+function connectWallet() {
+    if (userWallet) {
+        showDisconnectModal();
+    } else {
+        showWalletModal();
+    }
+}
 
-// Alias: connectWallet -> showWalletModal (used in legacy inline button handlers)
-function connectWallet() { showWalletModal(); }
+function showDisconnectModal() {
+    closeWalletModal();
+    const modal = document.createElement('div');
+    modal.id = 'walletModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3>👛 Connected Wallet</h3>
+                <button class="modal-close" onclick="closeWalletModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem 1rem;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Connected Address:</p>
+                <div style="background: rgba(255,215,0,0.1); border: 1px solid var(--cheese-gold); padding: 12px; border-radius: 10px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin-bottom: 1.5rem; color: #fff;">
+                    ${userWallet}
+                </div>
+                <button onclick="disconnectWallet(); closeWalletModal();" 
+                        style="width: 100%; padding: 12px; border-radius: 10px; border: none; background: #ef4444; color: white; font-weight: 700; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    🚪 Disconnect / Log Out Wallet
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
 
 function showWalletModal() {
+    closeWalletModal();
     const walletProviders = [
         { id: 'cheese', name: 'CHEESE Wallet', icon: '🧀', url: 'https://cheeseblockchain.com', highlight: true },
         { id: 'metamask', name: 'MetaMask', icon: '🦊', url: 'https://metamask.io/download/' },
@@ -601,14 +631,14 @@ function showWalletModal() {
 
     const walletButtons = walletProviders.map(w => `
                 <button class="wallet-option" onclick="selectWallet('${w.id}', '${w.url}')" 
-                    style="width: 100%; padding: 1rem; margin-bottom: 0.75rem; border-radius: 12px; 
+                    style="width: 100%; padding: 0.85rem 1rem; margin-bottom: 0.5rem; border-radius: 12px; 
                     border: ${w.highlight ? '2px solid var(--cheese-gold)' : '1px solid var(--border-color)'}; 
                     background: ${w.highlight ? 'rgba(255,215,0,0.1)' : 'var(--bg-card)'}; color: white; 
-                    cursor: pointer; display: flex; align-items: center; gap: 1rem; font-size: 1rem;
+                    cursor: pointer; display: flex; align-items: center; gap: 1rem; font-size: 0.95rem;
                     transition: all 0.3s ease; position: relative;">
-                    <span style="font-size: 1.5rem; width: 32px; text-align: center;">${w.icon}</span>
+                    <span style="font-size: 1.3rem; width: 28px; text-align: center;">${w.icon}</span>
                     <span style="flex: 1; text-align: left;">${w.name}</span>
-                    ${w.highlight ? '<span style="background: var(--cheese-gold); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">RECOMMENDED</span>' : ''}
+                    ${w.highlight ? '<span style="background: var(--cheese-gold); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: bold;">RECOMMENDED</span>' : ''}
                 </button>
             `).join('');
 
@@ -616,23 +646,59 @@ function showWalletModal() {
     modal.id = 'walletModal';
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-                <div class="modal" style="max-width: 400px;">
+                <div class="modal" style="max-width: 420px;">
                     <div class="modal-header">
                         <h3>🔗 Connect Wallet</h3>
-                        <button class="modal-close" onclick="closeWalletModal()">🧀</button>
+                        <button class="modal-close" onclick="closeWalletModal()">✕</button>
                     </div>
-                    <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
-                        <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
-                            Choose your preferred wallet to connect to CHEESE DEX
+                    <div class="modal-body" style="max-height: 480px; overflow-y: auto;">
+                        <p style="color: var(--text-secondary); margin-bottom: 0.75rem; font-size: 0.85rem;">
+                            Select your Web3 wallet provider or enter your EVM address below:
                         </p>
                         ${walletButtons}
+
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.5rem; font-weight: 600;">
+                                ✍️ Or Connect via EVM Wallet Address:
+                            </p>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="manualWalletInput" placeholder="0x... Enter EVM Wallet Address" 
+                                       style="flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: white; font-size: 0.85rem; font-family: monospace;">
+                                <button onclick="connectManualWallet()" style="padding: 10px 16px; border-radius: 8px; border: none; background: var(--cheese-gold); color: #000; font-weight: 700; cursor: pointer; white-space: nowrap;">
+                                    Connect
+                                </button>
+                            </div>
+                        </div>
+
                         <p style="color: var(--text-secondary); font-size: 0.75rem; text-align: center; margin-top: 1rem;">
-                            By connecting, you agree to our Terms of Service
+                            By connecting, you agree to CEX Hybrid Terms of Service
                         </p>
                     </div>
                 </div>
             `;
     document.body.appendChild(modal);
+}
+
+function connectManualWallet() {
+    const input = document.getElementById('manualWalletInput');
+    const val = input ? input.value.trim() : '';
+    if (!val || !val.startsWith('0x') || val.length !== 42) {
+        showNotification('Please enter a valid 42-character EVM address starting with 0x', 'error');
+        return;
+    }
+    closeWalletModal();
+    userWallet = val.toLowerCase();
+    walletType = 'manual';
+    localStorage.setItem('cheeseWallet', userWallet);
+
+    document.getElementById('connectText').textContent =
+        userWallet.substring(0, 6) + '...' + userWallet.substring(38);
+    document.getElementById('connectBtn').classList.add('connected');
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+
+    showNotification('✅ Connected EVM wallet address!', 'success');
+    loadUserData();
 }
 
 async function selectWallet(walletId, downloadUrl) {
@@ -710,12 +776,15 @@ async function connectEVMWallet(walletId, downloadUrl) {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
 
         if (accounts && accounts.length > 0) {
-            userWallet = accounts[0];
+            userWallet = accounts[0].toLowerCase();
             walletType = walletId;
+            localStorage.setItem('cheeseWallet', userWallet);
 
             document.getElementById('connectText').textContent =
                 userWallet.substring(0, 6) + '...' + userWallet.substring(38);
             document.getElementById('connectBtn').classList.add('connected');
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.style.display = 'inline-flex';
 
             showNotification(`✅ Wallet connected!`, 'success');
             
