@@ -1970,7 +1970,7 @@ async function updateChartData(poolId) {
         if (data.success && data.candles.length > 0) {
             candleSeries.setData(data.candles);
         } else {
-            const spot = marketPrices?.NCH?.usd || marketPrices?.NCH || 0.022;
+            const spot = marketPrices?.NCH?.usd || marketPrices?.NCH || 0.021986;
             const now = Math.floor(Date.now() / 1000);
             candleSeries.setData([
                 { time: now - 3600, open: spot, high: spot, low: spot, close: spot },
@@ -1995,7 +1995,7 @@ async function loadMarketPrices() {
         const data = await response.json();
         if (data.success) {
             marketPrices = data.prices;
-            const nchUsd = getTokenPrice('NCH') || 0.022;
+            const nchUsd = getTokenPrice('NCH') || 0.021986;
             const nchDisplay = document.getElementById('nch-price-display');
             const nchPool = document.getElementById('nch-price-pool');
             const currentPrice = document.getElementById('currentPrice');

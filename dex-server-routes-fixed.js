@@ -751,7 +751,7 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
                 }
             });
             if (!prices.NCH) {
-                prices.NCH = { usd: 0.022, change24h: 0 };
+                prices.NCH = { usd: global.nchMarketPrice || 0.021986, change24h: 0 };
             }
             res.json({ success: true, prices });
         } catch (error) {
