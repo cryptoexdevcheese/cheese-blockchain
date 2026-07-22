@@ -35,7 +35,7 @@ async function verifyDerivation() {
     // Wait, if it's 32 bytes, it's a RAW key, unlikely to be PKCS8.
 
     // Let's try to treat '34698e...' as the raw private key scalar.
-    const privateKeyHex = '34698eaa9edea88fd8cf6adfaaf32c4f473b15dc940446247c9618a268198f2a';
+    const privateKeyHex = '0000000000000000000000000000000000000000000000000000000000000000';
     console.log('Private Key Hex:', privateKeyHex);
 
     try {
