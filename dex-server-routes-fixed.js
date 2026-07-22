@@ -740,18 +740,23 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
                 USDT: { usd: 1, change24h: 0 },
                 USDC: { usd: 1, change24h: 0 }
             };
+            const baseOpen = 0.021968;
             dex.getAllPools().forEach((pool) => {
                 if (pool.token0 === 'NCH' && pool.token1 === 'USDT') {
                     const nchUsd = pool.reserve1 / pool.reserve0;
-                    prices.NCH = { usd: nchUsd, change24h: 0 };
+                    const chg = ((nchUsd - baseOpen) / baseOpen) * 100;
+                    prices.NCH = { usd: nchUsd, change24h: parseFloat(chg.toFixed(2)) };
                     prices.USDT = { usd: 1, change24h: 0 };
                 } else if (pool.token0 === 'USDT' && pool.token1 === 'NCH') {
                     const nchUsd = pool.reserve0 / pool.reserve1;
-                    prices.NCH = { usd: nchUsd, change24h: 0 };
+                    const chg = ((nchUsd - baseOpen) / baseOpen) * 100;
+                    prices.NCH = { usd: nchUsd, change24h: parseFloat(chg.toFixed(2)) };
                 }
             });
             if (!prices.NCH) {
-                prices.NCH = { usd: global.nchMarketPrice || 0.021986, change24h: 0 };
+                const currentNch = global.nchMarketPrice || 0.021968;
+                const chg = ((currentNch - baseOpen) / baseOpen) * 100;
+                prices.NCH = { usd: currentNch, change24h: parseFloat(chg.toFixed(2)) };
             }
             res.json({ success: true, prices });
         } catch (error) {
