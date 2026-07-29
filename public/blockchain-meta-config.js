@@ -18,7 +18,7 @@ window.CHEESE_METAMASK_CONFIG = {
             decimals: 18,
             image: 'https://cheeseblockchain.com/wallet-logos/cheese-blockchain-512.png'
         },
-        rpcUrls: ['https://cheeseblockchain.com/api/rpc'],
+        rpcUrls: ['https://cheeseblockchain.com/api/rpc', 'https://cheeseblockchain.com/rpc'],
         blockExplorerUrls: ['https://cheeseblockchain.com/explorer/'],
         iconUrls: [
             'https://cheeseblockchain.com/wallet-logos/cheese-blockchain-256.png',
