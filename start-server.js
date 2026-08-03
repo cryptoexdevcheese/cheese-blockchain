@@ -143,6 +143,7 @@ const PUBLIC_ENDPOINTS = [
     '/notary',
     '/pools',
     '/market-prices',
+    '/ticker',
     '/positions',
     '/api/ai',
     '/api/mining',
@@ -156,6 +157,7 @@ const PUBLIC_ENDPOINTS = [
     '/api/health',
     '/api/status',
     '/api/rpc',
+    '/api/ticker',
     '/api/pss',
     '/api/notary',
     '/api/turn-credentials'
