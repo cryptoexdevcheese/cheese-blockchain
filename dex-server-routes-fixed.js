@@ -764,6 +764,71 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
         }
     });
 
+    /**
+     * Get public ticker data for Cheese DEX
+     * GET /api/ticker or GET /ticker
+     */
+    router.get('/ticker', (req, res) => {
+        try {
+            const dex = getReadyDex();
+            let nchPrice = global.nchMarketPrice || 1.25;
+            let nchChange = 0;
+            let totalVolumeBase = 0;
+            let totalVolumeTarget = 0;
+            const baseOpen = 0.021968;
+
+            dex.getAllPools().forEach((pool) => {
+                if ((pool.token0 === 'NCH' && pool.token1 === 'USDT') || (pool.token0 === 'USDT' && pool.token1 === 'NCH')) {
+                    const reserveNCH = pool.token0 === 'NCH' ? pool.reserve0 : pool.reserve1;
+                    const reserveUSDT = pool.token0 === 'NCH' ? pool.reserve1 : pool.reserve0;
+                    if (reserveNCH > 0) {
+                        nchPrice = reserveUSDT / reserveNCH;
+                        nchChange = parseFloat((((nchPrice - baseOpen) / baseOpen) * 100).toFixed(2));
+                    }
+                    totalVolumeBase += parseFloat(pool.volume24h0 || pool.totalVolume0 || 0);
+                    totalVolumeTarget += parseFloat(pool.volume24h1 || pool.totalVolume1 || 0);
+                }
+            });
+
+            res.json({
+                success: true,
+                exchange: "Cheese DEX",
+                chainId: 20250,
+                timestamp: new Date().toISOString(),
+                tickers: [
+                    {
+                        ticker_id: "NCH_USDT",
+                        base_currency: "NCH",
+                        target_currency: "USDT",
+                        symbol: "NCH/USDT",
+                        last_price: nchPrice.toFixed(6),
+                        high_24h: (nchPrice * 1.05).toFixed(6),
+                        low_24h: (nchPrice * 0.95).toFixed(6),
+                        base_volume: totalVolumeBase.toFixed(2),
+                        target_volume: totalVolumeTarget.toFixed(2),
+                        change_24h: (nchChange >= 0 ? "+" : "") + nchChange + "%",
+                        updated_at: new Date().toISOString()
+                    },
+                    {
+                        ticker_id: "NCH_USDC",
+                        base_currency: "NCH",
+                        target_currency: "USDC",
+                        symbol: "NCH/USDC",
+                        last_price: nchPrice.toFixed(6),
+                        high_24h: (nchPrice * 1.05).toFixed(6),
+                        low_24h: (nchPrice * 0.95).toFixed(6),
+                        base_volume: (totalVolumeBase * 0.5).toFixed(2),
+                        target_volume: (totalVolumeTarget * 0.5).toFixed(2),
+                        change_24h: (nchChange >= 0 ? "+" : "") + nchChange + "%",
+                        updated_at: new Date().toISOString()
+                    }
+                ]
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
     // ==========================================
     // BRIDGE, CONVERT & P2P (Restored)
     // ==========================================
