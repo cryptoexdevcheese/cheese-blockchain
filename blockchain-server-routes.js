@@ -592,6 +592,17 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const duration = Date.now() - startTime;
             if (result.success) {
                 console.log(`✅ API: Transaction success in ${duration}ms`);
+
+                // Auto-mine transaction into L1 Block immediately so it appears on Explorer & Wallets
+                try {
+                    if (blockchain.pendingTransactions.length > 0) {
+                        await blockchain.minePendingTransactions("0x3801490C9f806c917b8CbA710Db9135FA3B116ae");
+                        console.log('⛏️ API: Auto-mined transaction into L1 block');
+                    }
+                } catch (mineErr) {
+                    console.log('⛏️ API: Transaction queued in mempool for next block');
+                }
+
                 res.json({
                     success: true,
                     transaction: result.transaction,
