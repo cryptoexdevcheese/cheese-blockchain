@@ -260,7 +260,7 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
     // ==================== AGENT-LOCKED SYSTEM REGISTRY ====================
     // CRITICAL: These values are immutable and must NOT be changed.
     const TREASURY_WALLET = '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D';
-    const MINING_FEE_USDT = 10.0;
+    const MINING_FEE_USDT = 500.0;
     const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955'; // BSC USDT
 
     // Exempted wallets — skip registration fee + cooldown/session limits for NCH mining.

@@ -1798,7 +1798,7 @@
                 <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem;">Pay <strong>10
                         USDT</strong> (BEP20) to activate mining for this device.</p>
                 <button onclick="payActivationFee()" id="pay-fee-btn" class="btn btn-primary" style="width: 100%;">
-                    💳 Pay 10 USDT
+                    💳 Pay 500 USDT
                 </button>
             </div>
 
@@ -1882,7 +1882,7 @@
             // 2. Exempt wallet — skip registration gate
             if (isExemptMinerWallet(minerWallet)) {
                 closeRegistrationModal();
-                logToConsole('MINING', '✅ Exempt wallet — ready to mine NCH (no 10 USDT fee)');
+                logToConsole('MINING', '✅ Exempt wallet — ready to mine NCH (no 500 USDT fee)');
             }
             // 3. Check Referral
             const urlParams = new URLSearchParams(window.location.search);
@@ -2116,7 +2116,7 @@
                 await Swal.fire({
                     icon: 'success',
                     title: 'Wallet Connected!',
-                    text: 'Great! Now please pay the 10 USDT activation fee.',
+                    text: 'Great! Now please pay the 500 USDT activation fee.',
                     confirmButtonText: 'Go to Payment',
                     background: '#0B0020',
                     color: '#fff'
@@ -2159,7 +2159,7 @@
 
                 Swal.fire({
                     title: 'Confirm Transaction',
-                    text: 'Please confirm the 10 USDT payment in your wallet.',
+                    text: 'Please confirm the 500 USDT payment in your wallet.',
                     icon: 'info',
                     showConfirmButton: false,
                     allowOutsideClick: false,
@@ -2171,7 +2171,7 @@
                 });
 
                 console.log("Sending transaction...");
-                const tx = await usdt.transfer(VAULT_ADDRESS, ethers.parseUnits("10.0", 18));
+                const tx = await usdt.transfer(VAULT_ADDRESS, ethers.parseUnits("500.0", 18));
                 console.log("Tx sent:", tx.hash);
 
                 Swal.fire({
