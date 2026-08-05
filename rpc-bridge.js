@@ -13,11 +13,16 @@ class RPCBridge {
         this.chainId = 20250;
         this.chainIdHex = '0x' + this.chainId.toString(16); // 0x4F1A
 
-        // Virtual ERC-20 Token Addresses (Mirrored from BSC for recognition)
+        // Virtual ERC-20 Token Addresses (Mirrored for recognition across Cheese Wallet & Web3 RPC)
         this.VIRTUAL_TOKENS = {
             '0x55d398326f99059ff775485246999027b3197955': 'USDT',
             '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 'USDC',
-            '0x000000000000000000000000000000000000c8ee': 'NCH'  // Virtual NCH mirror for MetaMask logo support
+            '0x000000000000000000000000000000000000c8ee': 'NCH',
+            '0x0000000000000000000000000000000000000001': 'BNB',
+            '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c': 'BNB',
+            '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c': 'BTC',
+            '0x2170ed0880ac9a755fd29b2688956bd959f933f8': 'ETH',
+            '0x570a5d26f7765ecb712c0924e4de54583b2b021b': 'SOL'
         };
 
         // Virtual Price Oracle (Chainlink-style)
