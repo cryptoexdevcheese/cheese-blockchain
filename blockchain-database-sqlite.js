@@ -492,7 +492,7 @@ class BlockchainDatabaseSQLite {
             from: row.fromAddress,
             to: row.toAddress,
             amount: row.amount,
-            currency: row.currency || 'NCH',
+            currency: row.currency || (data && (data.currency || data.asset)) || 'NCH',
             timestamp: row.timestamp,
             blockIndex: row.blockIndex,
             signature: signature,

@@ -54,8 +54,8 @@ class CheeseBlockchainAPI {
         // Log which environment we're using
         console.log('🌐 Connected to Blockchain Node:', this.apiUrl);
         
-        // CRITICAL: Cache versioning to force purge old ghost tokens
-        this.cacheVersion = '4.2';
+        // CRITICAL: Cache versioning to force purge old ghost tokens and stale 0-balances
+        this.cacheVersion = '5.0-LIVE-UNIFIED';
         this.purgeOldCache();
         
         console.log('✅ Blockchain API initialized (Version: ' + this.cacheVersion + ')');
@@ -876,11 +876,6 @@ class CheeseBlockchainAPI {
 
     async getNetworkStatus() {
         return await this.request('/api/network/peers');
-    }
-
-    async getPortfolio(address, forceSync = false) {
-        const endpoint = `/api/balance/${address}${forceSync ? '?sync=true' : ''}`;
-        return this.request(endpoint);
     }
 
     async getTokenomics() {

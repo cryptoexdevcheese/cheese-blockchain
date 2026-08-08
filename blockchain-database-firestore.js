@@ -625,38 +625,38 @@ class BlockchainDatabaseFirestore {
         try {
             console.log(`🔥 Fetching transaction history from Firestore for: ${addrLower}`);
 
-            // Query 1: Transactions FROM address
-            const fromSnapshot = await this.db.collection(this.collections.transactions)
-                .where('from', '==', addrLower)
-                .get();
-
-            // Query 2: Transactions TO address
-            const toSnapshot = await this.db.collection(this.collections.transactions)
-                .where('to', '==', addrLower)
-                .get();
+            // Robust Case-Insensitive Queries (check both lowercase and raw address)
+            const [fromLowerSnap, fromRawSnap, toLowerSnap, toRawSnap] = await Promise.all([
+                this.db.collection(this.collections.transactions).where('from', '==', addrLower).get().catch(() => ({ docs: [] })),
+                this.db.collection(this.collections.transactions).where('from', '==', address).get().catch(() => ({ docs: [] })),
+                this.db.collection(this.collections.transactions).where('to', '==', addrLower).get().catch(() => ({ docs: [] })),
+                this.db.collection(this.collections.transactions).where('to', '==', address).get().catch(() => ({ docs: [] }))
+            ]);
 
             const transactionsMap = new Map();
 
             const processDoc = (doc) => {
+                if (!doc || !doc.data) return;
                 const data = doc.data();
                 const tx = {
                     id: data.id || doc.id,
                     hash: data.hash || data.id || doc.id,
                     from: data.from === 'SYSTEM' ? null : data.from,
                     to: data.to,
-                    amount: data.amount,
-                    currency: data.currency || (data.data && data.data.currency) || 'NCH',
+                    amount: parseFloat(data.amount) || 0,
+                    currency: data.currency || data.asset || (data.data && (data.data.currency || data.data.asset)) || 'NCH',
                     timestamp: data.timestamp,
                     blockIndex: data.blockIndex,
                     signature: data.signature,
                     data: data.data || {},
                     aiValidation: data.aiValidation || {}
                 };
-                transactionsMap.set(tx.id, tx);
+                if (tx.id) transactionsMap.set(tx.id, tx);
             };
 
-            fromSnapshot.docs.forEach(processDoc);
-            toSnapshot.docs.forEach(processDoc);
+            [fromLowerSnap, fromRawSnap, toLowerSnap, toRawSnap].forEach(snap => {
+                if (snap && snap.docs) snap.docs.forEach(processDoc);
+            });
 
             const results = Array.from(transactionsMap.values())
                 .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
