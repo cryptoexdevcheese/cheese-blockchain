@@ -430,6 +430,17 @@ class EnhancedHybridBlockchainAI {
                 this.chain = savedBlocks.sort((a, b) => a.index - b.index);
                 console.log(`✅ Loaded ${this.chain.length} blocks from database.`);
 
+                // AUTO-HEAL: Ensure Block 0 contains the official Genesis Premine Allocations
+                if (this.chain[0]) {
+                    const existingTxs = this.chain[0].transactions || [];
+                    const genesisTxs = this.getGenesisTransactions();
+                    const missingGenesisTxs = genesisTxs.filter(gtx => !existingTxs.some(etx => etx.id === gtx.id));
+                    if (missingGenesisTxs.length > 0) {
+                        console.log(`⚡ Auto-injecting ${missingGenesisTxs.length} missing Genesis Premine transactions into Block 0...`);
+                        this.chain[0].transactions = [...missingGenesisTxs, ...existingTxs];
+                    }
+                }
+
                 // Set initial difficulty based on latest block
                 const latestBlock = this.getLatestBlock();
                 if (latestBlock && latestBlock.difficulty) {
@@ -850,16 +861,62 @@ class EnhancedHybridBlockchainAI {
         return this.network.connectToPeer(host, port);
     }
 
+    getGenesisTransactions() {
+        return [
+            {
+                id: 'genesis-premine-founder-nch',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x0E6ec6713e7b5b7C11d969dA848813d08223598E'.toLowerCase(),
+                amount: 1000000,
+                currency: 'NCH',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'founder', currency: 'NCH' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-treasury-nch',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
+                amount: 2000000,
+                currency: 'NCH',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'treasury_vault', currency: 'NCH' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-treasury-usdt',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
+                amount: 1000000,
+                currency: 'USDT',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'USDT' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-treasury-usdc',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
+                amount: 1000000,
+                currency: 'USDC',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'USDC' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            }
+        ];
+    }
+
     createGenesisBlock() {
+        const genesisTxs = this.getGenesisTransactions();
         return {
             index: 0,
-            timestamp: Date.now(),
-            transactions: [],
+            timestamp: 1700000000000,
+            transactions: genesisTxs,
             previousHash: '0',
             hash: this.calculateHash({
                 index: 0,
-                timestamp: Date.now(),
-                transactions: [],
+                timestamp: 1700000000000,
+                transactions: genesisTxs,
                 previousHash: '0',
                 nonce: 0
             }),
