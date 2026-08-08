@@ -498,11 +498,16 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
                 return res.status(503).json({ success: false, error: 'Blockchain initializing' });
             }
 
-            const { from, to, amount, signature, privateKey, data, timestamp, currency } = req.body;
+            const { from, to, amount, signature, privateKey, data, timestamp, currency, asset } = req.body;
 
-            // Standardize currency (for logging/routing ONLY — do NOT inject into data before signature verification)
-            const txCurrency = (currency || (data && data.currency) || 'NCH').toUpperCase();
+            // Standardize currency
+            const txCurrency = (currency || asset || (data && (data.currency || data.asset)) || 'NCH').toUpperCase();
             console.log(`📥 API: Transaction currency: ${txCurrency}`);
+
+            const txData = data ? { ...data } : {};
+            if (!txData.currency && !txData.asset && txCurrency !== 'NCH') {
+                txData.currency = txCurrency;
+            }
 
             // SECURITY: Ensure all transactions are signed
             if (!signature && !privateKey) {
@@ -514,10 +519,9 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             if (!signature && privateKey) {
                 try {
                     console.log(`🔑 API: Signing transaction using privateKey for ${from}`);
-                    // CRITICAL: Sign with original data (not mutated txData)
                     finalSignature = blockchain.signTransaction(privateKey, from, amount, {
                         to: to,
-                        data: data || {},
+                        data: txData,
                         timestamp: timestamp || startTime
                     });
                 } catch (signError) {
@@ -533,15 +537,11 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
             console.log(`📥 API: Transaction from ${from} to ${to} (${amountNum} ${txCurrency})`);
 
-            // CRITICAL FIX: Pass the ORIGINAL `data` object (not mutated txData) to createTransaction.
-            // The client signed the original data. If we add `currency` here BEFORE verification,
-            // the hash will not match and ALL transactions will fail with "invalid signature".
-            // createTransaction derives currency from data.currency (or defaults to NCH) internally.
             const result = await blockchain.createTransaction(
                 from,
                 to,
                 amountNum,
-                data || {},          // FIXED: original data (matches what client signed)
+                txData,
                 finalSignature,
                 timestamp || startTime // Match the timestamp used in signTransaction
             );

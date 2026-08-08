@@ -908,7 +908,9 @@ class EnhancedHybridBlockchainAI {
         let validAddress = null; // Scope fix for minting logic
         const transactionTimestamp = clientTimestamp || Date.now();
         // 0. Currency Identification & Isolation
-        const currency = (data && data.currency) ? data.currency.toUpperCase() : 'NCH';
+        const currency = (data && (data.currency || data.asset || data.symbol)) 
+            ? (data.currency || data.asset || data.symbol).toUpperCase() 
+            : 'NCH';
 
         if (!this.SAFE_CURRENCIES.includes(currency)) {
             return { success: false, reason: `Unauthorized currency: ${currency}`, aiValidation: { valid: false, confidence: 1, agent: 'supply_guard' } };
