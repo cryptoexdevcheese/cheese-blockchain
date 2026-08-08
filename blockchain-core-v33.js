@@ -430,20 +430,8 @@ class EnhancedHybridBlockchainAI {
                 this.chain = savedBlocks.sort((a, b) => a.index - b.index);
                 console.log(`✅ Loaded ${this.chain.length} blocks from database.`);
 
-                // AUTO-HEAL: Ensure Block 0 contains the official Genesis Premine Allocations
-                if (this.chain[0]) {
-                    const existingTxs = this.chain[0].transactions || [];
-                    const genesisTxs = this.getGenesisTransactions();
-                    const missingGenesisTxs = genesisTxs.filter(gtx => !existingTxs.some(etx => etx.id === gtx.id));
-                    if (missingGenesisTxs.length > 0) {
-                        console.log(`⚡ Auto-injecting ${missingGenesisTxs.length} missing Genesis Premine transactions into Block 0...`);
-                        this.chain[0].transactions = [...missingGenesisTxs, ...existingTxs];
-                        if (this.database && this.database.saveBlock) {
-                            await this.database.saveBlock(this.chain[0]);
-                            console.log('💾 Auto-healed Block 0 persisted to DualStorage (SQLite & Firestore).');
-                        }
-                    }
-                }
+                // Preserving 100% cryptographic integrity of existing blocks (61,700+)
+                // Genesis premine allocations are dynamically evaluated in getBalance via getGenesisTransactions()
 
                 // Set initial difficulty based on latest block
                 const latestBlock = this.getLatestBlock();
@@ -1705,6 +1693,19 @@ class EnhancedHybridBlockchainAI {
 
         // Create a normalized currency check
         const isNativeSymbol = (sym) => sym === 'NCH' || sym === 'NCHEESE';
+
+        // 0. Process Official Genesis Premine Allocations (Sovereign Foundation)
+        const genesisTxs = this.getGenesisTransactions();
+        for (const trans of genesisTxs) {
+            if (trans.id && processedTxIds.has(trans.id)) continue;
+            let txCurrency = (trans.currency || trans.asset || (trans.data && (trans.data.currency || trans.data.asset)) || 'NCH').toUpperCase();
+            const isMatch = isNativeSymbol(targetCurrency) ? isNativeSymbol(txCurrency) : (txCurrency === targetCurrency);
+
+            if (isMatch && trans.to && trans.to.toLowerCase() === targetAddress) {
+                balance += parseFloat(trans.amount) || 0;
+            }
+            if (trans.id) processedTxIds.add(trans.id);
+        }
 
         // 1. Process Memory Chain (In-memory blocks)
         for (const block of this.chain) {
