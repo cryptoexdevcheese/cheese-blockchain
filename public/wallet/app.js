@@ -1177,15 +1177,13 @@ If you forgot your wallet password:
                 // Also use forceBalanceDisplay for extra retries
                 this.forceBalanceDisplay();
 
-                // Update USD estimate
-                // Update USD estimate using real-time price from DEX
-                const nchPrice = this.tokenSearch ? this.tokenSearch.getTokenPriceSync('NCH') : 0;
+                const nchPrice = (this.tokenSearch ? this.tokenSearch.getTokenPriceSync('NCH') : 0) || 0.022;
                 const usdEstimate = this.balance * nchPrice;
                 const usdEl = document.getElementById('balance-usd');
                 if (usdEl && this.enhancements) {
                     usdEl.textContent = `≈ ${this.enhancements.formatCurrency(usdEstimate)}`;
                 } else if (usdEl) {
-                    usdEl.textContent = `≈ $${usdEstimate.toFixed(2)}`;
+                    usdEl.textContent = `≈ $${usdEstimate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 }
 
                 // CRITICAL: Force UI update to ensure balance is visible
@@ -4412,14 +4410,24 @@ If you forgot your wallet password:
 
             // Helper function to extract token balance regardless of case sensitivity
             const getPortfolioVal = (sym) => {
-                if (!nativePortfolio) return 0;
                 const upper = sym.toUpperCase();
                 const lower = sym.toLowerCase();
                 const capital = sym.charAt(0).toUpperCase() + sym.slice(1).toLowerCase();
-                const raw = nativePortfolio[upper] !== undefined ? nativePortfolio[upper] :
-                            (nativePortfolio[lower] !== undefined ? nativePortfolio[lower] :
-                            (nativePortfolio[capital] !== undefined ? nativePortfolio[capital] : 0));
-                return parseFloat(raw) || 0;
+                
+                let raw = undefined;
+                if (nativePortfolio) {
+                    raw = nativePortfolio[upper] !== undefined ? nativePortfolio[upper] :
+                          (nativePortfolio[lower] !== undefined ? nativePortfolio[lower] :
+                          (nativePortfolio[capital] !== undefined ? nativePortfolio[capital] : undefined));
+                }
+
+                if (raw === undefined && (upper === 'NCH' || upper === 'NCHEESE')) {
+                    if (portfolioData && portfolioData.balance !== undefined) {
+                        raw = portfolioData.balance;
+                    }
+                }
+
+                return parseFloat(raw || 0) || 0;
             };
 
             // 3. Define Core Assets (Always present, includes native and multichain anchors)
@@ -4553,8 +4561,8 @@ If you forgot your wallet password:
                     token.chain = 'cheese-native';
                     token.logoURI = token.logoURI || './icon-192.png';
                 } else if (token.chain === 'cheese-native') {
-                    // For other native tokens (USDT, USDC), ensure balance is set (already defaults to 0)
-                    token.balance = token.balance || 0;
+                    // For other native tokens (USDT, USDC), ensure balance is set from portfolio response
+                    token.balance = getPortfolioVal(token.symbol) || token.balance || 0;
                     token.chain = 'cheese-native';
                 } else {
                     // For other tokens, try to get balance
