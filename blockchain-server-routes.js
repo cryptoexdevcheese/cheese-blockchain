@@ -330,54 +330,12 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const { address } = req.params;
             const forceSync = req.query.sync === 'true' || req.query.forceSync === 'true';
 
-            // [OPTIMIZATION] High-Performance Fetch from Firestore 'wallets' collection
-            // SKIP IF forceSync is requested
-            if (blockchain.database && blockchain.database.db && !forceSync) {
-                try {
-                    const walletDoc = await blockchain.database.db.collection(blockchain.database.collections.wallets || 'cheese-blockchain-wallets').doc(address.toLowerCase()).get();
-                    if (walletDoc.exists) {
-                        const data = walletDoc.data();
-                        const balance = parseFloat(data.balance) || 0;
-                        
-                        // 🛑 SAFETY CHECK: If balance is negative, the cache is CORRUPT.
-                        // Force a fallback to ledger calculation to fix it.
-                        if (balance < 0) {
-                            console.warn(`🚨 API: Detected negative balance (${balance}) in cache for ${address}. FORCING LEDGER CALCULATION.`);
-                        } else {
-                            console.log(`⚡ API: Fetched High-Performance Balance for ${address}`);
-                            // CRITICAL: Sanitize portfolio to remove ghost/admin tokens from cache
-                            const sanitizedPortfolio = {};
-                            const ghostKeywords = ['BALANCE', 'SUCCESS', 'V3.5', 'V3.6', 'V4.1', 'V4.2', 'RECOVERY', 'FIX', 'RESTORE', 'PURGE', 'GHOST', 'NCHEESE_OLD', 'CACHEDAT', 'CACHED_AT', 'TIMESTAMP', 'PHANTOM', 'MESSAGE'];
-                            
-                            Object.keys(data.portfolio || {}).forEach(key => {
-                                const upperKey = key.toUpperCase().trim();
-                                const isGhost = ghostKeywords.some(kw => upperKey.includes(kw));
-                                if (!isGhost) {
-                                    sanitizedPortfolio[key] = data.portfolio[key];
-                                }
-                            });
-
-                            return res.json({
-                                success: true,
-                                address,
-                                is_initializing: false,
-                                balance: balance,
-                                portfolio: sanitizedPortfolio,
-                                source: 'cache'
-                            });
-                        }
-                    }
-                } catch (fsErr) {
-                    console.warn(`⚠️ High-Performance Fetch Failed for ${address}, falling back to ledger:`, fsErr.message);
-                }
-            }
-
-            console.log(`🕵️ API: Deep-Scanning Ledger for ${address}${forceSync ? ' (FORCE SYNC)' : ''}`);
+            // SOVEREIGN LEDGER FIRST: Compute live balance from Blockchain Ledger (DualStorage Master)
+            console.log(`🕵️ API: Computing Live Blockchain Ledger Balance for ${address}${forceSync ? ' (FORCE SYNC)' : ''}`);
             
-            // If cache miss, negative balance, or forceSync, perform full ledger calculation
             const balanceData = await blockchain.getBalances(address);
             
-            // 🛑 CRITICAL: Sanitize portfolio to remove ghost tokens from deep scan too
+            // Sanitize portfolio to remove internal metadata / ghost keys
             const sanitizedPortfolio = {};
             const ghostKeywords = ['BALANCE', 'SUCCESS', 'V3.5', 'V3.6', 'V4.1', 'V4.2', 'RECOVERY', 'FIX', 'RESTORE', 'PURGE', 'GHOST', 'NCHEESE_OLD', 'CACHEDAT', 'CACHED_AT', 'TIMESTAMP', 'PHANTOM', 'MESSAGE'];
             
@@ -390,7 +348,7 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             });
             balanceData.portfolio = sanitizedPortfolio;
 
-            // But we should ensure it's written back to Firestore to fix the cache.
+            // Background Backup Update to DualStorage / Firestore (Non-blocking)
             if (blockchain.database && blockchain.database.saveWallet) {
                 const walletUpdate = {
                     address: address.toLowerCase(),
@@ -399,22 +357,21 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
                         NCH: balanceData.balance,
                         ...balanceData.portfolio
                     },
-                    updatedAt: Date.now()
+                    portfolio: balanceData.portfolio,
+                    lastUpdated: Date.now()
                 };
-                // Non-blocking save to repair cache
-                blockchain.database.saveWallet(walletUpdate).catch(e => console.error('Cache repair failed:', e.message));
+                blockchain.database.saveWallet(walletUpdate).catch(e => console.warn('Background backup save notice:', e.message));
             }
 
             res.json({
                 success: true,
                 address,
-                is_initializing: !isReady(),
+                is_initializing: false,
                 balance: balanceData.balance,
                 portfolio: balanceData.portfolio,
                 source: 'ledger'
             });
         } catch (error) {
-            console.error('❌ Balance API Error:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });

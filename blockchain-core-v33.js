@@ -1649,7 +1649,7 @@ class EnhancedHybridBlockchainAI {
             for (const trans of block.transactions) {
                 if (trans.id && processedTxIds.has(trans.id)) continue;
 
-                let txCurrency = (trans.currency || (trans.data && trans.data.currency) || 'NCH').toUpperCase();
+                let txCurrency = (trans.currency || trans.asset || (trans.data && (trans.data.currency || trans.data.asset)) || 'NCH').toUpperCase();
                 const isMatch = isNativeSymbol(targetCurrency) ? isNativeSymbol(txCurrency) : (txCurrency === targetCurrency);
 
                 if (isMatch) {
@@ -1689,13 +1689,13 @@ class EnhancedHybridBlockchainAI {
                 let from = (tx.fromAddress || tx.from || '').toLowerCase();
                 let to = (tx.toAddress || tx.to || '').toLowerCase();
                 let amount = parseFloat(tx.amount) || 0;
-                let txCurr = (tx.currency || 'NCH').toUpperCase();
+                let txCurr = (tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH').toUpperCase();
 
                 let txData = {};
                 if (tx.data && (isNativeSymbol(txCurr) || !txCurr)) {
                     try {
                         txData = typeof tx.data === 'string' ? JSON.parse(tx.data) : tx.data;
-                        if (txData.currency) txCurr = txData.currency.toUpperCase();
+                        if (txData.currency || txData.asset) txCurr = (txData.currency || txData.asset).toUpperCase();
                     } catch (e) { }
                 }
 
@@ -1791,7 +1791,7 @@ class EnhancedHybridBlockchainAI {
                 if (!block.transactions) continue;
                 for (const tx of block.transactions) {
                     if ((tx.from && tx.from.toLowerCase() === lowerAddr) || (tx.to && tx.to.toLowerCase() === lowerAddr)) {
-                        const txCurrency = (tx.currency || (tx.data && tx.data.currency) || 'NCH').toUpperCase();
+                        const txCurrency = (tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH').toUpperCase();
                         if (txCurrency !== 'NCH') {
                             currencies.add(txCurrency);
                         }
@@ -1801,7 +1801,7 @@ class EnhancedHybridBlockchainAI {
 
             // Also check database transactions for additional discovered currencies
             for (const tx of dbTransactions) {
-                const txCurrency = (tx.currency || (tx.data && tx.data.currency) || 'NCH').toUpperCase();
+                const txCurrency = (tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH').toUpperCase();
                 if (txCurrency !== 'NCH') {
                     currencies.add(txCurrency);
                 }
@@ -1810,7 +1810,7 @@ class EnhancedHybridBlockchainAI {
             // Also check pending
             for (const tx of this.pendingTransactions) {
                 if ((tx.from && tx.from.toLowerCase() === lowerAddr) || (tx.to && tx.to.toLowerCase() === lowerAddr)) {
-                    const txCurrency = (tx.currency || (tx.data && tx.data.currency) || 'NCH').toUpperCase();
+                    const txCurrency = (tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH').toUpperCase();
                     if (txCurrency !== 'NCH') {
                         currencies.add(txCurrency);
                     }

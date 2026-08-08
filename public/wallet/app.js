@@ -4410,13 +4410,25 @@ If you forgot your wallet password:
                 console.warn('⚠️ Failed to fetch native portfolio:', pError);
             }
 
+            // Helper function to extract token balance regardless of case sensitivity
+            const getPortfolioVal = (sym) => {
+                if (!nativePortfolio) return 0;
+                const upper = sym.toUpperCase();
+                const lower = sym.toLowerCase();
+                const capital = sym.charAt(0).toUpperCase() + sym.slice(1).toLowerCase();
+                const raw = nativePortfolio[upper] !== undefined ? nativePortfolio[upper] :
+                            (nativePortfolio[lower] !== undefined ? nativePortfolio[lower] :
+                            (nativePortfolio[capital] !== undefined ? nativePortfolio[capital] : 0));
+                return parseFloat(raw) || 0;
+            };
+
             // 3. Define Core Assets (Always present, includes native and multichain anchors)
             const coreAssets = {
                 'NCH': { 
                     symbol: 'NCH', 
                     name: 'NCheese (Native CHEESE)', 
                     logoURI: './icon-192.png',
-                    balance: this.balance || 0,
+                    balance: this.balance || getPortfolioVal('NCH') || 0,
                     chain: 'cheese-native',
                     address: '0x0000000000000000000000000000000000000000',
                     price: 0.022
@@ -4425,7 +4437,7 @@ If you forgot your wallet password:
                     symbol: 'USDT', 
                     name: 'Native Tether USD', 
                     logoURI: 'https://cryptologos.cc/logos/tether-usdt-logo.png',
-                    balance: parseFloat(nativePortfolio['USDT'] || nativePortfolio['usdt'] || nativePortfolio['Usdt'] || 0) || 0,
+                    balance: getPortfolioVal('USDT'),
                     chain: 'cheese-native',
                     address: 'native-usdt',
                     price: 1.00
@@ -4434,7 +4446,7 @@ If you forgot your wallet password:
                     symbol: 'USDC', 
                     name: 'Native USD Coin', 
                     logoURI: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
-                    balance: parseFloat(nativePortfolio['USDC'] || nativePortfolio['usdc'] || nativePortfolio['Usdc'] || 0) || 0,
+                    balance: getPortfolioVal('USDC'),
                     chain: 'cheese-native',
                     address: 'native-usdc',
                     price: 1.00
