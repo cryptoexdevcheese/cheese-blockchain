@@ -27,10 +27,16 @@
     <script>
         // Force reload & cache purge if new version detected
         try {
-            const version = '6.1.0';
+            const version = '7.0.0';
             if (localStorage.getItem('backupVersion') !== version) {
                 console.log('🔄 New Wallet version v' + version + ' detected. Clearing legacy caches...');
                 localStorage.setItem('backupVersion', version);
+                // Purge all legacy balance/portfolio keys from localStorage
+                Object.keys(localStorage).forEach(k => {
+                    if (k.startsWith('cheese_balance_') || k.startsWith('cheese_portfolio_') || k === 'cheese_cache_version') {
+                        localStorage.removeItem(k);
+                    }
+                });
                 if ('caches' in window) {
                     caches.keys().then(names => {
                         for (let name of names) caches.delete(name);
@@ -921,37 +927,37 @@
     <script src="./elliptic-loader.js"></script>
     
     <!-- API & Configuration -->
-    <script src="/config.js?v=4.2.2"></script>
-    <script src="./blockchain-api.js?v=6.1.0"></script>
-    <script src="./wallet-config-LOCKED.js?v=6.1.0"></script>
+    <script src="/config.js?v=7.0.0"></script>
+    <script src="./blockchain-api.js?v=7.0.0"></script>
+    <script src="./wallet-config-LOCKED.js?v=7.0.0"></script>
     
     <!-- Utilities & Metadata -->
-    <script src="/blockchain-meta-config.js?v=6.1.0"></script>
-    <script src="./bsc-verifier.js?v=6.1.0"></script>
-    <script src="./cross-chain-balance.js?v=6.1.0"></script>
-    <script src="./token-metadata.js?v=6.1.0"></script>
+    <script src="/blockchain-meta-config.js?v=7.0.0"></script>
+    <script src="./bsc-verifier.js?v=7.0.0"></script>
+    <script src="./cross-chain-balance.js?v=7.0.0"></script>
+    <script src="./token-metadata.js?v=7.0.0"></script>
     
     <!-- Core Modules -->
-    <script src="./wallet-core.js?v=6.1.0"></script>
-    <script src="./wallet-security.js?v=6.1.0"></script>
-    <script src="./wallet-enhancements.js?v=6.1.0"></script>
-    <script src="./biometric-auth.js?v=6.1.0"></script>
-    <script src="./founder-income.js?v=6.1.0"></script>
+    <script src="./wallet-core.js?v=7.0.0"></script>
+    <script src="./wallet-security.js?v=7.0.0"></script>
+    <script src="./wallet-enhancements.js?v=7.0.0"></script>
+    <script src="./biometric-auth.js?v=7.0.0"></script>
+    <script src="./founder-income.js?v=7.0.0"></script>
     
     <!-- Engines & Managers -->
 
-    <script src="./token-manager.js?v=6.1.0"></script>
-    <script src="./swap-engine.js?v=6.1.0"></script>
-    <script src="./fiat-gateway.js?v=6.1.0"></script>
-    <script src="./mobile-miner.js?v=6.1.0"></script>
-    <script src="./connect-manager.js?v=6.1.0"></script>
+    <script src="./token-manager.js?v=7.0.0"></script>
+    <script src="./swap-engine.js?v=7.0.0"></script>
+    <script src="./fiat-gateway.js?v=7.0.0"></script>
+    <script src="./mobile-miner.js?v=7.0.0"></script>
+    <script src="./connect-manager.js?v=7.0.0"></script>
     
     <!-- UI & Styles -->
-    <script src="./metamask-style.js?v=6.1.0"></script>
-    <script src="./token-search.js?v=6.1.0"></script>
+    <script src="./metamask-style.js?v=7.0.0"></script>
+    <script src="./token-search.js?v=7.0.0"></script>
     
     <!-- Main Application -->
-    <script src="./app.js?v=6.1.0"></script>
+    <script src="./app.js?v=7.0.0"></script>
 
     <script>
         // Additional event listeners
