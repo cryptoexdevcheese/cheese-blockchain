@@ -329,35 +329,44 @@ class CheeseExplorer {
 
     async loadLatestTransactions() {
         const container = document.getElementById('latest-transactions');
+        if (!container) return;
 
-        // PRIORITY: Fetch actual full history including pending
         let allTxns = [];
         
         try {
-            // Fetch pending transactions first
+            // 1. Fetch pending transactions from mempool
             const pendingData = await this.fetchAPI('/api/transactions/pending');
-            if (pendingData && pendingData.transactions) {
-                allTxns = pendingData.transactions.map(tx => ({ ...tx, status: 'pending' }));
+            if (pendingData && pendingData.transactions && Array.isArray(pendingData.transactions)) {
+                pendingData.transactions.forEach(tx => {
+                    allTxns.push({ ...tx, status: 'pending' });
+                });
             }
 
-            // Then add confirmed transactions fromFirestore or chain
-            if (this.allFirestoreTransactions && this.allFirestoreTransactions.length > 0) {
+            // 2. Fetch fresh confirmed transactions directly from /api/transactions/all
+            const allTxData = await this.fetchAPI('/api/transactions/all');
+            if (allTxData && allTxData.success && Array.isArray(allTxData.transactions)) {
+                this.allFirestoreTransactions = allTxData.transactions;
+                allTxns = [...allTxns, ...allTxData.transactions];
+            } else if (this.allFirestoreTransactions && this.allFirestoreTransactions.length > 0) {
                 allTxns = [...allTxns, ...this.allFirestoreTransactions];
-            } else if (this.blockchain?.chain) {
-                for (const block of this.blockchain.chain) {
-                    if (block.transactions) {
-                        for (const tx of block.transactions) {
-                            allTxns.push({ ...tx, blockIndex: block.index });
-                        }
-                    }
-                }
             }
         } catch (e) {
-            console.warn('Error fetching latest transactions, falling back:', e);
+            console.warn('Error fetching latest transactions:', e);
         }
 
-        allTxns.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        const recentTxns = allTxns.slice(0, 15); // Show more on home
+        // Deduplicate by ID / Hash
+        const uniqueTxnsMap = new Map();
+        allTxns.forEach(tx => {
+            const key = tx.id || tx.hash || tx.signature?.r || `${tx.from}-${tx.to}-${tx.timestamp}`;
+            if (!uniqueTxnsMap.has(key)) {
+                uniqueTxnsMap.set(key, tx);
+            }
+        });
+
+        const uniqueTxns = Array.from(uniqueTxnsMap.values());
+        uniqueTxns.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+
+        const recentTxns = uniqueTxns.slice(0, 15);
 
         if (recentTxns.length === 0) {
             container.innerHTML = '<div class="no-data">No transactions yet</div>';
@@ -365,9 +374,9 @@ class CheeseExplorer {
         }
 
         container.innerHTML = recentTxns.map(tx => `
-            <div class="data-item ${tx.status === 'pending' ? 'pending' : ''}" onclick="explorer.showTxDetail('${tx.id || tx.signature?.r || '-'}', ${tx.blockIndex || 0})">
+            <div class="data-item ${tx.status === 'pending' ? 'pending' : ''}" onclick="explorer.showTxDetail('${tx.id || tx.hash || tx.signature?.r || '-'}', ${tx.blockIndex || 0})">
                 <div class="item-row">
-                    <span class="item-hash">${this.truncate(tx.id || tx.signature?.r || '-', 16)}</span>
+                    <span class="item-hash">${this.truncate(tx.id || tx.hash || tx.signature?.r || '-', 16)}</span>
                     <span class="item-amount">${tx.amount || 0} ${tx.currency || 'NCH'}</span>
                 </div>
                 <div class="item-row">
@@ -376,7 +385,7 @@ class CheeseExplorer {
                 </div>
                 <div class="item-row">
                     <span class="item-time">${tx.status === 'pending' ? '<span class="badge badge-pending">Pending</span>' : this.formatTime(tx.timestamp)}</span>
-                    <span class="item-label">${tx.status === 'pending' ? 'Mempool' : 'Block #' + (tx.blockIndex || 0)}</span>
+                    <span class="item-label">${tx.status === 'pending' ? 'Mempool' : 'Block #' + (tx.blockIndex !== undefined ? tx.blockIndex : '-')}</span>
                 </div>
             </div>
         `).join('');
@@ -414,42 +423,52 @@ class CheeseExplorer {
 
     async loadTransactions() {
         const tbody = document.getElementById('transactions-table-body');
+        if (!tbody) return;
 
         let allTxns = [];
         
         try {
-            // Fetch pending transactions first
+            // 1. Fetch pending transactions first
             const pendingData = await this.fetchAPI('/api/transactions/pending');
-            if (pendingData && pendingData.transactions) {
-                allTxns = pendingData.transactions.map(tx => ({ ...tx, status: 'pending' }));
+            if (pendingData && pendingData.transactions && Array.isArray(pendingData.transactions)) {
+                pendingData.transactions.forEach(tx => {
+                    allTxns.push({ ...tx, status: 'pending' });
+                });
             }
 
-            if (this.allFirestoreTransactions && this.allFirestoreTransactions.length > 0) {
+            // 2. Fetch fresh confirmed transactions directly from /api/transactions/all
+            const allTxData = await this.fetchAPI('/api/transactions/all');
+            if (allTxData && allTxData.success && Array.isArray(allTxData.transactions)) {
+                this.allFirestoreTransactions = allTxData.transactions;
+                allTxns = [...allTxns, ...allTxData.transactions];
+            } else if (this.allFirestoreTransactions && this.allFirestoreTransactions.length > 0) {
                 allTxns = [...allTxns, ...this.allFirestoreTransactions];
-            } else if (this.blockchain?.chain) {
-                for (const block of this.blockchain.chain) {
-                    if (block.transactions) {
-                        for (const tx of block.transactions) {
-                            allTxns.push({ ...tx, blockIndex: block.index });
-                        }
-                    }
-                }
             }
         } catch (e) {
             console.warn('Error loading transactions table:', e);
         }
 
-        allTxns.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        // Deduplicate
+        const uniqueTxnsMap = new Map();
+        allTxns.forEach(tx => {
+            const key = tx.id || tx.hash || tx.signature?.r || `${tx.from}-${tx.to}-${tx.timestamp}`;
+            if (!uniqueTxnsMap.has(key)) {
+                uniqueTxnsMap.set(key, tx);
+            }
+        });
 
-        if (allTxns.length === 0) {
+        const uniqueTxns = Array.from(uniqueTxnsMap.values());
+        uniqueTxns.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+
+        if (uniqueTxns.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="no-data">No transactions yet</td></tr>';
             return;
         }
 
-        tbody.innerHTML = allTxns.map(tx => `
-            <tr onclick="explorer.showTxDetail('${tx.id || tx.signature?.r || '-'}', ${tx.blockIndex || 0})" class="${tx.status === 'pending' ? 'row-pending' : ''}">
-                <td><span class="hash">${this.truncate(tx.id || tx.signature?.r || '-', 12)}</span></td>
-                <td>${tx.status === 'pending' ? '<span class="badge badge-pending">Pending</span>' : '#' + (tx.blockIndex || 0)}</td>
+        tbody.innerHTML = uniqueTxns.map(tx => `
+            <tr onclick="explorer.showTxDetail('${tx.id || tx.hash || tx.signature?.r || '-'}', ${tx.blockIndex || 0})" class="${tx.status === 'pending' ? 'row-pending' : ''}">
+                <td><span class="hash">${this.truncate(tx.id || tx.hash || tx.signature?.r || '-', 12)}</span></td>
+                <td>${tx.status === 'pending' ? '<span class="badge badge-pending">Pending</span>' : '#' + (tx.blockIndex !== undefined ? tx.blockIndex : '-')}</td>
                 <td>${tx.status === 'pending' ? 'Just now' : this.formatTime(tx.timestamp)}</td>
                 <td><span class="address">${this.truncate(tx.from || 'Mining', 10)}</span></td>
                 <td><span class="address">${this.truncate(tx.to || '-', 10)}</span></td>
