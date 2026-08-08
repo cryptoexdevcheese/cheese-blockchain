@@ -769,7 +769,7 @@ async function initializeBlockchain() {
         try {
             const HeadlessSystemMiner = require('./headless-system-miner');
             const systemMiner = new HeadlessSystemMiner(blockchain, { 
-                interval: 180000 // Mine every 3 minutes
+                interval: 30000 // Mine every 30 seconds across active registered wallet rotation
             });
             systemMiner.start();
             console.log('⛏️  Headless System Miner integrated and started.');

@@ -344,6 +344,7 @@ class DualStorage {
 
     async saveMiningRegistration(...args) { return this.#dualWrite('saveMiningRegistration', ...args); }
     async getMiningRegistration(...args) { return this.#dualRead('getMiningRegistration', ...args); }
+    async getAllMiningRegistrations(...args) { return this.#dualRead('getAllMiningRegistrations', ...args); }
 
     async saveReferral(...args) { return this.#dualWrite('saveReferral', ...args); }
     async getReferralsByIP(...args) { return this.#dualRead('getReferralsByIP', ...args); }

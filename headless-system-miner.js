@@ -1,15 +1,15 @@
 /**
- * 🧀 CHEESE BLOCKCHAIN - HEADLESS SYSTEM MINER
- * Automates mining for the 7 exempted system wallets to ensure network health.
+ * 🧀 CHEESE BLOCKCHAIN - HEADLESS SYSTEM & REGISTERED MINER
+ * Automates mining for system wallets & dynamically registered user mining wallets.
  */
 
 class HeadlessSystemMiner {
     constructor(blockchain, options = {}) {
         this.blockchain = blockchain;
-        this.interval = options.interval || 300000; // Default: 5 minutes (300s) for sustainable block production
+        this.interval = options.interval || 30000; // Default: 30 seconds for active multi-wallet rotation
         this.isRunning = false;
         
-        this.SYSTEM_WALLETS = [
+        this.CORE_WALLETS = [
             '0x0E6ec6713E7b5b7C11d969dA848813d08223598E', // FOUNDER
             '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3', // TREASURY
             '0x3801490C9f806c917b8CbA710Db9135FA3B116ae', // LIQUIDITY
@@ -36,7 +36,7 @@ class HeadlessSystemMiner {
     start() {
         if (this.isRunning) return;
         this.isRunning = true;
-        console.log(`⛏️  System Miner Started (7 Exempt Wallets | Interval: ${this.interval / 1000}s)`);
+        console.log(`⛏️  System & Registered Miner Started (Rotation Interval: ${this.interval / 1000}s)`);
         this.mineLoop();
     }
 
@@ -45,30 +45,54 @@ class HeadlessSystemMiner {
         console.log('🛑 System Miner Stopped');
     }
 
+    async getActiveMiningWallets() {
+        const walletSet = new Set(this.CORE_WALLETS.map(w => w.toLowerCase()));
+        
+        // Dynamically fetch registered miners from DualStorage / database
+        if (this.blockchain && this.blockchain.database && typeof this.blockchain.database.getAllMiningRegistrations === 'function') {
+            try {
+                const dbRegistrations = await this.blockchain.database.getAllMiningRegistrations();
+                if (Array.isArray(dbRegistrations)) {
+                    dbRegistrations.forEach(reg => {
+                        const addr = reg.walletAddress || reg.minerAddress || reg.address;
+                        if (addr && typeof addr === 'string' && addr.startsWith('0x')) {
+                            walletSet.add(addr.toLowerCase());
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not query db mining registrations:', e.message);
+            }
+        }
+        
+        return Array.from(walletSet);
+    }
+
     async mineLoop() {
         while (this.isRunning) {
             try {
-                const minerAddress = this.SYSTEM_WALLETS[this.currentIndex];
-                console.log(`⚙️  System Miner: Attempting block with ${minerAddress.substring(0, 10)}...`);
+                const activeWallets = await this.getActiveMiningWallets();
+                if (activeWallets.length === 0) continue;
+
+                this.currentIndex = this.currentIndex % activeWallets.length;
+                const minerAddress = activeWallets[this.currentIndex];
                 
-                // Call the core mining method directly
-                // This bypasses the API cooldowns but respects the atomic lock in the class
+                console.log(`⚙️  System Miner: Mining block with [${this.currentIndex + 1}/${activeWallets.length}] ${minerAddress.substring(0, 10)}...`);
+                
                 const block = await this.blockchain.minePendingTransactions(minerAddress);
                 
                 if (block) {
-                    console.log(`✅ System Miner: Block ${block.index} successfully mined by ${minerAddress.substring(0, 10)}...`);
-                } else {
-                    // No transactions or busy, we still wait before next attempt
+                    console.log(`✅ System Miner: Block ${block.index} successfully mined by ${minerAddress}`);
                 }
                 
-                // Rotate wallet for next time
-                this.currentIndex = (this.currentIndex + 1) % this.SYSTEM_WALLETS.length;
+                // Rotate to next wallet in cycle
+                this.currentIndex = (this.currentIndex + 1) % activeWallets.length;
                 
             } catch (error) {
-                console.warn('⚠️  System Miner Error:', error.message);
+                console.warn('⚠️  System Miner Loop Notice:', error.message);
             }
             
-            // Wait for the next interval
+            // Wait for next interval
             await new Promise(resolve => setTimeout(resolve, this.interval));
         }
     }

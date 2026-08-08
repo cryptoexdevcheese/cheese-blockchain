@@ -877,6 +877,19 @@ class BlockchainDatabaseFirestore {
         }
     }
 
+    async getAllMiningRegistrations() {
+        try {
+            const snapshot = await this.db.collection(this.collections.miningRegistrations)
+                .where('status', 'in', ['active', 'paid'])
+                .get();
+            if (snapshot.empty) return [];
+            return snapshot.docs.map(doc => doc.data());
+        } catch (error) {
+            console.error('❌ Firestore getAllMiningRegistrations failed:', error.message);
+            return [];
+        }
+    }
+
     // ==================== MINER BLOCK HISTORY OPERATIONS ====================
 
     async saveMinerBlockHistory(walletAddress, blockIndex, blockHash) {
