@@ -846,6 +846,7 @@ class EnhancedHybridBlockchainAI {
             console.log('Transaction added from network');
         });
     }
+
     connectToPeer(host, port) {
         if (!this.network) {
             throw new Error('Network not initialized');
@@ -858,7 +859,7 @@ class EnhancedHybridBlockchainAI {
             {
                 id: 'genesis-premine-founder-nch',
                 from: '0x0000000000000000000000000000000000000000',
-                to: '0x0E6ec6713e7b5b7C11d969dA848813d08223598E'.toLowerCase(),
+                to: '0x0E6ec6713E7b5b7C11d969dA848813d08223598E'.toLowerCase(),
                 amount: 1000000,
                 currency: 'NCH',
                 timestamp: 1700000000000,
@@ -868,31 +869,61 @@ class EnhancedHybridBlockchainAI {
             {
                 id: 'genesis-premine-treasury-nch',
                 from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 1948030,
+                currency: 'NCH',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'treasury', currency: 'NCH' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-liquidity-nch',
+                from: '0x0000000000000000000000000000000000000000',
                 to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
                 amount: 2000000,
                 currency: 'NCH',
                 timestamp: 1700000000000,
-                data: { type: 'genesis_mint', recipient: 'treasury_vault', currency: 'NCH' },
+                data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'NCH' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-operator-nch',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x712A1CBa607C60D95f27088c80aBbBD1f53d33Fe'.toLowerCase(),
+                amount: 11838.18,
+                currency: 'NCH',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'operator', currency: 'NCH' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
             },
             {
                 id: 'genesis-premine-treasury-usdt',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 120000000,
+                currency: 'USDT',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'treasury', currency: 'USDT' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-treasury-usdc',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 120050000,
+                currency: 'USDC',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_mint', recipient: 'treasury', currency: 'USDC' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-premine-liquidity-usdt',
                 from: '0x0000000000000000000000000000000000000000',
                 to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
                 amount: 1000000,
                 currency: 'USDT',
                 timestamp: 1700000000000,
                 data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'USDT' },
-                signature: 'GENESIS_PREMINE_AUTHORIZED'
-            },
-            {
-                id: 'genesis-premine-treasury-usdc',
-                from: '0x0000000000000000000000000000000000000000',
-                to: '0x3801490C9f806c917b8CbA710Db9135FA3B116ae'.toLowerCase(),
-                amount: 1000000,
-                currency: 'USDC',
-                timestamp: 1700000000000,
-                data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'USDC' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
             }
         ];
