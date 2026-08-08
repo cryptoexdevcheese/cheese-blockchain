@@ -438,6 +438,10 @@ class EnhancedHybridBlockchainAI {
                     if (missingGenesisTxs.length > 0) {
                         console.log(`⚡ Auto-injecting ${missingGenesisTxs.length} missing Genesis Premine transactions into Block 0...`);
                         this.chain[0].transactions = [...missingGenesisTxs, ...existingTxs];
+                        if (this.database && this.database.saveBlock) {
+                            await this.database.saveBlock(this.chain[0]);
+                            console.log('💾 Auto-healed Block 0 persisted to DualStorage (SQLite & Firestore).');
+                        }
                     }
                 }
 
