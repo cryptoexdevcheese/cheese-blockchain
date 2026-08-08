@@ -1402,8 +1402,16 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
         try {
             const blockchain = getBlockchain();
             let txs = [];
+            const genesisTxs = blockchain.getGenesisTransactions();
+            genesisTxs.forEach(gtx => txs.push({ ...gtx, blockIndex: 0 }));
+
             if (blockchain.database && blockchain.database.getAllTransactions) {
-                txs = await blockchain.database.getAllTransactions();
+                const dbTxs = await blockchain.database.getAllTransactions();
+                dbTxs.forEach(dtx => {
+                    if (!txs.some(t => t.id === dtx.id || t.hash === dtx.hash)) {
+                        txs.push(dtx);
+                    }
+                });
             } else {
                 blockchain.chain.forEach(b => txs.push(...(b.transactions || [])));
             }
@@ -1427,6 +1435,14 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
             // 1. Get transactions from memory chain
             const txs = [];
+
+            // 🔒 FIX: Include Genesis premine transactions if address matches
+            const genesisTxs = blockchain.getGenesisTransactions();
+            genesisTxs.forEach(gtx => {
+                if ((gtx.from && gtx.from.toLowerCase() === target) || (gtx.to && gtx.to.toLowerCase() === target)) {
+                    txs.push({ ...gtx, blockIndex: 0, status: 'confirmed', confirmations: blockchain.chain.length });
+                }
+            });
 
             // 🔒 FIX: Include pending transactions from mempool (Unmined)
             blockchain.pendingTransactions.forEach(tx => {
