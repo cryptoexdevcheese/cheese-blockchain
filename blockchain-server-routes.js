@@ -1401,21 +1401,57 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
     app.get('/api/transactions/all', async (req, res) => {
         try {
             const blockchain = getBlockchain();
+            if (!blockchain) return res.status(503).json({ success: false, error: 'Blockchain initializing' });
+
             let txs = [];
+
+            // 1. Genesis Premine Allocations
             const genesisTxs = blockchain.getGenesisTransactions();
             genesisTxs.forEach(gtx => txs.push({ ...gtx, blockIndex: 0 }));
 
-            if (blockchain.database && blockchain.database.getAllTransactions) {
-                const dbTxs = await blockchain.database.getAllTransactions();
-                dbTxs.forEach(dtx => {
-                    if (!txs.some(t => t.id === dtx.id || t.hash === dtx.hash)) {
-                        txs.push(dtx);
+            // 2. In-Memory Chain Block Transactions (Includes all mined blocks & block rewards)
+            if (blockchain.chain && Array.isArray(blockchain.chain)) {
+                for (const block of blockchain.chain) {
+                    if (block.transactions && Array.isArray(block.transactions)) {
+                        for (const tx of block.transactions) {
+                            txs.push({ ...tx, blockIndex: block.index });
+                        }
                     }
-                });
-            } else {
-                blockchain.chain.forEach(b => txs.push(...(b.transactions || [])));
+                }
             }
-            res.json({ success: true, count: txs.length, transactions: txs });
+
+            // 3. Database Transactions (SQLite + Firestore)
+            if (blockchain.database && typeof blockchain.database.getAllTransactions === 'function') {
+                try {
+                    const dbTxs = await blockchain.database.getAllTransactions();
+                    if (Array.isArray(dbTxs)) {
+                        dbTxs.forEach(dtx => txs.push(dtx));
+                    }
+                } catch (dbErr) {
+                    console.warn('⚠️ Could not fetch DB transactions for /api/transactions/all:', dbErr.message);
+                }
+            }
+
+            // 4. Pending Transactions in Mempool
+            if (blockchain.pendingTransactions && Array.isArray(blockchain.pendingTransactions)) {
+                blockchain.pendingTransactions.forEach(ptx => {
+                    txs.push({ ...ptx, status: 'pending', blockIndex: null });
+                });
+            }
+
+            // 5. Deduplicate transactions by unique ID / Hash / Signature
+            const uniqueMap = new Map();
+            txs.forEach(t => {
+                const key = t.id || t.hash || (t.signature ? (typeof t.signature === 'string' ? t.signature : t.signature.r) : `${t.from}-${t.to}-${t.timestamp}`);
+                if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, t);
+                }
+            });
+
+            const uniqueTxs = Array.from(uniqueMap.values());
+            uniqueTxs.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+
+            res.json({ success: true, count: uniqueTxs.length, transactions: uniqueTxs });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
