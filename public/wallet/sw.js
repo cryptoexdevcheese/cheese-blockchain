@@ -1,5 +1,5 @@
-// Force clear ALL old caches for V7.4.0 live UI release
-const CACHE_NAME = 'cheese-wallet-v7.4.0-LIVE';
+// Force clear ALL old caches for V7.1.0 live UI release
+const CACHE_NAME = 'cheese-wallet-v7.1.0-LIVE';
 const urlsToCache = [
     './',
     './index.html',
