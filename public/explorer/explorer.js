@@ -532,7 +532,7 @@ class CheeseExplorer {
         addressTxns.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         txContainer.innerHTML = addressTxns.map(tx => `
-            <div class="data-item ${tx.status === 'pending' ? 'pending' : ''}">
+            <div class="data-item ${tx.status === 'pending' ? 'pending' : ''}" onclick="explorer.showTxDetail('${tx.id || tx.hash || tx.signature?.r || '-'}', ${tx.blockIndex !== undefined && tx.blockIndex !== null ? tx.blockIndex : 0})">
                 <div class="item-row">
                     <span class="item-value">${tx.from === address ? '<span class="badge badge-out">OUT</span>' : '<span class="badge badge-in">IN</span>'}</span>
                     <span class="item-amount">${tx.from === address ? '-' : '+'}${tx.amount} ${tx.currency || 'NCH'}</span>
@@ -543,7 +543,7 @@ class CheeseExplorer {
                 </div>
                 <div class="item-row">
                     <span class="item-time">${tx.status === 'pending' ? '<span class="badge badge-pending">Pending</span>' : this.formatTime(tx.timestamp)}</span>
-                    <span class="item-label">${tx.status === 'pending' ? 'Unconfirmed' : 'Block #' + (tx.blockIndex || 0)}</span>
+                    <span class="item-label">${tx.status === 'pending' ? 'Unconfirmed' : 'Block #' + (tx.blockIndex !== undefined && tx.blockIndex !== null ? tx.blockIndex : '-')}</span>
                 </div>
             </div>
         `).join('');
@@ -552,7 +552,7 @@ class CheeseExplorer {
     async loadBlockDetail(blockIndex) {
         let block = null;
         if (this.blockchain?.chain?.length) {
-            block = this.blockchain.chain.find(b => b.index === blockIndex);
+            block = this.blockchain.chain.find(b => Number(b.index) === Number(blockIndex));
         }
 
         if (!block) {
@@ -581,9 +581,9 @@ class CheeseExplorer {
             txList.innerHTML = '<div class="no-data">No transactions</div>';
         } else {
             txList.innerHTML = block.transactions.map(tx => `
-            <div class="data-item">
+            <div class="data-item" onclick="explorer.showTxDetail('${tx.id || tx.hash || tx.signature?.r || '-'}', ${tx.blockIndex !== undefined && tx.blockIndex !== null ? tx.blockIndex : block.index})">
                 <div class="item-row">
-                    <span class="item-hash">${this.truncate(tx.id || tx.signature?.r || '-', 20)}</span>
+                    <span class="item-hash">${this.truncate(tx.id || tx.hash || tx.signature?.r || '-', 20)}</span>
                     <span class="item-amount">${tx.amount || 0} ${tx.currency || 'NCH'}</span>
                 </div>
                 <div class="item-row">
@@ -603,28 +603,28 @@ class CheeseExplorer {
 
         // 1. Try to find in the active chain
         if (this.blockchain?.chain) {
-            const block = this.blockchain.chain.find(b => b.index === blockIndex);
+            const block = this.blockchain.chain.find(b => Number(b.index) === Number(blockIndex));
             if (block?.transactions) {
-                tx = block.transactions.find(t => t.id === txId || t.signature?.r === txId || t.hash === txId);
+                tx = block.transactions.find(t => t.id === txId || t.hash === txId || t.signature?.r === txId);
                 blockData = block;
             }
         }
 
         // 2. Try to find in historical transactions
         if (!tx && this.allFirestoreTransactions) {
-            tx = this.allFirestoreTransactions.find(t => t.id === txId || t.signature?.r === txId || t.hash === txId);
+            tx = this.allFirestoreTransactions.find(t => t.id === txId || t.hash === txId || t.signature?.r === txId);
             if (tx && !blockData) {
-                blockData = { index: tx.blockIndex || 0, timestamp: tx.timestamp };
+                blockData = { index: tx.blockIndex !== undefined && tx.blockIndex !== null ? tx.blockIndex : 0, timestamp: tx.timestamp };
             }
         }
 
-        // 3. FALLBACK: Fetch from Backend (New endpoint)
+        // 3. FALLBACK: Fetch from Backend
         if (!tx) {
             console.log(`TX ${txId} not in memory, fetching from server...`);
             const res = await this.fetchAPI(`/api/transaction/${txId}`);
             if (res && res.success && res.transaction) {
                 tx = res.transaction;
-                blockData = { index: res.blockIndex || tx.blockIndex || 'Confirmed', timestamp: tx.timestamp };
+                blockData = { index: res.blockIndex !== undefined ? res.blockIndex : (tx.blockIndex !== undefined ? tx.blockIndex : 'Confirmed'), timestamp: tx.timestamp };
             }
         }
 
@@ -635,7 +635,7 @@ class CheeseExplorer {
         }
 
         document.getElementById('detail-tx-hash').textContent = tx.id || tx.hash || tx.signature?.r || '-';
-        document.getElementById('detail-tx-block').innerHTML = blockData?.index === 'Mempool' ? '<span class="badge badge-pending">Pending</span>' : `#${blockData?.index || 0}`;
+        document.getElementById('detail-tx-block').innerHTML = blockData?.index === 'Mempool' ? '<span class="badge badge-pending">Pending</span>' : `#${blockData?.index !== undefined ? blockData.index : '-'}`;
         document.getElementById('detail-tx-time').textContent = tx.timestamp ? new Date(tx.timestamp).toLocaleString() : 'Just now';
         document.getElementById('detail-tx-from').textContent = tx.from || 'Mining Reward';
         document.getElementById('detail-tx-to').textContent = tx.to || '-';
@@ -699,8 +699,8 @@ class CheeseExplorer {
             return;
         }
 
-        // Address search
-        if (input.startsWith('0x') && input.length >= 40) {
+        // Wallet Address search (42-character 0x addresses)
+        if (input.startsWith('0x') && input.length === 42) {
             this.navigateTo('address', input.toLowerCase());
             return;
         }
@@ -721,20 +721,20 @@ class CheeseExplorer {
             allTxs.push(...this.blockchain.pendingTransactions);
         }
 
-        // Enhanced search for notary hashes - check multiple fields
+        // Enhanced search for transaction & notary hashes
         const tx = allTxs.find(t => 
             t.id === input || 
             t.hash === input || 
             t.signature?.r === input ||
-            (t.data && t.data.hash === input) || // Notary document hash
-            (t.data && t.data.filename && input.includes(t.data.filename)) // Search by filename
+            (t.data && t.data.hash === input) ||
+            (t.data && t.data.filename && input.includes(t.data.filename))
         );
         if (tx) {
             this.showTxDetail(tx.id || tx.hash || tx.signature?.r, tx.blockIndex || 0);
             return;
         }
 
-        // 3. DEEP SEARCH: Call Backend (For older transactions or specific Notary hashes)
+        // 3. DEEP SEARCH: Call Backend (For older transactions or specific Notary/EVM hashes)
         const res = await this.fetchAPI(`/api/transaction/${input}`);
         if (res && res.success && res.transaction) {
             this.showTxDetail(input, res.blockIndex || 0);

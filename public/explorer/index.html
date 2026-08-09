@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=4.1">
     <script>
-        // GLOBAL CACHE PURGE - V7.2.0 - SUPER FORCE REFRESH
+        // GLOBAL CACHE PURGE - V7.3.0 - SUPER FORCE REFRESH
         try {
-            const version = '7.2.0-LIVE';
+            const version = '7.3.0-LIVE';
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
             // Allow manual override
@@ -20,7 +20,7 @@
             const forceUpdate = urlParams.get('force');
 
             if (localStorage.getItem('explorerVersion') !== version || forceUpdate === 'true') {
-                console.log('Explorer v7.2.0-LIVE detected - FORCE REFRESH');
+                console.log('Explorer v7.3.0-LIVE detected - FORCE REFRESH');
 
                 // Update Version Only
                 localStorage.setItem('explorerVersion', version);
@@ -410,8 +410,8 @@
         </div>
     </footer>
 
-    <script src="config.js?v=7.2.0"></script>
-    <script src="explorer.js?v=7.2.0"></script>
+    <script src="config.js?v=7.3.0"></script>
+    <script src="explorer.js?v=7.3.0"></script>
 </body>
 
 </html>
