@@ -4917,6 +4917,45 @@ If you forgot your wallet password:
                 return !isPlaceholderToHide;
             });
 
+            // AUTOMATIC PORTFOLIO ARRANGEMENT (BALANCED ASSETS TOP RANKED)
+            // 1. Tokens with positive balance (balance > 0) are placed at the TOP.
+            // 2. Ranked descending by total USD Value (balance * price).
+            // 3. Ranked descending by raw token balance.
+            // 4. Zero-balance tokens placed below.
+            tokensToDisplay.sort((a, b) => {
+                const balA = parseFloat(a.balance) || 0;
+                const balB = parseFloat(b.balance) || 0;
+
+                const hasBalA = balA > 0 ? 1 : 0;
+                const hasBalB = balB > 0 ? 1 : 0;
+
+                // Positive balances come before zero balances
+                if (hasBalA !== hasBalB) {
+                    return hasBalB - hasBalA;
+                }
+
+                // Compare total USD value
+                const priceA = getTokenPrice(a) || 0;
+                const priceB = getTokenPrice(b) || 0;
+                const valA = balA * priceA;
+                const valB = balB * priceB;
+
+                if (Math.abs(valA - valB) > 0.0001) {
+                    return valB - valA;
+                }
+
+                // Compare raw token balance
+                if (Math.abs(balA - balB) > 0.0001) {
+                    return balB - balA;
+                }
+
+                // Sovereign native asset tiebreaker
+                if (a.symbol === 'NCH') return -1;
+                if (b.symbol === 'NCH') return 1;
+
+                return (a.symbol || '').localeCompare(b.symbol || '');
+            });
+
             // Fetch prices for all unique tokens (AFTER tokensToDisplay is created)
             // CRITICAL: CHEESE must fetch real price from PancakeSwap
             const uniqueSymbols = [...new Set(tokensToDisplay.map(t => t.symbol).filter(s => s && s !== 'NCH'))];
