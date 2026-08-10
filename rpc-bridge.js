@@ -368,7 +368,8 @@ class RPCBridge {
             for (const block of this.blockchain.chain) {
                 const tx = (block.transactions || []).find(t => 
                     (t.hash || '').toLowerCase() === searchHash || 
-                    (t.id || '').toLowerCase() === searchHash
+                    (t.id || '').toLowerCase() === searchHash ||
+                    (t.data?.eth_hash || '').toLowerCase() === searchHash
                 );
                 if (tx) {
                     foundTx = tx;
@@ -382,13 +383,14 @@ class RPCBridge {
         if (!foundTx && this.blockchain.pendingTransactions) {
             const pendingTx = this.blockchain.pendingTransactions.find(t => 
                 (t.hash || '').toLowerCase() === searchHash || 
-                (t.id || '').toLowerCase() === searchHash
+                (t.id || '').toLowerCase() === searchHash ||
+                (t.data?.eth_hash || '').toLowerCase() === searchHash
             );
             if (pendingTx) {
                 const amountNch = parseFloat(pendingTx.amount || pendingTx.value || 0);
                 const weiAmount = BigInt(Math.floor(amountNch * 1e18));
                 return {
-                    hash: pendingTx.hash || pendingTx.id || searchHash,
+                    hash: pendingTx.data?.eth_hash || pendingTx.hash || pendingTx.id || searchHash,
                     nonce: pendingTx.data?.eth_nonce || '0x0',
                     blockHash: null,
                     blockNumber: null,
@@ -409,7 +411,7 @@ class RPCBridge {
         const weiAmount = BigInt(Math.floor(amountNch * 1e18));
 
         return {
-            hash: foundTx.hash || foundTx.id,
+            hash: foundTx.data?.eth_hash || foundTx.hash || foundTx.id,
             nonce: foundTx.data?.eth_nonce || '0x0',
             blockHash: foundBlock.hash,
             blockNumber: '0x' + foundBlock.index.toString(16),
@@ -432,7 +434,8 @@ class RPCBridge {
             for (const block of this.blockchain.chain) {
                 const tx = (block.transactions || []).find(t => 
                     (t.hash || '').toLowerCase() === searchHash || 
-                    (t.id || '').toLowerCase() === searchHash
+                    (t.id || '').toLowerCase() === searchHash ||
+                    (t.data?.eth_hash || '').toLowerCase() === searchHash
                 );
                 if (tx) {
                     foundTx = tx;
