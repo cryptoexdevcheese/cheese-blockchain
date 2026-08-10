@@ -359,19 +359,54 @@ class RPCBridge {
     }
 
     async handleGetTransactionByHash(hash) {
+        const searchHash = (hash || '').toLowerCase();
         let foundTx = null;
         let foundBlock = null;
 
-        for (const block of this.blockchain.chain) {
-            const tx = (block.transactions || []).find(t => t.hash === hash || t.id === hash);
-            if (tx) {
-                foundTx = tx;
-                foundBlock = block;
-                break;
+        // 1. Search mined blocks
+        if (this.blockchain.chain) {
+            for (const block of this.blockchain.chain) {
+                const tx = (block.transactions || []).find(t => 
+                    (t.hash || '').toLowerCase() === searchHash || 
+                    (t.id || '').toLowerCase() === searchHash
+                );
+                if (tx) {
+                    foundTx = tx;
+                    foundBlock = block;
+                    break;
+                }
+            }
+        }
+
+        // 2. Search pending mempool transactions if not yet in a mined block
+        if (!foundTx && this.blockchain.pendingTransactions) {
+            const pendingTx = this.blockchain.pendingTransactions.find(t => 
+                (t.hash || '').toLowerCase() === searchHash || 
+                (t.id || '').toLowerCase() === searchHash
+            );
+            if (pendingTx) {
+                const amountNch = parseFloat(pendingTx.amount || pendingTx.value || 0);
+                const weiAmount = BigInt(Math.floor(amountNch * 1e18));
+                return {
+                    hash: pendingTx.hash || pendingTx.id || searchHash,
+                    nonce: pendingTx.data?.eth_nonce || '0x0',
+                    blockHash: null,
+                    blockNumber: null,
+                    transactionIndex: null,
+                    from: (pendingTx.from || '0x0000000000000000000000000000000000000000').toLowerCase(),
+                    to: (pendingTx.to || '0x0000000000000000000000000000000000000000').toLowerCase(),
+                    value: '0x' + weiAmount.toString(16),
+                    gas: '0x5208',
+                    gasPrice: '0xba43b7400',
+                    input: '0x'
+                };
             }
         }
 
         if (!foundTx) return null;
+
+        const amountNch = parseFloat(foundTx.amount || foundTx.value || 0);
+        const weiAmount = BigInt(Math.floor(amountNch * 1e18));
 
         return {
             hash: foundTx.hash || foundTx.id,
@@ -379,9 +414,9 @@ class RPCBridge {
             blockHash: foundBlock.hash,
             blockNumber: '0x' + foundBlock.index.toString(16),
             transactionIndex: '0x0',
-            from: foundTx.from || '0x0000000000000000000000000000000000000000',
-            to: foundTx.to || '0x0000000000000000000000000000000000000000',
-            value: '0x' + BigInt(Math.floor((foundTx.amount || 0) * 1e18)).toString(16),
+            from: (foundTx.from || '0x0000000000000000000000000000000000000000').toLowerCase(),
+            to: (foundTx.to || '0x0000000000000000000000000000000000000000').toLowerCase(),
+            value: '0x' + weiAmount.toString(16),
             gas: '0x5208',
             gasPrice: '0xba43b7400',
             input: '0x'
@@ -389,15 +424,21 @@ class RPCBridge {
     }
 
     async handleGetTransactionReceipt(hash) {
+        const searchHash = (hash || '').toLowerCase();
         let foundTx = null;
         let foundBlock = null;
 
-        for (const block of this.blockchain.chain) {
-            const tx = (block.transactions || []).find(t => t.hash === hash || t.id === hash);
-            if (tx) {
-                foundTx = tx;
-                foundBlock = block;
-                break;
+        if (this.blockchain.chain) {
+            for (const block of this.blockchain.chain) {
+                const tx = (block.transactions || []).find(t => 
+                    (t.hash || '').toLowerCase() === searchHash || 
+                    (t.id || '').toLowerCase() === searchHash
+                );
+                if (tx) {
+                    foundTx = tx;
+                    foundBlock = block;
+                    break;
+                }
             }
         }
 
