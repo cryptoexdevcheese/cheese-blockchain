@@ -1155,6 +1155,8 @@ class EnhancedHybridBlockchainAI {
                 console.error('❌ MetaMask Bridge Verification Error:', err.message);
                 return { success: false, reason: 'Invalid MetaMask raw transaction: ' + err.message };
             }
+        }
+
         if (isSystemSignature) {
             console.log(`🛡️ Verified System Signature: ${signature}`);
             validAddress = from || '0x3801490C9f806c917b8CbA710Db9135FA3B116ae';
