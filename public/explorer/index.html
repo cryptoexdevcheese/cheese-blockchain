@@ -9,46 +9,24 @@
     <title>NCH Sovereign Explorer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=4.1">
+    <!-- Anti-Caching & Service Worker Killswitch -->
     <script>
-        // GLOBAL CACHE PURGE - V7.3.0 - SUPER FORCE REFRESH
-        try {
-            const version = '7.3.0-LIVE';
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            // Allow manual override
-            const urlParams = new URLSearchParams(window.location.search);
-            const forceUpdate = urlParams.get('force');
-
-            if (localStorage.getItem('explorerVersion') !== version || forceUpdate === 'true') {
-                console.log('Explorer v7.3.0-LIVE detected - FORCE REFRESH');
-
-                // Update Version Only
-                localStorage.setItem('explorerVersion', version);
-                if ('caches' in window) {
-                    caches.keys().then(names => {
-                        for (let name of names) {
-                            caches.delete(name);
-                        }
-                    });
-                }
-
-                // Unregister Service Workers
+        (function() {
+            try {
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => {
-                        for (let reg of regs) {
-                            reg.unregister();
-                        }
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        for (let reg of regs) reg.unregister();
                     });
                 }
-
-                // Force Reload
-                setTimeout(() => {
-                    const cleanUrl = window.location.href.split('?')[0];
-                    window.location.replace(cleanUrl);
-                }, 500);
-            }
-        } catch (e) { console.error('Cache clear error:', e); }
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+            } catch (e) {}
+        })();
     </script>
+    <script src="wallet-modal-helper.js?v=1.0.9"></script>
 </head>
 
 <body>
