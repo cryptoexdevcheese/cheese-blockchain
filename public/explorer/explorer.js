@@ -38,7 +38,34 @@ class CheeseExplorer {
         console.log('Explorer initializing...');
         this.setupEventListeners();
         await this.loadBlockchainData();
+        this.checkUrlSearchQuery();
         this.startAutoRefresh();
+    }
+
+    checkUrlSearchQuery() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryTx = urlParams.get('tx') || urlParams.get('search') || urlParams.get('q') || urlParams.get('hash');
+            const pathParts = window.location.pathname.split('/');
+            let pathTx = '';
+            if (pathParts.includes('tx') && pathParts.length > pathParts.indexOf('tx') + 1) {
+                pathTx = pathParts[pathParts.indexOf('tx') + 1];
+            } else if (pathParts.includes('address') && pathParts.length > pathParts.indexOf('address') + 1) {
+                pathTx = pathParts[pathParts.indexOf('address') + 1];
+            }
+
+            const targetQuery = (queryTx || pathTx || '').trim();
+            if (targetQuery) {
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    searchInput.value = targetQuery;
+                    console.log('🔍 Auto-executing URL search query for:', targetQuery);
+                    setTimeout(() => this.handleSearch(), 400);
+                }
+            }
+        } catch (e) {
+            console.warn('Url search query parse notice:', e.message);
+        }
     }
 
     setupEventListeners() {
