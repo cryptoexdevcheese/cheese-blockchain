@@ -377,7 +377,7 @@ class CheeseExplorer {
             <div class="data-item ${tx.status === 'pending' ? 'pending' : ''}" onclick="explorer.showTxDetail('${tx.id || tx.hash || tx.signature?.r || '-'}', ${tx.blockIndex || 0})">
                 <div class="item-row">
                     <span class="item-hash">${this.truncate(tx.id || tx.hash || tx.signature?.r || '-', 16)}</span>
-                    <span class="item-amount">${tx.amount || 0} ${tx.currency || 'NCH'}</span>
+                    <span class="item-amount">${tx.amount || 0} ${tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH'}</span>
                 </div>
                 <div class="item-row">
                     <span class="item-address">From: ${this.truncate(tx.from || 'Mining', 12)}</span>
@@ -472,7 +472,7 @@ class CheeseExplorer {
                 <td>${tx.status === 'pending' ? 'Just now' : this.formatTime(tx.timestamp)}</td>
                 <td><span class="address">${this.truncate(tx.from || 'Mining', 10)}</span></td>
                 <td><span class="address">${this.truncate(tx.to || '-', 10)}</span></td>
-                <td><span class="amount">${tx.amount || 0} ${tx.currency || 'NCH'}</span></td>
+                <td><span class="amount">${tx.amount || 0} ${tx.currency || tx.asset || (tx.data && (tx.data.currency || tx.data.asset)) || 'NCH'}</span></td>
             </tr>
         `).join('');
     }
