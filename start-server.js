@@ -786,27 +786,26 @@ async function initializeBlockchain() {
 // Start async init
 initializeBlockchain();
 
-// SPA catch-all route for paths - DISABLED to allow proper static file serving
-// app.get('*', (req, res) => {
-//     let indexPath = path.join(__dirname, 'public', 'index.html');
-//     
-//     // Path-based routing
-//     if (req.path.startsWith('/wallet')) {
-//         indexPath = path.join(__dirname, 'wallet', 'index.html');
-//     } else if (req.path.startsWith('/dex')) {
-//         indexPath = path.join(__dirname, 'dex-backend', 'index.html');
-//     }
-//     
-//     // Log the routing for debugging
-//     console.log(`Routing: ${req.path} -> ${indexPath}`);
-//     
-//     if (fs.existsSync(indexPath)) {
-//         res.sendFile(indexPath);
-//     } else {
-//         console.error(`File not found: ${indexPath}`);
-//         res.status(404).send('Not Found');
-//     }
-// });
+// SPA catch-all route for frontend paths (/explorer/*, /wallet/*, /dex/*)
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/rpc')) return next();
+
+    let indexPath = path.join(__dirname, 'public', 'index.html');
+    
+    if (req.path.startsWith('/explorer')) {
+        indexPath = path.join(__dirname, 'public', 'explorer', 'index.html');
+    } else if (req.path.startsWith('/wallet')) {
+        indexPath = path.join(__dirname, 'public', 'wallet', 'index.html');
+    } else if (req.path.startsWith('/dex')) {
+        indexPath = path.join(__dirname, 'public', 'dex', 'index.html');
+    }
+    
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
+});
 
 // Start server if run directly
 if (require.main === module) {
