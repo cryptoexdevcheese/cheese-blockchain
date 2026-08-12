@@ -403,22 +403,14 @@ class EnhancedHybridBlockchainAI {
     }
 
     getTransactionGasFee(tx) {
-        if (!tx) return 0.05;
-        let type = tx.type;
-        if (tx.data) {
-            if (typeof tx.data === 'object' && tx.data !== null) {
-                type = tx.data.type || type;
-            } else if (typeof tx.data === 'string') {
-                try {
-                    const parsedData = JSON.parse(tx.data);
-                    type = parsedData.type || type;
-                } catch (e) {}
-            }
+        let nchPriceUsdt = 0.02;
+        if (this.nchPriceUsdt && parseFloat(this.nchPriceUsdt) > 0) {
+            nchPriceUsdt = parseFloat(this.nchPriceUsdt);
+        } else if (tx && tx.nchPriceUsdt && parseFloat(tx.nchPriceUsdt) > 0) {
+            nchPriceUsdt = parseFloat(tx.nchPriceUsdt);
         }
-        if (type === 'DOCUMENT_NOTARY' || type === 'notary_stamp' || type === 'notary_send') {
-            return 0.001;
-        }
-        return 0.05;
+        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt
+        return 1.00 / (nchPriceUsdt || 0.02);
     }
 
     async loadChain() {

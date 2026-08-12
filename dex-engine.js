@@ -20,6 +20,11 @@ class CheeseDEX {
         };
     }
 
+    getGasFeeNCH(nchPriceUsdt) {
+        const price = parseFloat(nchPriceUsdt) || 0.02;
+        return 1.00 / (price || 0.02);
+    }
+
     async initialize() {
         console.log('🔄 Loading DEX Pools...');
         if (this.storage) {

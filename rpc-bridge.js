@@ -51,7 +51,7 @@ class RPCBridge {
                     result = '0x' + (txHistory?.length || 0).toString(16);
                     break;
                 case 'eth_gasPrice':
-                    result = '0xba43b7400'; // 50 Gwei (MetaMask comfort zone)
+                    result = await this.getDynamicGasPriceWeiHex();
                     break;
 
                 case 'eth_maxPriorityFeePerGas':
@@ -59,9 +59,10 @@ class RPCBridge {
                     break;
 
                 case 'eth_feeHistory':
+                    const dynamicGasPriceHex = await this.getDynamicGasPriceWeiHex();
                     result = {
                         oldestBlock: '0x0',
-                        baseFeePerGas: ['0xba43b7400', '0xba43b7400'],
+                        baseFeePerGas: [dynamicGasPriceHex, dynamicGasPriceHex],
                         reward: [['0x3b9aca00']],
                         gasUsedRatio: [0.1]
                     };
@@ -495,6 +496,43 @@ class RPCBridge {
             logsBloom: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
             status: '0x1' // Success status
         };
+    }
+
+    async getLiveNchPriceInUsd() {
+        if (this._cachedNchPrice && Date.now() - (this._lastPriceFetch || 0) < 10000) {
+            return this._cachedNchPrice;
+        }
+        try {
+            const res = await axios.get('https://cheeseblockchain.com/dex/api/dex/price/NCHEESE', { timeout: 3000 });
+            if (res.data && parseFloat(res.data.price) > 0) {
+                this._cachedNchPrice = parseFloat(res.data.price);
+                this._lastPriceFetch = Date.now();
+                return this._cachedNchPrice;
+            }
+        } catch (e) {}
+
+        try {
+            const localRes = await axios.get('http://127.0.0.1:5000/api/market-prices', { timeout: 2000 });
+            if (localRes.data && localRes.data.prices && localRes.data.prices.NCH) {
+                const p = parseFloat(localRes.data.prices.NCH.usd);
+                if (p > 0) {
+                    this._cachedNchPrice = p;
+                    this._lastPriceFetch = Date.now();
+                    return this._cachedNchPrice;
+                }
+            }
+        } catch (err) {}
+
+        return 0.02; // Fallback NCH price ($0.02 USD -> $1.00 USD fee = 50 NCH)
+    }
+
+    async getDynamicGasPriceWeiHex() {
+        const nchPriceUsdt = await this.getLiveNchPriceInUsd();
+        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt
+        const requiredFeeNch = 1.00 / (nchPriceUsdt || 0.02);
+        // Standard transfer is 21,000 gas units. Gas Price (Wei) = (RequiredFeeNCH * 1e18) / 21000
+        const gasPriceWei = BigInt(Math.floor((requiredFeeNch * 1e18) / 21000));
+        return '0x' + gasPriceWei.toString(16);
     }
 }
 module.exports = RPCBridge;
