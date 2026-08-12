@@ -24,87 +24,30 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="./styles.css?v=3.5">
+    <!-- Anti-Caching & Service Worker Killswitch -->
     <script>
-        // Force reload & cache purge if new version detected
-        try {
-            const version = '7.1.0';
-            if (localStorage.getItem('backupVersion') !== version) {
-                console.log('🔄 New Wallet version v' + version + ' detected. Clearing legacy caches...');
-                localStorage.setItem('backupVersion', version);
-                // Purge all legacy balance/portfolio keys from localStorage
+        (function() {
+            try {
+                // Purge legacy balance/portfolio keys from localStorage
                 Object.keys(localStorage).forEach(k => {
                     if (k.startsWith('cheese_balance_') || k.startsWith('cheese_portfolio_') || k === 'cheese_cache_version') {
                         localStorage.removeItem(k);
                     }
                 });
-                if ('caches' in window) {
-                    caches.keys().then(names => {
-                        for (let name of names) caches.delete(name);
-                    });
-                }
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
                         for (let reg of regs) reg.unregister();
                     });
                 }
-                window.location.reload(true);
-            }
-        } catch (e) { }
-    </script>
-
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            // Register stable service worker version
-            navigator.serviceWorker.register('./sw.js', {
-                updateViaCache: 'none'
-            }).then(registration => {
-                console.log('✅ Service Worker registered:', registration.scope);
-                
-                // Trigger an update check immediately
-                registration.update();
-                
-                // If a new service worker is installed, reload the page to load new assets
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    if (newWorker) {
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('New Service Worker version installed. Reloading...');
-                                window.location.reload();
-                            }
-                        });
-                    }
-                });
-            }).catch(error => {
-                console.error('Service Worker registration failed:', error);
-            });
-
-            // Listen for messages from service worker
-            navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data && event.data.type === 'CLEAR_PRICE_CACHE') {
-                    try {
-                        const cached = localStorage.getItem('cheeseTokenPrices');
-                        if (cached) {
-                            const prices = JSON.parse(cached);
-                            if (prices['NCH']) {
-                                delete prices['NCH'];
-                                localStorage.setItem('cheeseTokenPrices', JSON.stringify(prices));
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Error clearing price cache:', e);
-                    }
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        for (let name of names) caches.delete(name);
+                    });
                 }
-            });
-
-            // Skip waiting if requested
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-            }
-        }
+            } catch (e) {}
+        })();
     </script>
-</head>
+    <script src="./wallet-modal-helper.js?v=1.0.9"></script></head>
 
 <body style="padding-top: 0;">
     <!-- Header -->
