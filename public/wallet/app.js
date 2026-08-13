@@ -3417,10 +3417,16 @@ If you forgot your wallet password:
         try {
             const cached = localStorage.getItem('cheeseQRCodeCache');
             const cachedAddress = localStorage.getItem('cheeseQRCodeAddress');
-            if (cached && cachedAddress) {
+            const currentAddr = this.wallet ? this.wallet.address : null;
+            if (cached && cachedAddress && currentAddr && cachedAddress.toLowerCase() === currentAddr.toLowerCase()) {
                 this.qrCodeCache = cached;
                 this.cachedQRAddress = cachedAddress;
                 console.log('✅ QR code cache restored from localStorage for address:', cachedAddress.substring(0, 10) + '...');
+            } else {
+                localStorage.removeItem('cheeseQRCodeCache');
+                localStorage.removeItem('cheeseQRCodeAddress');
+                this.qrCodeCache = null;
+                this.cachedQRAddress = null;
             }
         } catch (error) {
             console.warn('⚠️ Error restoring QR code cache:', error);
@@ -3497,6 +3503,14 @@ If you forgot your wallet password:
         const network = this.currentNetwork || 'cheese-native';
         const networkName = this.getNetworkName(network);
 
+        // Invalidate cache if address mismatch
+        if (this.cachedQRAddress && this.cachedQRAddress.toLowerCase() !== address.toLowerCase()) {
+            this.qrCodeCache = null;
+            this.cachedQRAddress = null;
+            localStorage.removeItem('cheeseQRCodeCache');
+            localStorage.removeItem('cheeseQRCodeAddress');
+        }
+
         // Check if modal already exists and remove it
         const existingModal = document.getElementById('qr-code-modal');
         if (existingModal) {
@@ -3525,32 +3539,26 @@ If you forgot your wallet password:
             padding: 30px;
             border-radius: 15px;
             text-align: center;
-            max-width: 350px;
+            max-width: 360px;
             width: 90%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         `;
-
-        // Create QR container - ALWAYS use cached QR code (pre-generated on wallet load)
-        // If cache is missing, generate synchronously (shouldn't happen if pre-generation worked)
-        const qrHTML = this.qrCodeCache && this.cachedQRAddress === address
-            ? this.qrCodeCache
-            : '<div style="padding: 20px; color: #666;">Generating QR code...</div>';
 
         content.innerHTML = `
             <h3 style="margin-bottom: 10px; color: #333;">📷 Wallet Address QR Code</h3>
             <div style="margin-bottom: 15px; padding: 8px; background: #e3f2fd; border-radius: 5px; font-size: 0.9em; color: #1976d2; font-weight: 500;">
                 🌐 Network: ${networkName}
             </div>
-            <div id="qr-container" style="margin: 20px auto; text-align: center;">
-                ${qrHTML}
+            <div id="qr-container" style="margin: 20px auto; text-align: center; min-height: 220px; display: flex; align-items: center; justify-content: center;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(address)}" alt="Wallet QR Code" style="width: 220px; height: 220px; border-radius: 10px; border: 2px solid #e2e8f0; padding: 6px; background: #fff;">
             </div>
             <div style="margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 8px;">
-                <div style="font-family: monospace; font-size: 0.85em; word-break: break-all; color: #666;">
+                <div style="font-family: monospace; font-size: 0.85em; word-break: break-all; color: #334155; font-weight: 600;">
                     ${address}
                 </div>
             </div>
             <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 5px; font-size: 0.8em; color: #856404;">
-                ⚠️ Make sure you're sending to the correct network!
+                ⚠️ Make sure you are sending funds to the correct network!
             </div>
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
                 <button id="qr-copy-btn" class="btn btn-primary" style="padding: 10px 20px;">📋 Copy Address</button>
@@ -3561,33 +3569,12 @@ If you forgot your wallet password:
         modal.appendChild(content);
         document.body.appendChild(modal);
 
-        // Only generate if cache is missing (fallback - should rarely happen)
-        if (!this.qrCodeCache || this.cachedQRAddress !== address) {
-            // Try to restore from localStorage first
-            this.restoreQRCodeCache();
+        const qrContainer = content.querySelector('#qr-container');
+        // Generate via QRCode library if available as canvas enhancement
+        try {
+            await this.generateQRCode(null, address, qrContainer);
+        } catch(e) {}
 
-            if (!this.qrCodeCache || this.cachedQRAddress !== address) {
-                // Still missing - generate it
-                const qrData = address;
-                const qrContainer = content.querySelector('#qr-container');
-                await this.generateQRCode(null, qrData, qrContainer);
-                // Cache the QR code HTML
-                this.qrCodeCache = qrContainer.innerHTML;
-                this.cachedQRAddress = address;
-                // Save to localStorage
-                this.saveQRCodeCache();
-            } else {
-                // Restored from localStorage - use it
-                const qrContainer = content.querySelector('#qr-container');
-                qrContainer.innerHTML = this.qrCodeCache;
-            }
-        } else {
-            // Use cached QR code (already set in innerHTML above)
-            const qrContainer = content.querySelector('#qr-container');
-            qrContainer.innerHTML = this.qrCodeCache;
-        }
-
-        // Close button
         const closeBtn = content.querySelector('#qr-close-btn');
         closeBtn.addEventListener('click', () => {
             document.body.removeChild(modal);

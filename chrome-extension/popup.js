@@ -491,14 +491,25 @@ async function loadDashboard(address) {
         assetsContainer.innerHTML = '';
         network.tokens.forEach(tok => {
             const balVal = balances[tok.symbol] || 0.00;
-            const icon = tok.symbol === 'NCH' ? '🧀' : (tok.symbol === 'ETH' ? '⟠' : (tok.symbol === 'BNB' ? '🪙' : '💵'));
+            let iconHtml = '<span class="asset-icon" style="font-size: 1.25rem;">🪙</span>';
+            if (tok.symbol === 'NCH') {
+                iconHtml = '<span class="asset-icon" style="font-size: 1.25rem;">🧀</span>';
+            } else if (tok.symbol === 'ETH') {
+                iconHtml = '<span class="asset-icon" style="font-size: 1.25rem;">⟠</span>';
+            } else if (tok.symbol === 'BNB') {
+                iconHtml = '<span class="asset-icon" style="font-size: 1.25rem;">🪙</span>';
+            } else if (tok.symbol === 'USDT') {
+                iconHtml = '<span style="background: linear-gradient(135deg, #26a17b, #1de9b6); color: #ffffff; font-weight: 800; font-size: 0.75rem; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(38,161,123,0.4); border: 1px solid rgba(255,255,255,0.2);">₮</span>';
+            } else if (tok.symbol === 'USDC') {
+                iconHtml = '<span style="background: linear-gradient(135deg, #2775ca, #3b82f6); color: #ffffff; font-weight: 800; font-size: 0.75rem; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(39,117,202,0.4); border: 1px solid rgba(255,255,255,0.2);">$</span>';
+            }
             
             const assetItem = document.createElement('div');
             assetItem.className = 'asset-item';
             assetItem.style = 'display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border-color);';
             assetItem.innerHTML = `
                 <div class="asset-info" style="display: flex; align-items: center; gap: 10px;">
-                    <span class="asset-icon" style="font-size: 1.25rem;">${icon}</span>
+                    ${iconHtml}
                     <div>
                         <span class="asset-name" style="font-size: 0.8rem; font-weight: 600; display: block; color: var(--text-primary);">${tok.name}</span>
                         <span class="asset-symbol" style="font-size: 0.65rem; color: var(--text-secondary);">${tok.symbol}</span>
@@ -538,3 +549,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         showScreen('unlock');
     }
 });
+
+
+// Receive Button Listener & QR Generation
+document.getElementById('btnReceive').addEventListener('click', async () => {
+    let address = null;
+    try {
+        const session = await chrome.storage.session.get('address');
+        if (session && session.address) {
+            address = session.address;
+        } else {
+            const stored = await chrome.storage.local.get('cheeseWallet');
+            if (stored && stored.cheeseWallet) address = stored.cheeseWallet.address;
+        }
+    } catch(e) {}
+
+    if (address) {
+        showReceiveScreen(address);
+    } else {
+        alert('Please unlock your wallet first.');
+    }
+});
+
+function showReceiveScreen(address) {
+    showScreen('receive');
+    const receiveAddrEl = document.getElementById('receiveAddressText');
+    const receiveQREl = document.getElementById('receiveQRCode');
+    const qrLoadingEl = document.getElementById('qrLoading');
+
+    if (receiveAddrEl) {
+        receiveAddrEl.textContent = address;
+        receiveAddrEl.onclick = () => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address);
+            }
+            alert('📋 Address copied to clipboard:
+' + address);
+        };
+    }
+
+    if (receiveQREl && qrLoadingEl) {
+        qrLoadingEl.style.display = 'block';
+        receiveQREl.style.display = 'none';
+        
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(address)}`;
+        receiveQREl.src = qrUrl;
+        receiveQREl.onload = () => {
+            receiveQREl.style.display = 'block';
+            qrLoadingEl.style.display = 'none';
+        };
+        receiveQREl.onerror = () => {
+            qrLoadingEl.innerHTML = '<span style="color:#ef4444; font-size:0.75rem;">Failed to load QR</span>';
+        };
+    }
+}
