@@ -251,7 +251,7 @@ class CheeseWalletApp {
         const savedAddress = localStorage.getItem('cheeseFounderAddress');
 
         // CRITICAL: Always use the correct founder wallet address
-        const correctFounderAddress = '0xa25f52f081c3397bbc8d2ed12146757c470e049d';
+        const correctFounderAddress = '0x0E6ec6713E7b5b7C11d969dA848813d08223598E';
 
         // If not set, or if it's set to wrong address, set it to the correct one
         if (!savedAddress || savedAddress === 'FOUNDER_WALLET_ADDRESS_HERE' || savedAddress !== correctFounderAddress) {
@@ -6596,7 +6596,7 @@ If you forgot your wallet password:
         try {
             this.showNotification('🔐 Signing notarization transaction...', 'info');
 
-            const NOTARY_FEE_ADDRESS = '0xa25f52f081c3397bbc8d2ed12146757c470e049d';
+            const NOTARY_FEE_ADDRESS = '0x0E6ec6713E7b5b7C11d969dA848813d08223598E';
 
             const txData = {
                 type: 'DOCUMENT_NOTARY',
