@@ -6,7 +6,7 @@
 class CrossChainBalance {
     constructor() {
         this.bscRpcUrl = 'https://bsc-dataseed.binance.org/';
-        this.ethRpcUrl = 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY'; // Would need real key
+        this.ethRpcUrl = 'https://eth.llamarpc.com'; // Would need real key
         this.web3 = null;
         this.initWeb3();
 

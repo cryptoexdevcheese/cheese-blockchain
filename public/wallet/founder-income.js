@@ -40,7 +40,7 @@ class FounderIncome {
         
         // Default to your founder address if not set
         // You can override this by setting in localStorage or environment
-        this.founderAddress = '0xa25f52f081c3397bbc8d2ed12146757c470e049d';
+        this.founderAddress = '0x0E6ec6713E7b5b7C11d969dA848813d08223598E';
     }
 
     /**

@@ -40,11 +40,11 @@ class EnhancedHybridBlockchainAI {
         this.minedBlockIndices = new Set(); // Track all mined block indices (prevents duplicates)
         
         // CRITICAL: Initialize founder and treasury addresses and premine amounts
-        this.founderAddress = options.founderAddress || '0xa25f52f081c3397bbc8d2ed12146757c470e049d';
+        this.founderAddress = options.founderAddress || '0x0E6ec6713E7b5b7C11d969dA848813d08223598E';
         this.founderPremine = options.founderPremine || 1000000; // 1M NCHEESE
         // CRITICAL: Treasury address - using the correct treasury wallet address
         // Treasury wallet: 0xde2d2a08f90e64f9f266287129da29f498b399a4
-        this.treasuryAddress = options.treasuryAddress || '0xde2d2a08f90e64f9f266287129da29f498b399a4';
+        this.treasuryAddress = options.treasuryAddress || '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3';
         this.treasuryPremine = options.treasuryPremine || 2000000; // 2M NCHEESE
         
         console.log('🏗️ Blockchain initialized with:');

@@ -3412,112 +3412,42 @@ If you forgot your wallet password:
         this.copyAddress();
     }
 
-    // Restore QR code cache from localStorage
+    // Restore QR code cache (no-op: always generate fresh for active wallet to prevent address mismatch)
     restoreQRCodeCache() {
         try {
-            const cached = localStorage.getItem('cheeseQRCodeCache');
-            const cachedAddress = localStorage.getItem('cheeseQRCodeAddress');
-            const currentAddr = this.wallet ? this.wallet.address : null;
-            if (cached && cachedAddress && currentAddr && cachedAddress.toLowerCase() === currentAddr.toLowerCase()) {
-                this.qrCodeCache = cached;
-                this.cachedQRAddress = cachedAddress;
-                console.log('✅ QR code cache restored from localStorage for address:', cachedAddress.substring(0, 10) + '...');
-            } else {
-                localStorage.removeItem('cheeseQRCodeCache');
-                localStorage.removeItem('cheeseQRCodeAddress');
-                this.qrCodeCache = null;
-                this.cachedQRAddress = null;
-            }
-        } catch (error) {
-            console.warn('⚠️ Error restoring QR code cache:', error);
-        }
+            localStorage.removeItem('cheeseQRCodeCache');
+            localStorage.removeItem('cheeseQRCodeAddress');
+            this.qrCodeCache = null;
+            this.cachedQRAddress = null;
+        } catch (e) {}
     }
 
-    // Save QR code cache to localStorage
-    saveQRCodeCache() {
-        try {
-            if (this.qrCodeCache && this.cachedQRAddress) {
-                localStorage.setItem('cheeseQRCodeCache', this.qrCodeCache);
-                localStorage.setItem('cheeseQRCodeAddress', this.cachedQRAddress);
-                console.log('✅ QR code cache saved to localStorage');
-            }
-        } catch (error) {
-            console.warn('⚠️ Error saving QR code cache:', error);
-        }
-    }
+    // Save QR code cache (no-op)
+    saveQRCodeCache() {}
 
-    // Pre-generate QR code when wallet loads (ensures it's always ready)
+    // Pre-generate QR code when wallet loads
     async preGenerateQRCode(address) {
-        if (!address) return;
-
-        // Try to restore from localStorage first
-        if (!this.qrCodeCache || this.cachedQRAddress !== address) {
-            this.restoreQRCodeCache();
-        }
-
-        // If already cached for this address, skip
-        if (this.qrCodeCache && this.cachedQRAddress === address) {
-            return;
-        }
-
-        // If generation is already in progress, wait for it
-        if (this.qrCodeGenerationPromise) {
-            await this.qrCodeGenerationPromise;
-            return;
-        }
-
-        // Create a temporary container for QR generation
-        const tempContainer = document.createElement('div');
-        tempContainer.style.cssText = 'position: absolute; left: -9999px; width: 256px; height: 256px;';
-        document.body.appendChild(tempContainer);
-
-        try {
-            // Generate QR code
-            this.qrCodeGenerationPromise = this.generateQRCode(null, address, tempContainer);
-            await this.qrCodeGenerationPromise;
-
-            // Cache the generated QR code HTML
-            this.qrCodeCache = tempContainer.innerHTML;
-            this.cachedQRAddress = address;
-
-            // CRITICAL: Save to localStorage so it persists across refreshes
-            this.saveQRCodeCache();
-
-            console.log('✅ QR code pre-generated and cached for address:', address.substring(0, 10) + '...');
-        } catch (error) {
-            console.warn('⚠️ QR code pre-generation failed (will generate on-demand):', error);
-        } finally {
-            // Clean up temporary container
-            document.body.removeChild(tempContainer);
-            this.qrCodeGenerationPromise = null;
-        }
+        // Dynamically generated on demand to guarantee 100% address accuracy
+        return;
     }
 
     async showQRCode() {
         if (!this.wallet || !this.wallet.address) {
-            this.showNotification('No wallet address to display', 'error');
+            this.showNotification('No wallet loaded to display QR code', 'error');
             return;
         }
 
-        const address = this.wallet.address;
+        const address = this.wallet.address.trim();
         const network = this.currentNetwork || 'cheese-native';
         const networkName = this.getNetworkName(network);
 
-        // Invalidate cache if address mismatch
-        if (this.cachedQRAddress && this.cachedQRAddress.toLowerCase() !== address.toLowerCase()) {
-            this.qrCodeCache = null;
-            this.cachedQRAddress = null;
-            localStorage.removeItem('cheeseQRCodeCache');
-            localStorage.removeItem('cheeseQRCodeAddress');
-        }
-
-        // Check if modal already exists and remove it
+        // Always remove existing modal first
         const existingModal = document.getElementById('qr-code-modal');
         if (existingModal) {
-            document.body.removeChild(existingModal);
+            existingModal.remove();
         }
 
-        // Create modal
+        // Create fresh modal
         const modal = document.createElement('div');
         modal.id = 'qr-code-modal';
         modal.style.cssText = `
@@ -3526,43 +3456,48 @@ If you forgot your wallet password:
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 100000;
         `;
 
         const content = document.createElement('div');
         content.style.cssText = `
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
+            background: #ffffff;
+            padding: 28px 24px;
+            border-radius: 20px;
             text-align: center;
-            max-width: 360px;
+            max-width: 380px;
             width: 90%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         `;
 
         content.innerHTML = `
-            <h3 style="margin-bottom: 10px; color: #333;">📷 Wallet Address QR Code</h3>
-            <div style="margin-bottom: 15px; padding: 8px; background: #e3f2fd; border-radius: 5px; font-size: 0.9em; color: #1976d2; font-weight: 500;">
-                🌐 Network: ${networkName}
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <h3 style="margin: 0; color: #0f172a; font-size: 1.25rem; font-weight: 700;">📥 Receive Funds</h3>
+                <button id="qr-close-x-btn" style="background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
             </div>
-            <div id="qr-container" style="margin: 20px auto; text-align: center; min-height: 220px; display: flex; align-items: center; justify-content: center;">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(address)}" alt="Wallet QR Code" style="width: 220px; height: 220px; border-radius: 10px; border: 2px solid #e2e8f0; padding: 6px; background: #fff;">
+            <div style="margin-bottom: 16px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 0.82rem; color: #059669; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <span>🌐</span> <span>${networkName}</span>
             </div>
-            <div style="margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 8px;">
-                <div style="font-family: monospace; font-size: 0.85em; word-break: break-all; color: #334155; font-weight: 600;">
+            <div id="qr-container" style="margin: 12px auto; min-height: 240px; display: flex; align-items: center; justify-content: center;">
+                <div style="color: #64748b; font-size: 13px;">Generating QR Code...</div>
+            </div>
+            <div style="margin: 14px 0 10px 0; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; text-align: left;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Wallet Address</div>
+                <div id="qr-modal-address-text" style="font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #0f172a; font-weight: 600; line-height: 1.4;">
                     ${address}
                 </div>
             </div>
-            <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 5px; font-size: 0.8em; color: #856404;">
-                ⚠️ Make sure you are sending funds to the correct network!
+            <div style="margin-bottom: 18px; padding: 8px 12px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; font-size: 0.75rem; color: #92400e;">
+                ⚠️ Send only assets compatible with <b>${networkName}</b> to this address.
             </div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button id="qr-copy-btn" class="btn btn-primary" style="padding: 10px 20px;">📋 Copy Address</button>
-                <button id="qr-close-btn" class="btn btn-secondary" style="padding: 10px 20px;">Close</button>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="qr-copy-btn" class="btn btn-primary" style="flex: 1; padding: 12px; font-weight: 700; font-size: 14px; border-radius: 10px; cursor: pointer;">📋 Copy Address</button>
+                <button id="qr-close-btn" class="btn btn-secondary" style="flex: 1; padding: 12px; font-weight: 600; font-size: 14px; border-radius: 10px; cursor: pointer;">Close</button>
             </div>
         `;
 
@@ -3570,166 +3505,21 @@ If you forgot your wallet password:
         document.body.appendChild(modal);
 
         const qrContainer = content.querySelector('#qr-container');
-        // Generate via QRCode library if available as canvas enhancement
-        try {
-            await this.generateQRCode(null, address, qrContainer);
-        } catch(e) {}
+        await this.generateQRCode(null, address, qrContainer);
 
-        const closeBtn = content.querySelector('#qr-close-btn');
-        closeBtn.addEventListener('click', () => {
-            document.body.removeChild(modal);
-        });
+        const closeModal = () => modal.remove();
+        content.querySelector('#qr-close-btn').onclick = closeModal;
+        content.querySelector('#qr-close-x-btn').onclick = closeModal;
+        modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
-        // Copy button
-        const copyBtn = content.querySelector('#qr-copy-btn');
-        copyBtn.addEventListener('click', () => {
-            this.copyAddress();
-        });
-
-        // Close on backdrop click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
-            }
-        });
-    }
-
-    // Reusable QR Scanner function
-    showQRScanner(onSuccess) {
-        // Create QR scanner modal
-        const modal = document.createElement('div');
-        modal.id = 'qr-scanner-modal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10001;
-        `;
-
-        const content = document.createElement('div');
-        content.style.cssText = `
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        `;
-
-        content.innerHTML = `
-            <h3 style="margin-bottom: 15px;">📷 Scan QR Code</h3>
-            <video id="qr-video" style="width: 100%; max-width: 300px; border: 2px solid #007bff; border-radius: 8px;" autoplay playsinline></video>
-            <canvas id="qr-canvas" style="display: none;"></canvas>
-            <div style="margin-top: 15px;">
-                <p style="color: #666; font-size: 0.9em;">Point your camera at the QR code</p>
-            </div>
-            <div style="margin-top: 15px;">
-                <button id="qr-manual-input-btn" class="btn btn-secondary" style="margin-right: 10px;">Enter Manually</button>
-                <button id="qr-cancel-btn" class="btn btn-secondary">Cancel</button>
-            </div>
-        `;
-
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-
-        const video = document.getElementById('qr-video');
-        const canvas = document.getElementById('qr-canvas');
-        const context = canvas.getContext('2d');
-        let stream = null;
-        let scanInterval = null;
-
-        // Load jsQR library if available
-        const loadQRScanner = () => {
-            if (typeof jsQR !== 'undefined') {
-                return Promise.resolve();
-            }
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        };
-
-        // Manual input button
-        document.getElementById('qr-manual-input-btn').addEventListener('click', () => {
-            const address = prompt('Enter wallet address:');
-            if (address && address.trim()) {
-                if (onSuccess) onSuccess(address.trim());
-            }
-            cleanup();
-        });
-
-        // Cancel button
-        document.getElementById('qr-cancel-btn').addEventListener('click', () => {
-            cleanup();
-        });
-
-        const cleanup = () => {
-            if (scanInterval) clearInterval(scanInterval);
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            if (document.body.contains(modal)) {
-                document.body.removeChild(modal);
+        content.querySelector('#qr-copy-btn').onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(address);
+                this.showNotification('📋 Address copied to clipboard!', 'success');
+            } catch(e) {
+                this.copyAddress();
             }
         };
-
-        // Try to access camera
-        loadQRScanner().then(() => {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(mediaStream => {
-                    stream = mediaStream;
-                    video.srcObject = stream;
-                    video.play();
-
-                    // QR code detection
-                    scanInterval = setInterval(() => {
-                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                            // Try to decode QR code
-                            if (typeof jsQR !== 'undefined') {
-                                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                                const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                                if (code) {
-                                    const scannedData = code.data;
-                                    // Extract address from QR code (might be just address or full URL)
-                                    let address = scannedData;
-                                    if (scannedData.includes(':')) {
-                                        const parts = scannedData.split(':');
-                                        address = parts[parts.length - 1];
-                                    }
-
-                                    if (address && /^0x[a-fA-F0-9]{40}$/i.test(address)) {
-                                        cleanup();
-                                        if (onSuccess) onSuccess(address);
-                                    }
-                                }
-                            }
-                        }
-                    }, 100);
-                })
-                .catch(error => {
-                    console.error('Camera access error:', error);
-                    this.showNotification('Camera access denied. Please use manual input.', 'error');
-                    document.getElementById('qr-manual-input-btn').click();
-                });
-        }).catch(() => {
-            this.showNotification('QR scanner library failed to load. Please use manual input.', 'error');
-            document.getElementById('qr-manual-input-btn').click();
-        });
     }
 
     async generateQRCode(canvas, text, container) {
@@ -3738,124 +3528,78 @@ If you forgot your wallet password:
             return;
         }
 
-        // Ensure QRCode library is loaded
-        if (typeof QRCode === 'undefined') {
-            console.log('QRCode library not loaded, waiting for it...');
-            try {
-                await this.loadQRCodeLibrary();
-            } catch (error) {
-                console.error('Failed to load QRCode library:', error);
-                // Try one more time with a simple inline QR code generator
-                this.generateSimpleQRCode(text, container);
-                return;
-            }
-        }
-
-        // Check again after loading
-        if (typeof QRCode === 'undefined') {
-            console.error('QRCode library still not available, using fallback');
-            this.generateSimpleQRCode(text, container);
+        if (!text) {
+            console.error('No address/text provided for QR code');
             return;
         }
 
-        // Create canvas element
-        const qrCanvas = document.createElement('canvas');
-        qrCanvas.width = 256;
-        qrCanvas.height = 256;
-        qrCanvas.style.cssText = `
-            width: 100%;
-            max-width: 256px;
-            height: auto;
-            border: 2px solid #f0f0f0;
-            border-radius: 10px;
-            padding: 10px;
+        const cleanText = text.trim();
+        container.innerHTML = '';
+
+        // 1. Try standard qrcodejs library (new QRCode)
+        if (typeof QRCode !== 'undefined') {
+            try {
+                if (typeof QRCode === 'function') {
+                    const qrDiv = document.createElement('div');
+                    qrDiv.style.cssText = 'display: inline-flex; align-items: center; justify-content: center; padding: 8px; background: white; border-radius: 12px; border: 2px solid #e2e8f0; margin: 0 auto;';
+                    container.appendChild(qrDiv);
+                    
+                    new QRCode(qrDiv, {
+                        text: cleanText,
+                        width: 220,
+                        height: 220,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: typeof QRCode.CorrectLevel !== 'undefined' ? QRCode.CorrectLevel.H : 2
+                    });
+                    console.log('✅ QR Code generated via QRCode library for address:', cleanText);
+                    return;
+                } else if (typeof QRCode.toCanvas === 'function') {
+                    const qrCanvas = document.createElement('canvas');
+                    qrCanvas.style.cssText = 'display: block; margin: 0 auto; border-radius: 12px; border: 2px solid #e2e8f0;';
+                    container.appendChild(qrCanvas);
+                    await QRCode.toCanvas(qrCanvas, cleanText, { width: 220, margin: 2 });
+                    console.log('✅ QR Code generated via QRCode.toCanvas for address:', cleanText);
+                    return;
+                }
+            } catch (err) {
+                console.warn('QRCode library error, using high-res fallback:', err);
+                container.innerHTML = '';
+            }
+        }
+
+        // 2. High-reliability direct QR fallback
+        this.generateSimpleQRCode(cleanText, container);
+    }
+
+    // Generate simple QR code using online API as fallback
+    generateSimpleQRCode(text, container) {
+        const cleanText = (text || '').trim();
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(cleanText)}`;
+        const img = document.createElement('img');
+        img.src = qrApiUrl;
+        img.alt = `QR: ${cleanText}`;
+        img.style.cssText = `
+            width: 220px;
+            height: 220px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 6px;
             background: white;
             margin: 0 auto;
             display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         `;
-
-        // Use toDataURL method (more reliable)
-        try {
-            QRCode.toDataURL(text, {
-                width: 256,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            }, (err, url) => {
-                if (err) {
-                    console.error('QRCode.toDataURL error:', err);
-                    // Try toCanvas as fallback
-                    try {
-                        QRCode.toCanvas(qrCanvas, text, {
-                            width: 256,
-                            margin: 2,
-                            color: {
-                                dark: '#000000',
-                                light: '#FFFFFF'
-                            },
-                            errorCorrectionLevel: 'M'
-                        }, (canvasError) => {
-                            if (canvasError) {
-                                console.error('QRCode.toCanvas error:', canvasError);
-                                container.innerHTML = `
-                                    <div style="padding: 20px; color: #dc3545;">
-                                        <p>❌ Failed to generate QR code</p>
-                                        <p style="font-size: 0.9em; margin-top: 10px;">Address: ${text}</p>
-                                    </div>
-                                `;
-                            } else {
-                                container.innerHTML = '';
-                                container.appendChild(qrCanvas);
-                            }
-                        });
-                    } catch (canvasErr) {
-                        console.error('QRCode.toCanvas exception:', canvasErr);
-                        container.innerHTML = `
-                            <div style="padding: 20px; color: #dc3545;">
-                                <p>❌ Failed to generate QR code</p>
-                                <p style="font-size: 0.9em; margin-top: 10px;">Address: ${text}</p>
-                            </div>
-                        `;
-                    }
-                } else {
-                    // Success - create image from data URL
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.style.cssText = `
-                        width: 100%;
-                        max-width: 256px;
-                        height: auto;
-                        border: 2px solid #f0f0f0;
-                        border-radius: 10px;
-                        padding: 10px;
-                        background: white;
-                        margin: 0 auto;
-                        display: block;
-                    `;
-                    img.onerror = () => {
-                        container.innerHTML = `
-                            <div style="padding: 20px; color: #dc3545;">
-                                <p>❌ Failed to display QR code image</p>
-                                <p style="font-size: 0.9em; margin-top: 10px;">Address: ${text}</p>
-                            </div>
-                        `;
-                    };
-                    container.innerHTML = '';
-                    container.appendChild(img);
-                }
-            });
-        } catch (err) {
-            console.error('QRCode generation exception:', err);
+        img.onerror = () => {
             container.innerHTML = `
                 <div style="padding: 20px; color: #dc3545;">
-                    <p>❌ Error generating QR code</p>
-                    <p style="font-size: 0.9em; margin-top: 10px;">Address: ${text}</p>
+                    <p>❌ Failed to load QR code</p>
+                    <p style="font-size: 0.85em; margin-top: 10px; word-break: break-all; font-family: monospace;">Address: ${cleanText}</p>
                 </div>
             `;
-        }
+        };
+        container.innerHTML = '';
+        container.appendChild(img);
     }
 
     // Get network name
@@ -3878,149 +3622,16 @@ If you forgot your wallet password:
                 // Show warning if not native network
                 if (selectedNetwork !== 'cheese-native') {
                     addressEl.innerHTML = `
-                        <div style="color: #856404; font-size: 0.85em; margin-bottom: 5px;">
-                            ⚠️ ${this.getNetworkName(selectedNetwork)} Address
+                        <div style="color: #ff9800; font-size: 0.85em; margin-bottom: 5px;">
+                            ⚠️ Viewing ${this.getNetworkName(selectedNetwork)} Address
                         </div>
                         <div>${this.wallet.address}</div>
-                        <div style="color: #dc3545; font-size: 0.75em; margin-top: 5px;">
-                            ⚠️ Only send ${selectedNetwork.toUpperCase()} tokens to this address!
-                        </div>
                     `;
                 } else {
                     addressEl.textContent = this.wallet.address;
                 }
             }
         }
-    }
-
-    // Load QRCode library dynamically if not loaded
-    loadQRCodeLibrary() {
-        return new Promise((resolve, reject) => {
-            // Check if already loaded
-            if (typeof QRCode !== 'undefined') {
-                console.log('QRCode library already loaded');
-                resolve();
-                return;
-            }
-
-            // Wait for library to load (check multiple times)
-            let attempts = 0;
-            const maxAttempts = 50; // 5 seconds total
-            const checkInterval = setInterval(() => {
-                attempts++;
-                if (typeof QRCode !== 'undefined') {
-                    clearInterval(checkInterval);
-                    console.log('QRCode library detected after', attempts * 100, 'ms');
-                    resolve();
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(checkInterval);
-                    // Try loading from backup CDN
-                    console.warn('QRCode library not found, loading from backup CDN...');
-                    this.loadQRCodeLibraryBackup(resolve, reject);
-                }
-            }, 100);
-        });
-    }
-
-    // Load QRCode library from backup CDN
-    loadQRCodeLibraryBackup(resolve, reject) {
-        const backupScript = document.createElement('script');
-        backupScript.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
-        backupScript.onload = () => {
-            // Wait for library to initialize
-            let attempts = 0;
-            const maxAttempts = 30; // 3 seconds
-            const checkInterval = setInterval(() => {
-                attempts++;
-                if (typeof QRCode !== 'undefined') {
-                    clearInterval(checkInterval);
-                    console.log('QRCode library loaded from backup CDN');
-                    resolve();
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(checkInterval);
-                    reject(new Error('QRCode library failed to initialize from backup'));
-                }
-            }, 100);
-        };
-        backupScript.onerror = () => {
-            console.error('Failed to load QRCode library from backup CDN');
-            reject(new Error('Failed to load QRCode library from all CDNs'));
-        };
-        document.head.appendChild(backupScript);
-    }
-
-    // Generate simple QR code using online API as fallback
-    generateSimpleQRCode(text, container) {
-        // Use online QR code API as fallback
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(text)}`;
-        const img = document.createElement('img');
-        img.src = qrApiUrl;
-        img.style.cssText = `
-            width: 100%;
-            max-width: 256px;
-            height: auto;
-            border: 2px solid #f0f0f0;
-            border-radius: 10px;
-            padding: 10px;
-            background: white;
-            margin: 0 auto;
-            display: block;
-        `;
-        img.onerror = () => {
-            container.innerHTML = `
-                <div style="padding: 20px; color: #dc3545;">
-                    <p>❌ Failed to generate QR code</p>
-                    <p style="font-size: 0.9em; margin-top: 10px; word-break: break-all;">Address: ${text}</p>
-                    <p style="font-size: 0.8em; margin-top: 10px; color: #666;">Please copy the address manually</p>
-                </div>
-            `;
-        };
-        container.innerHTML = '';
-        container.appendChild(img);
-    }
-
-    drawSimpleQRPattern(canvas, text) {
-        const ctx = canvas.getContext('2d');
-        const size = canvas.width;
-        const moduleSize = 8;
-        const modules = Math.floor(size / moduleSize);
-
-        // Clear canvas
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, size, size);
-
-        // Generate deterministic pattern based on address
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            hash = ((hash << 5) - hash) + text.charCodeAt(i);
-            hash = hash & hash;
-        }
-
-        // Draw QR-like pattern
-        ctx.fillStyle = '#000000';
-        for (let y = 0; y < modules; y++) {
-            for (let x = 0; x < modules; x++) {
-                const value = (hash + x * 7 + y * 11) % 3;
-                if (value === 0) {
-                    ctx.fillRect(x * moduleSize, y * moduleSize, moduleSize, moduleSize);
-                }
-            }
-        }
-
-        // Add finder patterns (corners) for QR-like appearance
-        this.drawFinderPattern(ctx, 0, 0, moduleSize);
-        this.drawFinderPattern(ctx, modules - 7, 0, moduleSize);
-        this.drawFinderPattern(ctx, 0, modules - 7, moduleSize);
-    }
-
-    drawFinderPattern(ctx, x, y, moduleSize) {
-        const size = 7;
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x * moduleSize, y * moduleSize, size * moduleSize, size * moduleSize);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect((x + 1) * moduleSize, (y + 1) * moduleSize, 5 * moduleSize, 5 * moduleSize);
-        ctx.fillStyle = '#000000';
-        ctx.fillRect((x + 2) * moduleSize, (y + 2) * moduleSize, 3 * moduleSize, 3 * moduleSize);
     }
 
     // Save mnemonic securely (encrypted)
