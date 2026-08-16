@@ -1229,7 +1229,7 @@ function applySwapQuoteUI(data, amountIn) {
         `${data.priceImpact.toFixed(2)}%`;
     const gasNch = data.gasFeeNCH || 0;
     document.getElementById('swapFee').textContent =
-        gasNch > 0 ? `${gasNch.toFixed(4)} NCH` : `${(data.swapFee || data.fee || 0).toFixed(4)} ${fromToken}`;
+        gasNch > 0 ? `${gasNch.toFixed(2)} NCH (~$1.00)` : `${(data.swapFee || data.fee || 0).toFixed(4)} ${fromToken}`;
 
     if (amountIn > 0) {
         document.getElementById('toAmount').value = data.amountOut.toFixed(6);

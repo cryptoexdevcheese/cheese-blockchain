@@ -21,8 +21,9 @@ class CheeseDEX {
     }
 
     getGasFeeNCH(nchPriceUsdt) {
-        const price = parseFloat(nchPriceUsdt) || 0.02;
-        return 1.00 / (price || 0.02);
+        const price = parseFloat(nchPriceUsdt) || 0.021854;
+        // Exact $1.00 USD worth of NCH
+        return Math.max(1.0, parseFloat((1.00 / (price > 0 ? price : 0.021854)).toFixed(4)));
     }
 
     async initialize() {
@@ -134,11 +135,15 @@ class CheeseDEX {
         const amountOut = (amountInAfterFee * reserveOut) / (reserveIn + amountInAfterFee);
         const priceImpact = (amountInNum / reserveIn) * 100;
 
+        // Dynamic $1 USD equivalent network gas fee in NCH
+        const nchSpotPrice = this.getPrice('NCH', 'USDT') || 0.02185;
+        const dynamicGasFee = this.getGasFeeNCH(nchSpotPrice);
+
         return {
             amountOut,
             priceImpact,
             swapFee,
-            gasFeeNCH: this.gasFeeNCH,
+            gasFeeNCH: dynamicGasFee,
             rate: (amountOut / amountInNum).toFixed(8)
         };
     }

@@ -583,10 +583,12 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const q = String(hash).trim().toLowerCase();
             const txMatches = (tx) => {
                 if (!tx) return false;
-                const id = (tx.id || '').toLowerCase();
-                const txHash = (tx.hash || '').toLowerCase();
-                const docHash = (tx.data?.hash || '').toLowerCase();
-                return id === q || txHash === q || docHash === q;
+                const id = String(tx.id || '').toLowerCase();
+                const txHash = String(tx.hash || '').toLowerCase();
+                const docHash = String(tx.data?.hash || '').toLowerCase();
+                const ethHash = String(tx.data?.eth_hash || '').toLowerCase();
+                const altTxHash = String(tx.txHash || '').toLowerCase();
+                return id === q || txHash === q || docHash === q || ethHash === q || altTxHash === q;
             };
 
             // 1. Search in Chain (Memory)
@@ -613,12 +615,21 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
                         transaction = txDoc.data();
                     } else {
                         // Try searching by hash field
-                        const txQuery = await blockchain.database.db.collection(blockchain.database.collections.transactions)
+                        let txQuery = await blockchain.database.db.collection(blockchain.database.collections.transactions)
                             .where('hash', '==', hash)
                             .limit(1)
                             .get();
                         if (!txQuery.empty) {
                             transaction = txQuery.docs[0].data();
+                        } else {
+                            // Try searching by data.eth_hash (EVM transaction hash)
+                            txQuery = await blockchain.database.db.collection(blockchain.database.collections.transactions)
+                                .where('data.eth_hash', '==', hash)
+                                .limit(1)
+                                .get();
+                            if (!txQuery.empty) {
+                                transaction = txQuery.docs[0].data();
+                            }
                         }
                     }
                 } catch (dbError) {
@@ -1306,21 +1317,30 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             if (!blockchain) return res.status(503).json({ success: false, error: 'Initializing' });
 
             const { id } = req.params;
+            const q = String(id || '').trim().toLowerCase();
+            const txMatch = (t) => {
+                if (!t) return false;
+                return String(t.id || '').toLowerCase() === q ||
+                       String(t.hash || '').toLowerCase() === q ||
+                       String(t.data?.hash || '').toLowerCase() === q ||
+                       String(t.data?.eth_hash || '').toLowerCase() === q ||
+                       String(t.txHash || '').toLowerCase() === q;
+            };
 
             // 1. Check mempool
-            let tx = blockchain.pendingTransactions.find(t => t.id === id || t.hash === id);
+            let tx = blockchain.pendingTransactions.find(txMatch);
             if (tx) return res.json({ success: true, transaction: tx, status: 'pending' });
 
             // 2. Check memory chain
             for (const block of blockchain.chain) {
-                tx = (block.transactions || []).find(t => t.id === id || t.hash === id);
+                tx = (block.transactions || []).find(txMatch);
                 if (tx) return res.json({ success: true, transaction: tx, status: 'confirmed', blockIndex: block.index });
             }
 
             // 3. Check database (Deep Search)
             if (blockchain.database && blockchain.database.getAllTransactions) {
                 const allTxs = await blockchain.database.getAllTransactions();
-                tx = allTxs.find(t => t.id === id || t.hash === id);
+                tx = allTxs.find(txMatch);
                 if (tx) return res.json({ success: true, transaction: tx, status: 'confirmed' });
             }
 
