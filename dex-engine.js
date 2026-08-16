@@ -39,6 +39,8 @@ class CheeseDEX {
             if (this.storage.loadPositions) {
                 await this.storage.loadPositions();
             }
+            const spot = this.getPrice('NCH', 'USDT');
+            if (spot > 0) global.nchMarketPrice = spot;
         }
     }
 
@@ -168,6 +170,8 @@ class CheeseDEX {
         }
 
         this.updateCandles(pool, tokenIn);
+        const spot = this.getPrice('NCH', 'USDT');
+        if (spot > 0) global.nchMarketPrice = spot;
 
         const usdVolume = this.toUsdEstimate(tokenIn, parseFloat(amountIn), pool);
         pool.volume24h = (pool.volume24h || 0) + usdVolume;

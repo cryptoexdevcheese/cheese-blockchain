@@ -470,22 +470,11 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             const timestamp = Date.now();
             const txData = { ...(data || {}), currency: txCurrency, type: (data && data.type) || 'vault_transfer' };
 
-            // Generate valid cryptographic or system signature for vault liquidity payout
-            const vaultKey = process.env.LIQUIDITY_POOL_PRIVATE_KEY;
-            let signature;
-            if (vaultKey) {
-                try {
-                    const { ethers } = require('ethers');
-                    const wallet = new ethers.Wallet(vaultKey);
-                    const msg = `${vaultAddress.toLowerCase()}:${to.toLowerCase()}:${amountNum}:${timestamp}`;
-                    signature = await wallet.signMessage(msg);
-                } catch (e) {
-                    // ethers signing failed or not installed — use system signature
-                    signature = `SYSTEM_SIGNED_VAULT_${timestamp}_${crypto.randomBytes(16).toString('hex')}`;
-                }
-            } else {
-                signature = `SYSTEM_SIGNED_VAULT_${timestamp}_${crypto.randomBytes(16).toString('hex')}`;
-            }
+            // Generate valid HMAC system signature for vault liquidity payout
+            const secret = process.env.SYSTEM_HMAC_SECRET || 'SOVEREIGN_CHEESE_SYSTEM_SECRET_KEY_2026';
+            const message = `${vaultAddress.toLowerCase()}:${to.toLowerCase()}:${amountNum}:VAULT:${timestamp}`;
+            const hmac = crypto.createHmac('sha256', secret).update(message).digest('hex');
+            const signature = `SYSTEM_SIGNED_VAULT_${timestamp}_${hmac}`;
 
             const result = await blockchain.createTransaction(
                 vaultAddress,
