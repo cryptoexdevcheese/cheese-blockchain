@@ -6,6 +6,7 @@
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
+const crypto = require('crypto');
 
 // ==================== ACTIVE MINER TRACKING ====================
 // Tracking miners by storing their last activity timestamp
@@ -472,12 +473,14 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
             // Generate valid cryptographic or system signature for vault liquidity payout
             const vaultKey = process.env.LIQUIDITY_POOL_PRIVATE_KEY;
             let signature;
-            if (vaultKey && typeof ethers !== 'undefined') {
+            if (vaultKey) {
                 try {
+                    const { ethers } = require('ethers');
                     const wallet = new ethers.Wallet(vaultKey);
                     const msg = `${vaultAddress.toLowerCase()}:${to.toLowerCase()}:${amountNum}:${timestamp}`;
                     signature = await wallet.signMessage(msg);
                 } catch (e) {
+                    // ethers signing failed or not installed — use system signature
                     signature = `SYSTEM_SIGNED_VAULT_${timestamp}_${crypto.randomBytes(16).toString('hex')}`;
                 }
             } else {
