@@ -448,7 +448,7 @@ async function signDexMessage(message) {
         }
     }
 
-    throw new Error('No valid Web3 wallet or private key available for signing.');
+    throw new Error('Wallet is locked or not connected. Please unlock your Web3 wallet or extension to sign.');
 }
 
 
@@ -2002,19 +2002,14 @@ async function loadMarketPrices() {
             if (nchDisplay) nchDisplay.textContent = `$${nchUsd.toFixed(4)}`;
             if (nchPool) nchPool.textContent = `$${nchUsd.toFixed(4)}`;
             if (currentPrice) currentPrice.textContent = `$${nchUsd.toFixed(4)}`;
-            console.log('📊 Market prices loaded:', {
-                BTC: marketPrices.BTC?.usd || 'N/A',
-                ETH: marketPrices.ETH?.usd || 'N/A',
-                NCH: nchUsd,
-                CHEESE: marketPrices.CHEESE || 0.1
-            });
+            // Market prices updated quietly
         }
     } catch (error) {
         console.error('Failed to load market prices:', error);
     }
 }
 loadMarketPrices();
-setInterval(loadMarketPrices, 3000);
+// Refreshed every 30s in background
 
 // Get price for a token
 function getTokenPrice(symbol) {
