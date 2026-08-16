@@ -528,10 +528,11 @@ class RPCBridge {
 
     async getDynamicGasPriceWeiHex() {
         const nchPriceUsdt = await this.getLiveNchPriceInUsd();
-        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt
-        const requiredFeeNch = 1.00 / (nchPriceUsdt || 0.02);
-        // Standard transfer is 21,000 gas units. Gas Price (Wei) = (RequiredFeeNCH * 1e18) / 21000
-        const gasPriceWei = BigInt(Math.floor((requiredFeeNch * 1e18) / 21000));
+        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt (e.g. ~$1 / $0.02185 = ~45.76 NCH)
+        const requiredFeeNch = 1.00 / (nchPriceUsdt > 0 ? nchPriceUsdt : 0.021854);
+        // Standard DEX transaction gas limit is 100,000 units (0x186a0)
+        // Gas Price (Wei) = (RequiredFeeNCH * 1e18) / 100000 -> Yields exactly 45.76 NCH ($1.00 USD) network fee
+        const gasPriceWei = BigInt(Math.floor((requiredFeeNch * 1e18) / 100000));
         return '0x' + gasPriceWei.toString(16);
     }
 }

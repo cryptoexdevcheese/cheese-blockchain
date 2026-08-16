@@ -1,3 +1,15 @@
+
+async function getEvmGasPrice(provider) {
+    try {
+        if (provider && typeof provider.request === 'function') {
+            const rpcGas = await provider.request({ method: 'eth_gasPrice' });
+            if (rpcGas && rpcGas !== '0x0') return rpcGas;
+        }
+    } catch (e) {}
+    // Fallback $1 USD equivalent gas price at 100k gas limit (~45.76 NCH total fee)
+    return '0x1a028e69945d8';
+}
+
 // ==========================================
 // CHEESE DEX Frontend JavaScript
 // ==========================================
@@ -1332,7 +1344,7 @@ async function executeSwap() {
                         to: vaultAddress,
                         value: hexAmount,
                         gas: '0x186a0',
-                        gasPrice: '0xba43b7400'
+                        gasPrice: await getEvmGasPrice(ethProvider)
                     }]);
                 } else if (typeof ethProvider.request === 'function') {
                     txHash = await ethProvider.request({
@@ -1342,7 +1354,7 @@ async function executeSwap() {
                             to: vaultAddress,
                             value: hexAmount,
                             gas: '0x186a0',
-                            gasPrice: '0xba43b7400'
+                            gasPrice: await getEvmGasPrice(ethProvider)
                         }]
                     });
                 }
@@ -1553,9 +1565,9 @@ async function addLiquidity() {
             if (isWeb3Wallet && ethProvider) {
                 const hexAmount0 = '0x' + BigInt(Math.floor(amount0 * 1000000)).toString(16);
                 if (typeof safeRequest === 'function') {
-                    txHash0 = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount0, gas: '0x186a0', gasPrice: '0xba43b7400' }]);
+                    txHash0 = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount0, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }]);
                 } else if (typeof ethProvider.request === 'function') {
-                    txHash0 = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount0, gas: '0x186a0', gasPrice: '0xba43b7400' }] });
+                    txHash0 = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount0, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }] });
                 }
             } else {
                 const txResult = await blockchainApi.sendTransaction(
@@ -1585,9 +1597,9 @@ async function addLiquidity() {
             if (isWeb3Wallet && ethProvider) {
                 const hexAmount1 = '0x' + BigInt(Math.floor(amount1 * 1000000)).toString(16);
                 if (typeof safeRequest === 'function') {
-                    txHash1 = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount1, gas: '0x186a0', gasPrice: '0xba43b7400' }]);
+                    txHash1 = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount1, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }]);
                 } else if (typeof ethProvider.request === 'function') {
-                    txHash1 = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount1, gas: '0x186a0', gasPrice: '0xba43b7400' }] });
+                    txHash1 = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount1, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }] });
                 }
             } else {
                 const txResult = await blockchainApi.sendTransaction(
@@ -2235,9 +2247,9 @@ async function createP2POrder(tokenOffered, amountOffered, tokenWanted, amountWa
         if (isWeb3Wallet && ethProvider) {
             const hexAmount = '0x' + BigInt(Math.floor(amountOffered * 1000000)).toString(16);
             if (typeof safeRequest === 'function') {
-                txHash = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount, gas: '0x186a0', gasPrice: '0xba43b7400' }]);
+                txHash = await safeRequest(ethProvider, 'eth_sendTransaction', [{ from: userWallet, to: vaultAddress, value: hexAmount, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }]);
             } else {
-                txHash = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount, gas: '0x186a0', gasPrice: '0xba43b7400' }] });
+                txHash = await ethProvider.request({ method: 'eth_sendTransaction', params: [{ from: userWallet, to: vaultAddress, value: hexAmount, gas: '0x186a0', gasPrice: await getEvmGasPrice(ethProvider) }] });
             }
         } else {
             const txResult = await blockchainApi.sendTransaction(
