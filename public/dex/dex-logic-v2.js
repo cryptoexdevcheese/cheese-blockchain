@@ -876,21 +876,32 @@ async function connectCheeseWallet() {
             return;
         }
 
-        // Check localStorage
+        // Check localStorage (safe parsing)
         const savedWallet = localStorage.getItem('cheeseWallet');
         if (savedWallet) {
-            const wallet = JSON.parse(savedWallet);
-            userWallet = wallet.address;
-            walletType = 'cheese';
+            let walletAddress = null;
+            try {
+                const walletObj = JSON.parse(savedWallet);
+                walletAddress = typeof walletObj === 'string' ? walletObj : (walletObj.address || walletObj.walletAddress || null);
+            } catch (e) {
+                if (typeof savedWallet === 'string' && savedWallet.startsWith('0x')) {
+                    walletAddress = savedWallet.trim();
+                }
+            }
 
-            document.getElementById('connectText').textContent =
-                userWallet.substring(0, 6) + '...' + userWallet.substring(38);
-            document.getElementById('connectBtn').classList.add('connected');
-            document.getElementById('logoutBtn').style.display = 'flex';
+            if (walletAddress) {
+                userWallet = walletAddress;
+                walletType = 'cheese';
 
-            showNotification('✅ CHEESE Wallet connected!', 'success');
-            loadUserData();
-            return;
+                document.getElementById('connectText').textContent =
+                    userWallet.substring(0, 6) + '...' + userWallet.substring(38);
+                document.getElementById('connectBtn').classList.add('connected');
+                document.getElementById('logoutBtn').style.display = 'flex';
+
+                showNotification('✅ CHEESE Wallet connected!', 'success');
+                loadUserData();
+                return;
+            }
         }
 
         // No wallet found - show manual input modal
