@@ -1521,7 +1521,7 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
 
     // DEX price cache
     const dexPriceCache = new Map();
-    const DEX_CACHE_TTL = 30000; // 30 seconds
+    const DEX_CACHE_TTL = 2000; // 2 seconds (Fast AMM Price Propagation)
 
     // Specific DEX Proxy for NCHEESE and other tokens
     // Usage: /api/dex-proxy/price/NCHEESE
