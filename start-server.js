@@ -83,6 +83,13 @@ const RPCBridge = require('./rpc-bridge');
 let rpcBridge = null;
 
 // Middleware
+
+// Public RPC endpoints — must allow ANY origin for wallets, dApps, Chainlist, etc.
+const rpcCors = cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] });
+app.options(['/rpc', '/api/rpc'], rpcCors);
+app.use(['/rpc', '/api/rpc'], rpcCors);
+
+// Restricted CORS for all other API routes
 app.use(cors({
     origin: [
         'https://cheeseblockchain.com',
@@ -264,14 +271,18 @@ app.get('/api/node/info', (req, res) => {
 
 // RPC Bridge route (MetaMask)
 app.all(['/rpc', '/api/rpc'], async (req, res) => {
-    if (req.method === 'GET') {
-        const protocol = req.protocol;
+    if (req.method === 'GET' || req.method === 'HEAD') {
         const host = req.get('host');
+        const protocol = host.includes('localhost') ? 'http' : 'https';
         return res.json({
+            jsonrpc: '2.0',
             status: 'online',
-            service: 'CHEESE EVM RPC Bridge (Production)',
+            service: 'CHEESE Blockchain EVM RPC',
             chainId: 20250,
-            rpc_url: `${protocol}://${host}/api/rpc`
+            chainName: 'CHEESE Blockchain Mainnet',
+            nativeCurrency: { name: 'NCH', symbol: 'NCH', decimals: 18 },
+            rpc_url: `${protocol}://${host}/api/rpc`,
+            blockExplorer: 'https://cheeseblockchain.com/explorer'
         });
     }
 
