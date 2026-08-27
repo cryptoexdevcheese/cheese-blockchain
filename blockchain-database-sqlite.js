@@ -261,9 +261,7 @@ class BlockchainDatabaseSQLite {
         }
 
         if (!skipSave) {
-            this.requestSave();
-            // Silence log spam for individual blocks to improve event loop performance
-            // console.log(`💾 Block ${block.index} saved to SQLite`);
+            this.saveToDisk();
         }
         return block;
     }
