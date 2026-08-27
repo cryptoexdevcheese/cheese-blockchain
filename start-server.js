@@ -741,10 +741,15 @@ async function initializeBlockchain() {
         const EnhancedHybridBlockchainAI = require('./blockchain-core-v33');
         console.log('Initializing CHEESE Blockchain...');
 
-        // [URGENT] Disable Firestore to avoid usage limits (SQLite Only Mode)
-        process.env.CHEESE_ISOLATION_MODE = 'true';
+        // =========================================================================
+        // 🚨 STRICT ARCHITECTURAL INTEGRITY GUARD (DO NOT REMOVE)
+        // =========================================================================
+        // Ensure isolation mode is disabled to protect cloud sync and multi-tier redundancy
+        delete process.env.CHEESE_ISOLATION_MODE;
+        
         const isRailway = process.env.RAILWAY_ENVIRONMENT_NAME || process.env.RAILWAY_PROJECT_NAME || process.env.RENDER;
         const sqlitePath = process.env.DB_PATH || (isRailway ? '/app/data/cheese-blockchain.db' : './cheese-blockchain.db');
+        console.log(`🛡️ [PERSISTENCE GUARD] Target master DB path: ${sqlitePath}`);
 
         blockchain = new EnhancedHybridBlockchainAI({
             useFirestore: false,
