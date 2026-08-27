@@ -311,7 +311,11 @@ app.all(['/rpc', '/api/rpc'], async (req, res) => {
 // Public Read-Only Cheese DEX Ticker (Top-Level Endpoint)
 app.get(['/ticker', '/api/ticker'], (req, res) => {
     try {
-        let nchPrice = global.nchMarketPrice || 0.021854;
+        let nchPrice = global.nchMarketPrice || null;
+        if (!nchPrice) {
+            // Price oracle not yet warmed up — return neutral ticker
+            return res.json({ success: false, error: 'Price oracle initializing. Try again shortly.' });
+        }
         const baseOpen = 0.021968;
         let nchChange = parseFloat((((nchPrice - baseOpen) / baseOpen) * 100).toFixed(2));
 
@@ -789,7 +793,42 @@ async function initializeBlockchain() {
             console.error('⚠️ RPC Bridge initialization failed:', rpcError.message);
         }
 
-        // START HEADLESS SYSTEM MINER (v1.0.0)
+        // ============================================================
+        // 💰 LIVE NCH PRICE ORACLE — Runs every 60 seconds
+        // Reads NCH/USDT price from DEX pool reserves and injects it
+        // into blockchain.nchPriceUsdt so gas fee = exactly $1 USD.
+        // NO hardcoded fallback. If price is unavailable, transactions
+        // that need gas simply cannot proceed (safe, explicit failure).
+        // ============================================================
+        async function updateNchPrice() {
+            try {
+                // Load the DEX engine using the blockchain as proxy
+                const CheeseDEX = require('./dex-engine');
+                if (!updateNchPrice._dex) {
+                    // Initialize a lightweight DEX instance just for price reading
+                    updateNchPrice._dex = new CheeseDEX({ chain: blockchain.chain }, null);
+                    await updateNchPrice._dex.initialize().catch(() => {});
+                }
+                const dex = updateNchPrice._dex;
+                const price = dex.getPrice('NCH', 'USDT');
+                if (price && price > 0) {
+                    blockchain.nchPriceUsdt = price;
+                    global.nchMarketPrice = price;
+                    console.log(`💸 [PRICE ORACLE] NCH/USDT = $${price.toFixed(6)}  →  Gas fee = ${(1/price).toFixed(6)} NCH ($1.00 USD)`);
+                } else {
+                    console.warn('⚠️ [PRICE ORACLE] NCH/USDT pool returned no price. Gas fees will be blocked until price is available.');
+                }
+            } catch (priceErr) {
+                console.error('❌ [PRICE ORACLE] Failed to read NCH price:', priceErr.message);
+            }
+        }
+
+        // Run immediately on startup, then every 60 seconds
+        await updateNchPrice();
+        setInterval(updateNchPrice, 60000);
+        console.log('✅ NCH Live Price Oracle started (60s refresh interval). Gas fee = $1.00 USD always.');
+
+
         try {
             const HeadlessSystemMiner = require('./headless-system-miner');
             const systemMiner = new HeadlessSystemMiner(blockchain, { 

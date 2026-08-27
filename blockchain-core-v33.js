@@ -403,14 +403,38 @@ class EnhancedHybridBlockchainAI {
     }
 
     getTransactionGasFee(tx) {
-        let nchPriceUsdt = 0.02;
+        // ============================================================
+        // FIXED FEE POLICY: Always exactly $1.00 USD worth of NCH.
+        // NO hardcoded fallback prices — price MUST come from the
+        // live DEX oracle (this.nchPriceUsdt), updated every 60s.
+        // ============================================================
+        let nchPriceUsdt = null;
+
+        // Priority 1: Live oracle price injected into the blockchain instance
         if (this.nchPriceUsdt && parseFloat(this.nchPriceUsdt) > 0) {
             nchPriceUsdt = parseFloat(this.nchPriceUsdt);
-        } else if (tx && tx.nchPriceUsdt && parseFloat(tx.nchPriceUsdt) > 0) {
+        }
+        // Priority 2: Per-transaction price (sent by client, e.g. MetaMask bridge)
+        else if (tx && tx.nchPriceUsdt && parseFloat(tx.nchPriceUsdt) > 0) {
             nchPriceUsdt = parseFloat(tx.nchPriceUsdt);
         }
-        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt
-        return 1.00 / (nchPriceUsdt || 0.02);
+        // Priority 3: Global price set by the DEX engine at startup
+        else if (typeof global !== 'undefined' && global.nchMarketPrice && parseFloat(global.nchMarketPrice) > 0) {
+            nchPriceUsdt = parseFloat(global.nchMarketPrice);
+        }
+
+        if (!nchPriceUsdt || nchPriceUsdt <= 0) {
+            // Cannot calculate fee without a live price — log and throw.
+            // Do NOT silently use a hardcoded price.
+            console.error('❌ [FEE] getTransactionGasFee: NCH price oracle unavailable. ' +
+                'Ensure blockchain.nchPriceUsdt is updated from the live DEX feed.');
+            throw new Error('GAS_FEE_UNAVAILABLE: NCH price oracle not set. Transaction cannot be processed until the live price feed is active.');
+        }
+
+        // Fee = exactly $1.00 USD worth of NCH
+        const feeNch = parseFloat((1.00 / nchPriceUsdt).toFixed(8));
+        console.log(`💸 [FEE] Gas fee: $1.00 USD = ${feeNch} NCH  (NCH price: $${nchPriceUsdt})`);
+        return feeNch;
     }
 
     async loadChain() {

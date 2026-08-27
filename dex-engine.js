@@ -21,9 +21,27 @@ class CheeseDEX {
     }
 
     getGasFeeNCH(nchPriceUsdt) {
-        const price = parseFloat(nchPriceUsdt) || 0.021854;
-        // Exact $1.00 USD worth of NCH
-        return Math.max(1.0, parseFloat((1.00 / (price > 0 ? price : 0.021854)).toFixed(4)));
+        // ============================================================
+        // FIXED FEE POLICY: Always exactly $1.00 USD worth of NCH.
+        // NO hardcoded fallback prices — use live DEX pool price.
+        // ============================================================
+        // Priority 1: Caller-supplied price (from live DEX pool)
+        let price = parseFloat(nchPriceUsdt);
+
+        // Priority 2: Global market price set at DEX initialization
+        if (!(price > 0) && typeof global !== 'undefined' && global.nchMarketPrice > 0) {
+            price = parseFloat(global.nchMarketPrice);
+        }
+
+        if (!(price > 0)) {
+            console.error('❌ [DEX FEE] NCH price unavailable — cannot compute gas fee. Price oracle must be active.');
+            throw new Error('DEX_GAS_FEE_UNAVAILABLE: NCH price not set. Ensure the NCH/USDT pool has liquidity.');
+        }
+
+        // Fee = exactly $1.00 USD worth of NCH
+        const feeNch = parseFloat((1.00 / price).toFixed(8));
+        console.log(`💸 [DEX FEE] Gas fee: $1.00 USD = ${feeNch} NCH  (NCH price: $${price})`);
+        return feeNch;
     }
 
     async initialize() {
@@ -137,9 +155,14 @@ class CheeseDEX {
         const amountOut = (amountInAfterFee * reserveOut) / (reserveIn + amountInAfterFee);
         const priceImpact = (amountInNum / reserveIn) * 100;
 
-        // Dynamic $1 USD equivalent network gas fee in NCH
-        const nchSpotPrice = this.getPrice('NCH', 'USDT') || 0.02185;
+
+        // Dynamic $1 USD equivalent network gas fee in NCH — NO hardcoded fallback
+        const nchSpotPrice = this.getPrice('NCH', 'USDT');
+        if (!(nchSpotPrice > 0)) {
+            throw new Error('DEX_PRICE_UNAVAILABLE: NCH/USDT pool has no liquidity or price data. Cannot compute gas fee.');
+        }
         const dynamicGasFee = this.getGasFeeNCH(nchSpotPrice);
+
 
         return {
             amountOut,

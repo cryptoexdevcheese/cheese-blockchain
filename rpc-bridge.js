@@ -523,15 +523,25 @@ class RPCBridge {
             }
         } catch (err) {}
 
-        return 0.02; // Fallback NCH price ($0.02 USD -> $1.00 USD fee = 50 NCH)
+        // ============================================================
+        // NO hardcoded fallback price — must come from live sources.
+        // ============================================================
+        console.error('❌ [RPC] getLiveNchPriceInUsd: All price sources failed. ' +
+            'DEX pool or local market-prices API must be online.');
+        throw new Error('NCH_PRICE_UNAVAILABLE: Unable to fetch live NCH price from any source. Ensure the DEX pool has liquidity.');
     }
 
     async getDynamicGasPriceWeiHex() {
-        const nchPriceUsdt = await this.getLiveNchPriceInUsd();
-        // Dynamic $1 USD equivalent NCH fee = 1.00 / nchPriceUsdt (e.g. ~$1 / $0.02185 = ~45.76 NCH)
-        const requiredFeeNch = 1.00 / (nchPriceUsdt > 0 ? nchPriceUsdt : 0.021854);
+        // ============================================================
+        // FIXED FEE POLICY: Always exactly $1.00 USD worth of NCH.
+        // NO hardcoded fallback prices.
+        // ============================================================
+        const nchPriceUsdt = await this.getLiveNchPriceInUsd(); // throws if unavailable
+        // Fee = exactly $1.00 USD in NCH
+        const requiredFeeNch = parseFloat((1.00 / nchPriceUsdt).toFixed(8));
+        console.log(`💸 [RPC] Gas fee: $1.00 USD = ${requiredFeeNch} NCH  (NCH price: $${nchPriceUsdt})`);
         // Standard DEX transaction gas limit is 100,000 units (0x186a0)
-        // Gas Price (Wei) = (RequiredFeeNCH * 1e18) / 100000 -> Yields exactly 45.76 NCH ($1.00 USD) network fee
+        // Gas Price (Wei) = (RequiredFeeNCH * 1e18) / 100000
         const gasPriceWei = BigInt(Math.floor((requiredFeeNch * 1e18) / 100000));
         return '0x' + gasPriceWei.toString(16);
     }
