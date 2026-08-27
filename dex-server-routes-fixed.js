@@ -754,8 +754,13 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
                 }
             });
             if (!prices.NCH) {
-                const currentNch = global.nchMarketPrice || 0.021968;
-                const chg = ((currentNch - baseOpen) / baseOpen) * 100;
+                const currentNch = global.nchMarketPrice;
+                if (!currentNch || currentNch <= 0) {
+                    // Price oracle not yet warmed up
+                    res.json({ success: false, error: 'Price oracle initializing. Try again shortly.' });
+                    return;
+                }
+                const chg = ((currentNch - currentNch) / currentNch) * 100; // 0% change until historical baseline is tracked
                 prices.NCH = { usd: currentNch, change24h: parseFloat(chg.toFixed(2)) };
             }
             res.json({ success: true, prices });
@@ -771,11 +776,15 @@ function createDEXRoutes(getDex, getBlockchainProxy, getStorage = () => null) {
     router.get('/ticker', (req, res) => {
         try {
             const dex = getReadyDex();
-            let nchPrice = global.nchMarketPrice || 1.25;
+            let nchPrice = global.nchMarketPrice;
+            if (!nchPrice || nchPrice <= 0) {
+                // Pool price not yet available — do NOT serve a hardcoded price
+                return res.json({ success: false, error: 'Price oracle initializing. Try again shortly.' });
+            }
+            // nchChange is calculated below from pool reserves; initialize to 0
             let nchChange = 0;
             let totalVolumeBase = 0;
             let totalVolumeTarget = 0;
-            const baseOpen = 0.021968;
 
             dex.getAllPools().forEach((pool) => {
                 if ((pool.token0 === 'NCH' && pool.token1 === 'USDT') || (pool.token0 === 'USDT' && pool.token1 === 'NCH')) {
