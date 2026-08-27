@@ -269,8 +269,8 @@ class EnhancedHybridBlockchainAI {
         // ==================== MINING REWARD ====================
         // 🔓 UPDATED: 50 NCH per block (Bitcoin-style reward)
         // Options are honored for flexible configuration
-        this.initialMiningReward = options.miningReward || 50;
-        this.miningReward = options.miningReward || 50; 
+        this.initialMiningReward = options.miningReward || 500;
+        this.miningReward = options.miningReward || 500; 
         this.halvingInterval = options.halvingInterval || 210000; // Halve every 210,000 blocks (like Bitcoin)
         this.maxSupply = options.maxSupply || 21000000; // 21 Million max supply (like Bitcoin)
         this.totalMined = 0; // Track total coins mined
@@ -2417,7 +2417,7 @@ class EnhancedHybridBlockchainAI {
     /**
      * Calculate the mining reward for a given block height
      * Reward halves every 210,000 blocks (like Bitcoin)
-     * Initial reward: 100 NCHEESE → 50 → 25 → 12.5 → ...
+     * Initial reward: 500 NCH per block (configurable via miningReward option)
      */
     calculateMiningReward(blockHeight) {
         const halvings = Math.floor(blockHeight / this.halvingInterval);

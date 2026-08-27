@@ -751,7 +751,7 @@ async function initializeBlockchain() {
             useDualStorage: false,
             projectId: process.env.GCP_PROJECT_ID || 'cheese-blockchain',
             dbPath: sqlitePath,
-            miningReward: 50,
+            miningReward: 500,
             difficulty: 4,
             p2pPort: parseInt(P2P_PORT),
             nodeRole: NODE_ROLE
