@@ -1,0 +1,63 @@
+{
+  "pools": [
+    {
+      "id": "NCH_USDT",
+      "token0": "NCH",
+      "token1": "USDT",
+      "reserve0": 500000,
+      "reserve1": 11000,
+      "totalLiquidity": 74161.98487095663,
+      "fees24h": 0,
+      "volume24h": 0,
+      "createdAt": 1785897784120,
+      "createdBy": "0x9a4E604Ccef19f1ab9A4509dccB2F00D244d394E",
+      "candles": {
+        "15m": [
+          {
+            "time": 1785897784,
+            "open": 0.022,
+            "high": 0.022,
+            "low": 0.022,
+            "close": 0.022
+          }
+        ]
+      }
+    }
+  ],
+  "positions": {},
+  "dex_p2p_orders": {
+    "mock_lhv6pwabhf": {
+      "creatorAddress": "0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3",
+      "tokenOffered": "NCH",
+      "amountOffered": 5000,
+      "tokenWanted": "USDT",
+      "amountWanted": 110,
+      "status": "active",
+      "createdAt": 1785897784121,
+      "id": "mock_lhv6pwabhf",
+      "timestamp": 1785897784121
+    },
+    "mock_ka783lr1dd": {
+      "creatorAddress": "0x9a4E604Ccef19f1ab9A4509dccB2F00D244d394E",
+      "tokenOffered": "USDT",
+      "amountOffered": 500,
+      "tokenWanted": "NCH",
+      "amountWanted": 22727,
+      "status": "active",
+      "createdAt": 1785894184121,
+      "id": "mock_ka783lr1dd",
+      "timestamp": 1785897784121
+    },
+    "mock_3fazngvjb3n": {
+      "creatorAddress": "0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3",
+      "tokenOffered": "NCH",
+      "amountOffered": 10000,
+      "tokenWanted": "USDT",
+      "amountWanted": 220,
+      "status": "active",
+      "createdAt": 1785890584121,
+      "id": "mock_3fazngvjb3n",
+      "timestamp": 1785897784121
+    }
+  }
+}

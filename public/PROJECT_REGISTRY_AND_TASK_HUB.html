@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎯 Master Task AI Hub & Project Registry (Complete 24 Ecosystem Inventory)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(16, 185, 129, 0.4);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.25);
+      --accent-cyan: #06b6d4;
+      --accent-gold: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --glass-bg: rgba(15, 23, 42, 0.65);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg-dark) 70%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1450px; margin: 0 auto; }
+
+    header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .header-title-group h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-title-group p { color: var(--text-muted); font-size: 1.05rem; margin-top: 0.4rem; }
+
+    .system-stats { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    .stat-badge {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 0.85rem 1.25rem;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .stat-badge .number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent-emerald);
+    }
+
+    .stat-badge .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.2rem; }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 280px;
+      background: var(--glass-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 0.85rem 1.25rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 20px var(--accent-emerald-glow);
+    }
+
+    .category-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 12px;
+      padding: 0.6rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent-emerald);
+      color: #000;
+      border-color: var(--accent-emerald);
+      font-weight: 600;
+      box-shadow: 0 4px 14px var(--accent-emerald-glow);
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .project-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .project-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--card-hover-border);
+      box-shadow: 0 16px 32px -10px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.15);
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+
+    .project-title { font-size: 1.3rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
+
+    .status-tag {
+      font-size: 0.72rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    .status-live { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-dev { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-archive { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .category-badge {
+      display: inline-block; font-size: 0.75rem; font-weight: 600; color: var(--accent-cyan); background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 8px; padding: 0.25rem 0.6rem; margin-bottom: 0.85rem;
+    }
+
+    .project-desc { font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem; min-height: 48px; }
+
+    .info-list {
+      display: flex; flex-direction: column; gap: 0.5rem; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 0.85rem 1rem; font-size: 0.85rem; margin-bottom: 1.25rem;
+    }
+
+    .info-item { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .info-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .info-val { font-family: 'JetBrains Mono', monospace; color: #e2e8f0; font-size: 0.82rem; text-align: right; word-break: break-all; }
+    .account-pill { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.78rem; }
+
+    .card-actions { display: flex; gap: 0.75rem; }
+    .btn-action { flex: 1; text-align: center; padding: 0.6rem; border-radius: 10px; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s ease; }
+    .btn-primary { background: var(--accent-emerald); color: #000; }
+    .btn-primary:hover { background: #059669; box-shadow: 0 4px 12px var(--accent-emerald-glow); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.06); color: #fff; border: 1px solid var(--card-border); }
+
+    .protocol-box {
+      background: var(--glass-bg); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 1.75rem; margin-bottom: 2.5rem; box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
+    }
+    .protocol-box h3 { color: var(--accent-emerald); font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .code-snippet { background: #020617; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #38bdf8; overflow-x: auto; line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="header-title-group">
+        <h1>🎯 Master Task AI Hub</h1>
+        <p>Complete 24 Project Ecosystem Inventory & Multi-Account Deployment Control System</p>
+      </div>
+      <div class="system-stats">
+        <div class="stat-badge"><div class="number">24</div><div class="label">All Projects</div></div>
+        <div class="stat-badge"><div class="number" style="color: #38bdf8;">8</div><div class="label">Categories</div></div>
+        <div class="stat-badge"><div class="number" style="color: #c084fc;">5</div><div class="label">GH Accounts</div></div>
+      </div>
+    </header>
+
+    <div class="protocol-box">
+      <h3>🛡️ Mandatory AI Pre-Flight Deployment Protocol</h3>
+      <div class="code-snippet">
+<span style="color:#64748b;"># 1. Confirm working directory matches assigned project root</span>
+pwd
+
+<span style="color:#64748b;"># 2. Confirm assigned git remote repository URL</span>
+git remote -v
+
+<span style="color:#64748b;"># 3. Confirm target branch (main / master)</span>
+git branch --show-current
+
+<span style="color:#64748b;"># 4. Check & switch to project-specific GitHub CLI account</span>
+env -u GITHUB_TOKEN gh auth status
+env -u GITHUB_TOKEN gh auth switch --user &lt;TARGET_ACCOUNT&gt;
+
+<span style="color:#64748b;"># 5. Pre-push syntax validation</span>
+node --check &lt;entrypoint&gt;
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search ALL 24 projects, GitHub accounts, remotes, or endpoints..." oninput="filterProjects()">
+      
+      <div class="category-filters">
+        <button class="filter-btn active" onclick="setCategory('all', this)">All (24)</button>
+        <button class="filter-btn" onclick="setCategory('l1', this)">L1 Core (7)</button>
+        <button class="filter-btn" onclick="setCategory('cex', this)">CEX Hybrid (1)</button>
+        <button class="filter-btn" onclick="setCategory('surveyor', this)">Analytics (1)</button>
+        <button class="filter-btn" onclick="setCategory('mlm', this)">MLM Engine (1)</button>
+        <button class="filter-btn" onclick="setCategory('portal', this)">Web Portals (3)</button>
+        <button class="filter-btn" onclick="setCategory('ai', this)">AI Studio & Media (4)</button>
+        <button class="filter-btn" onclick="setCategory('standards', this)">Multi-Chain PRs (2)</button>
+        <button class="filter-btn" onclick="setCategory('bots', this)">Algo Bots & Misc (4)</button>
+      </div>
+    </div>
+
+    <div class="projects-grid" id="projectsGrid"></div>
+  </div>
+
+  <script>
+    const projects = [
+      // 1. L1 Core
+      {
+        title: '🧀 Cheese Blockchain L1 Core Node',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'live', statusText: 'Live Production',
+        folder: 'cheese-blockchain', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/cheese-blockchain.git', branch: 'master',
+        endpoint: 'https://cheeseblockchain.com/',
+        desc: 'Primary L1 Core Node, EVM Ledger, Web Wallet (/wallet/), Sovereign Explorer (/explorer/), System Miner (/mining/), and DPWH Nexus (/dpwh-nexus/).'
+      },
+      {
+        title: '⚡ Cheese Governance Node CLI',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'live', statusText: 'Live CLI Tool',
+        folder: 'cheese-miner-installer', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/cheese-miner-installer.git', branch: 'main',
+        endpoint: 'https://github.com/cryptoexdevcheese/cheese-miner-installer',
+        desc: 'Free, public CLI installer for the CHEESE Blockchain Governance Node & transaction auditor.'
+      },
+      {
+        title: '🌾 Farmers Consensus Agri-DApp',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'dev', statusText: 'Deployed DApp',
+        folder: 'farmers-consensus', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/farmers-concensus.git', branch: 'main',
+        endpoint: 'https://github.com/cryptoexdevcheese/farmers-concensus',
+        desc: 'Philippine Agri-Web3 DApp for crop registration, token rewards, & supply chain tracking on Cheese Blockchain.'
+      },
+      {
+        title: '📈 Tokenized Stocks Platform',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'dev', statusText: 'Active Dev',
+        folder: 'tokenized-stocks-platform', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/tokenized-stocks-platform.git', branch: 'main',
+        endpoint: 'https://github.com/cryptoexdevcheese/tokenized-stocks-platform',
+        desc: 'Synthetic Stock Trading Platform built on Cheese Blockchain for trading real-time synthetic stock assets.'
+      },
+      {
+        title: '🔷 AlphaOne DApp Frontend',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'dev', statusText: 'Standalone DApp',
+        folder: 'alphaone-dapp', account: '@cryptoexdevcheese',
+        remote: 'Local DApp Frontend', branch: 'main',
+        endpoint: 'Local DApp',
+        desc: 'Standalone Web3 DApp interface for Cheese Blockchain wallet interactions and token transfers.'
+      },
+      {
+        title: '✨ Cheese Blockchain Clean Mirror',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'archive', statusText: 'Local Mirror',
+        folder: 'cheeseblockchain-clean', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/cheese-blockchain.git', branch: 'master',
+        endpoint: 'Local Mirror',
+        desc: 'Clean local working tree mirror for Cheese Blockchain L1 Core node development.'
+      },
+      {
+        title: '📦 Cheese Blockchain Backup Tree',
+        category: 'l1', catName: '1. CHEESE L1 Ecosystem', status: 'archive', statusText: 'Backup Archive',
+        folder: 'cheese-blockchain-backup', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/cheese-blockchain.git', branch: 'master',
+        endpoint: 'Backup Snapshot',
+        desc: 'Historic backup tree snapshot for Cheese Blockchain L1 Core node.'
+      },
+
+      // 2. CEX Hybrid
+      {
+        title: '🏦 CEX Hybrid Exchange Engine',
+        category: 'cex', catName: '2. CEX Hybrid', status: 'live', statusText: 'Live Railway',
+        folder: 'cex-hybrid-backend', account: '@johnrobsteser2-ops (johnrobsteser2@gmail.com)',
+        remote: 'https://github.com/johnrobsteser2-ops/cex-hybrid-backend.git', branch: 'main',
+        endpoint: 'https://cexhybrid.up.railway.app/',
+        desc: 'Centralized/Decentralized Hybrid Exchange, Limit Orderbook Engine, Spot & Leveraged Margin, P2P Express Escrow, Staking, Vault Ledger.'
+      },
+
+      // 3. Analytics
+      {
+        title: '📊 CheesePlot Surveyor',
+        category: 'surveyor', catName: '3. Analytics', status: 'live', statusText: 'Live Tool',
+        folder: 'cheeseplot', account: '@johnrobsteser2-ops (johnrobsteser2@gmail.com)',
+        remote: 'https://github.com/johnrobsteser2-ops/blockchain-surveyor.git', branch: 'main',
+        endpoint: 'https://github.com/johnrobsteser2-ops/blockchain-surveyor',
+        desc: 'Graphical Blockchain Surveyor & Visual Analytics Tool for NCH transactions & node telemetry (blockchain-surveyor).'
+      },
+
+      // 4. MLM
+      {
+        title: '🚀 NCH Binary MLM Engine',
+        category: 'mlm', catName: '4. NCH MLM Engine', status: 'live', statusText: 'Live Platform',
+        folder: 'nch-marketing', account: '@johnrobsteser3-coder',
+        remote: 'https://github.com/johnrobsteser3-coder/NCH-Marketing.git', branch: 'main',
+        endpoint: 'https://github.com/johnrobsteser3-coder/NCH-Marketing',
+        desc: 'High-performance Binary Multi-Level Marketing Engine, Commission Calculator & Interactive Tree Dashboard for NCH.'
+      },
+
+      // 5. Portals
+      {
+        title: '🌐 IPCN Official Web Portal',
+        category: 'portal', catName: '5. Web Portals', status: 'live', statusText: 'Live Portal',
+        folder: 'ipcn-website-real', account: '@johnrobsteser4-rgb',
+        remote: 'https://github.com/johnrobsteser4-rgb/ipcn-website.git', branch: 'main',
+        endpoint: 'https://github.com/johnrobsteser4-rgb/ipcn-website',
+        desc: 'Official IPCN Community Web Portal and Web3 gateway.'
+      },
+      {
+        title: '💳 KinamPay Checkout Portal',
+        category: 'portal', catName: '5. Web Portals', status: 'dev', statusText: 'Active Dev',
+        folder: 'kinampay', account: '@johnrobsteser4-rgb',
+        remote: 'https://github.com/johnrobsteser4-rgb/ipcn-website.git', branch: 'main',
+        endpoint: 'Local Payment DApp',
+        desc: 'Standalone Payment & Checkout Portal DApp integrated with IPCN ecosystem.'
+      },
+      {
+        title: '🖥️ IPCN Dev Build',
+        category: 'portal', catName: '5. Web Portals', status: 'archive', statusText: 'Dev Folder',
+        folder: 'ipcn-website', account: '@johnrobsteser4-rgb',
+        remote: 'Local Frontend Build', branch: 'main',
+        endpoint: 'Local Dev Build',
+        desc: 'Local development workspace folder for IPCN portal build testing.'
+      },
+
+      // 6. AI Studio & Media
+      {
+        title: '🎬 Cheese AI Video Studio',
+        category: 'ai', catName: '6. AI Studio & Media', status: 'live', statusText: 'Live AI Studio',
+        folder: 'cheese-studio', account: '@johnrobsteser5-star',
+        remote: 'https://github.com/johnrobsteser5-star/cheese-studio.git', branch: 'main',
+        endpoint: 'https://github.com/johnrobsteser5-star/cheese-studio',
+        desc: 'Personal AI Video Studio (Unlimited Rotgen-style AI Video Generation Pipeline with zero subscription limits).'
+      },
+      {
+        title: '🎥 Movie Downloader App',
+        category: 'ai', catName: '6. AI Studio & Media', status: 'dev', statusText: 'Standalone App',
+        folder: 'movie-downloader-app', account: 'Local App',
+        remote: 'Local Vite React App', branch: 'main',
+        endpoint: 'Vite Media App',
+        desc: 'Standalone React/Vite Media Downloader Application with automated stream fetching.'
+      },
+      {
+        title: '📹 AI Presenter Render Output',
+        category: 'ai', catName: '6. AI Studio & Media', status: 'archive', statusText: 'Render Asset',
+        folder: 'cheese_ai_presenter_video_20260510_225324', account: 'Media Pipeline',
+        remote: 'Local Render Output', branch: 'N/A',
+        endpoint: 'Render Directory',
+        desc: 'AI Presenter Video Production Output Folder & Render Pipeline.'
+      },
+      {
+        title: '🎞️ Hollywood Promo Render Output',
+        category: 'ai', catName: '6. AI Studio & Media', status: 'archive', statusText: 'Render Asset',
+        folder: 'cheese_blockchain_hollywood_video_20260510_223536', account: 'Media Pipeline',
+        remote: 'Local Render Output', branch: 'N/A',
+        endpoint: 'Render Directory',
+        desc: 'Hollywood Promo Video Production Output Folder & Render Pipeline.'
+      },
+
+      // 7. Multi-Chain PRs
+      {
+        title: '🔗 Ethereum Lists Chains (PR #8507)',
+        category: 'standards', catName: '7. Multi-Chain Standards', status: 'live', statusText: 'Open PR #8507',
+        folder: 'ethereum-chains', account: '@cryptoexdevcheese',
+        remote: 'https://github.com/cryptoexdevcheese/chains.git', branch: 'master',
+        endpoint: 'https://github.com/ethereum-lists/chains/pull/8507',
+        desc: 'Official CAIP-2 Ethereum Lists Chain Registry Fork submitting Cheese Blockchain Metadata & Icon (Chain ID 20250).'
+      },
+      {
+        title: '🥞 Chainlist Discovery Fork',
+        category: 'standards', catName: '7. Multi-Chain Standards', status: 'dev', statusText: 'Upstream Fork',
+        folder: 'chainlist', account: 'Upstream Fork (DefiLlama)',
+        remote: 'https://github.com/DefiLlama/chainlist.git', branch: 'main',
+        endpoint: 'https://github.com/DefiLlama/chainlist',
+        desc: 'Forked Chainlist registry codebase for EVM chain discovery and custom RPC listing.'
+      },
+
+      // 8. Algo Bots & Misc
+      {
+        title: '🤖 Quantum AI Algorithmic Trader',
+        category: 'bots', catName: '8. Algo Bots & Misc', status: 'archive', statusText: 'Algo Bot',
+        folder: 'AI Trading Bot', account: 'Local Python',
+        remote: 'Standalone Script', branch: 'N/A',
+        endpoint: 'advanced_strategies.py',
+        desc: 'Algorithmic Python Trading Bot with Quantum Optimization & Multi-Asset Strategies.'
+      },
+      {
+        title: '🧠 Quantum Consciousness AI Scripts',
+        category: 'bots', catName: '8. Algo Bots & Misc', status: 'archive', statusText: 'AI Research',
+        folder: 'Root Scripts', account: 'Local Python',
+        remote: 'beyond_quantum_consciousness.py', branch: 'N/A',
+        endpoint: 'true_quantum_consciousness.py',
+        desc: 'Autonomous AI strategy search, quantum optimization, & quantum audit scripts.'
+      },
+      {
+        title: '📦 Historic Code Archive Snapshot',
+        category: 'bots', catName: '8. Algo Bots & Misc', status: 'archive', statusText: 'Historic Snapshot',
+        folder: '19 June 2026 Archive of blockchain, DEX, Wallet, Explorer', account: 'Archive',
+        remote: 'Historic Snapshot', branch: 'N/A',
+        endpoint: 'Archive Folder',
+        desc: 'Complete historic code archive snapshot of L1 Blockchain, DEX, Wallet, & Explorer.'
+      },
+      {
+        title: '🧪 Windsurf Dev Sandbox',
+        category: 'bots', catName: '8. Algo Bots & Misc', status: 'archive', statusText: 'Dev Sandbox',
+        folder: 'windsurf-project', account: 'Sandbox',
+        remote: 'Dev Sandbox', branch: 'N/A',
+        endpoint: 'Sandbox Workspace',
+        desc: 'Development sandbox project for experimental testing and feature prototyping.'
+      },
+      {
+        title: '🐳 Windsurf Docker Test Sandbox',
+        category: 'bots', catName: '8. Algo Bots & Misc', status: 'archive', statusText: 'Dev Sandbox',
+        folder: 'windsurf-project-2', account: 'Sandbox',
+        remote: 'Docker Container Sandbox', branch: 'N/A',
+        endpoint: 'Dockerfile Environment',
+        desc: 'Development sandbox project with Docker test container environments.'
+      }
+    ];
+
+    let currentCategory = 'all';
+
+    function renderCards() {
+      const grid = document.getElementById('projectsGrid');
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = projects.filter(p => {
+        const matchesCat = currentCategory === 'all' || p.category === currentCategory;
+        const matchesSearch = p.title.toLowerCase().includes(search) ||
+                              p.folder.toLowerCase().includes(search) ||
+                              p.account.toLowerCase().includes(search) ||
+                              p.desc.toLowerCase().includes(search);
+        return matchesCat && matchesSearch;
+      });
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="project-card">
+          <div>
+            <div class="card-header">
+              <div class="project-title">${p.title}</div>
+              <span class="status-tag ${p.status === 'live' ? 'status-live' : p.status === 'dev' ? 'status-dev' : 'status-archive'}">${p.statusText}</span>
+            </div>
+            <span class="category-badge">${p.catName}</span>
+            <div class="project-desc">${p.desc}</div>
+            
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Local Path</span>
+                <span class="info-val">${p.folder}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">GitHub Account</span>
+                <span class="account-pill">${p.account}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Branch</span>
+                <span class="info-val" style="color:#10b981;">${p.branch}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Remote Git</span>
+                <span class="info-val" style="font-size:0.75rem;">${p.remote.replace('https://github.com/', '')}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            ${p.endpoint.startsWith('http') ? `<a href="${p.endpoint}" target="_blank" class="btn-action btn-primary">Open Endpoint 🔗</a>` : `<span class="btn-action btn-secondary">${p.endpoint}</span>`}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCards();
+    }
+
+    function filterProjects() { renderCards(); }
+
+    renderCards();
+  </script>
+</body>
+</html>
