@@ -785,7 +785,67 @@ async function initializeBlockchain() {
         // Initialize with increased timeout
         console.log('[SYNC] Initializing ledger and syncing with Cloud persistence...');
         await blockchain.initialize();
-        
+
+        // ============================================================
+        // 🔄 MASTER NODE STARTUP SYNC (Render Ephemeral Storage Fix)
+        // When running on Render (no persistent volume), the SQLite DB
+        // resets on every restart. Pull the full chain from the DO
+        // master node to restore state before accepting traffic.
+        // ============================================================
+        const MASTER_SYNC_URL = process.env.MASTER_NODE_URL || 'https://cheeseblockchain.com';
+        const isEphemeral = process.env.RENDER && !fs.existsSync('/app/data');
+        const localHeight = blockchain.chain?.length || 0;
+
+        if (isEphemeral && localHeight < 100) {
+            console.log(`🔄 [MASTER SYNC] Render ephemeral detected (local: ${localHeight} blocks). Syncing from master...`);
+            try {
+                const axios = require('axios');
+                const masterHealthResp = await axios.get(`${MASTER_SYNC_URL}/api/health`, { timeout: 15000 }).catch(() => null);
+                const masterHeight = masterHealthResp?.data?.chainLength || 0;
+
+                if (masterHeight > localHeight) {
+                    console.log(`📡 [MASTER SYNC] Master has ${masterHeight} blocks. Pulling in batches of 50...`);
+                    const SYNC_BATCH = 50;
+                    let synced = 0;
+
+                    for (let start = 0; start < masterHeight; start += SYNC_BATCH) {
+                        const end = Math.min(start + SYNC_BATCH - 1, masterHeight - 1);
+                        try {
+                            const resp = await axios.get(`${MASTER_SYNC_URL}/api/blocks/range?start=${start}&end=${end}`, { timeout: 30000 });
+                            if (resp.data?.success && resp.data?.blocks?.length > 0) {
+                                for (const block of resp.data.blocks) {
+                                    await blockchain.database.saveBlock(block, true);
+                                }
+                                synced += resp.data.blocks.length;
+                                if (synced % 500 === 0 || synced >= masterHeight) {
+                                    console.log(`   📦 [MASTER SYNC] ${synced}/${masterHeight} blocks (${((synced/masterHeight)*100).toFixed(1)}%)`);
+                                }
+                            }
+                        } catch (batchErr) {
+                            console.warn(`   ⚠️ [MASTER SYNC] Batch ${start}-${end} failed: ${batchErr.message}. Retrying in 3s...`);
+                            await new Promise(r => setTimeout(r, 3000));
+                            start -= SYNC_BATCH; // Retry this batch
+                        }
+                        // Small delay between batches
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+
+                    // Save to disk and reload chain
+                    if (blockchain.database.saveToDisk) blockchain.database.saveToDisk();
+                    if (typeof blockchain.loadFromDatabase === 'function') await blockchain.loadFromDatabase();
+                    if (typeof blockchain.populateMemoryCache === 'function') await blockchain.populateMemoryCache();
+
+                    console.log(`✅ [MASTER SYNC] Complete: ${synced} blocks synced from master. Chain length: ${blockchain.chain?.length || 0}`);
+                } else {
+                    console.log(`✅ [MASTER SYNC] Local chain (${localHeight}) already at or ahead of master (${masterHeight})`);
+                }
+            } catch (syncErr) {
+                console.error(`❌ [MASTER SYNC] Failed: ${syncErr.message}. Continuing with local data.`);
+            }
+        } else if (isEphemeral) {
+            console.log(`ℹ️ [MASTER SYNC] Render ephemeral but local chain has ${localHeight} blocks — skipping full sync.`);
+        }
+
         // Mark as ready ONLY after sync is complete
         blockchainReady = true;
         console.log('✅ [HOTFIX] Blockchain initialization sequence complete. API is READY.');
