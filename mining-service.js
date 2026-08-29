@@ -135,7 +135,7 @@ class MiningService {
   }
 
   isValidHash(hash, difficulty) {
-    const prefix = '0'repeat(difficulty);
+    const prefix = '0'.repeat(difficulty);
     return hash.startsWith(prefix);
   }
 
