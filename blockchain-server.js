@@ -187,8 +187,33 @@ try {
 
 console.log('🔄 Mounting Explorer Frontend at /explorer...');
 try {
-    const explorerApp = require('./deploy-explorer/server.js');
+    // Inline Explorer sub-app (replaces missing deploy-explorer/server.js)
+    const explorerApp = express.Router();
+    explorerApp.use(express.static(path.join(__dirname, 'public', 'explorer'), {
+        setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.html')) {
+                res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+                res.setHeader('Pragma', 'no-cache');
+                res.setHeader('Expires', '0');
+                res.setHeader('Surrogate-Control', 'no-store');
+            }
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+            res.setHeader('X-XSS-Protection', '1; mode=block');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+        }
+    }));
+    // SPA fallback for /explorer/ and /explorer/block/123 etc.
+    explorerApp.get('*', (req, res) => {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        res.set('Surrogate-Control', 'no-store');
+        res.sendFile(path.join(__dirname, 'public', 'explorer', 'index.html'));
+    });
     app.use('/explorer', explorerApp);
+    console.log('✅ Explorer mounted (inline from public/explorer)');
 } catch (e) {
     console.error('❌ Failed to mount Explorer:', e.message);
 }
