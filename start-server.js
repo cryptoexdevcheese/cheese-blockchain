@@ -752,12 +752,12 @@ async function initializeBlockchain() {
         console.log(`🛡️ [PERSISTENCE GUARD] Target master DB path: ${sqlitePath}`);
 
         blockchain = new EnhancedHybridBlockchainAI({
-            useFirestore: false,
-            useDualStorage: false,
+            useFirestore: true,
+            useDualStorage: true,
             projectId: process.env.GCP_PROJECT_ID || 'cheese-blockchain',
             dbPath: sqlitePath,
-            miningReward: 500,
-            difficulty: 4,
+            miningReward: 100,
+            difficulty: 5,
             p2pPort: parseInt(P2P_PORT),
             nodeRole: NODE_ROLE
         });

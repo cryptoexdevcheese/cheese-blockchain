@@ -267,10 +267,10 @@ class EnhancedHybridBlockchainAI {
         this.pendingTransactions = [];
 
         // ==================== MINING REWARD ====================
-        // 🔓 UPDATED: 50 NCH per block (Bitcoin-style reward)
+        // 🔒 LOCKED: 100 NCH per block (controlled inflation)
         // Options are honored for flexible configuration
-        this.initialMiningReward = options.miningReward || 500;
-        this.miningReward = options.miningReward || 500; 
+        this.initialMiningReward = options.miningReward || 100;
+        this.miningReward = options.miningReward || 100; 
         this.halvingInterval = options.halvingInterval || 210000; // Halve every 210,000 blocks (like Bitcoin)
         this.maxSupply = options.maxSupply || 21000000; // 21 Million max supply (like Bitcoin)
         this.totalMined = 0; // Track total coins mined
@@ -280,8 +280,8 @@ class EnhancedHybridBlockchainAI {
         this.STRICT_SUPPLY_LOCK = true;
         // ===================================================================
 
-        this.difficulty = options.difficulty || 4;  // Configurable difficulty (default 4)
-        this.MIN_DIFFICULTY = options.minDifficulty || 4; // Configurable minimum difficulty
+        this.difficulty = options.difficulty || 5;  // Configurable difficulty (default 5 — real PoW)
+        this.MIN_DIFFICULTY = options.minDifficulty || 5; // Minimum difficulty floor (never drops below 5)
         this.smartContracts = [];
 
         // Save options for fallback
@@ -2190,11 +2190,11 @@ class EnhancedHybridBlockchainAI {
             }
 
             // ==================== MINING REWARD STRUCTURE ====================
-            // 🔓 UPDATED: 50 NCH per block (Bitcoin-style reward)
+            // 🔒 LOCKED: 100 NCH per block (controlled inflation)
             // Configurable via constructor for flexible economic policy
-            const LOCKED_MINING_REWARD = this.miningReward || 50; // Use configured reward or default to 50
+            const LOCKED_MINING_REWARD = this.miningReward || 100; // Use configured reward or default to 100
             let currentReward = LOCKED_MINING_REWARD;
-            console.log(`💰 Mining Reward: ${currentReward} NCH (Bitcoin-style reward)`);
+            console.log(`💰 Mining Reward: ${currentReward} NCH (controlled inflation)`);
 
             // ==================== GAS FEE COLLECTION (TO TREASURY) ====================
             // Collect dynamic gas fee for every valid transaction mined
@@ -2417,7 +2417,7 @@ class EnhancedHybridBlockchainAI {
     /**
      * Calculate the mining reward for a given block height
      * Reward halves every 210,000 blocks (like Bitcoin)
-     * Initial reward: 500 NCH per block (configurable via miningReward option)
+     * Initial reward: 100 NCH per block (configurable via miningReward option)
      */
     calculateMiningReward(blockHeight) {
         const halvings = Math.floor(blockHeight / this.halvingInterval);

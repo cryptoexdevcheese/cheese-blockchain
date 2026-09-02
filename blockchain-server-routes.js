@@ -1089,8 +1089,8 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
     let isMining = false; // Global lock
     const activeMiningSessions = new Map(); // wallet -> timestamp
     const walletCooldowns = new Map(); // wallet -> lastMinedTimestamp
-    const MIN_BLOCK_TIME = 60000; // MODIFIED: 1 minute cooldown per user request
-    const WALLET_SESSION_TIMEOUT = 60000; // 60s session timeout
+    const MIN_BLOCK_TIME = 120000; // 2 minute cooldown per wallet (prevents spam, gives sync time)
+    const WALLET_SESSION_TIMEOUT = 120000; // 120s session timeout
     let lastBlockTimestamp = 0;
 
     // 🔒 FIX: Safety auto-reset for stuck isMining lock (2-minute watchdog)
@@ -1194,9 +1194,9 @@ module.exports = (app, blockchainGetter, isReadyGetter) => {
                 return res.status(429).json({ success: false, error: 'Server busy. Another block is being mined.' });
             }
             
-            // Hard server cooldown (1 minute total) - BYPASSED FOR EXEMPT WALLETS
-            // This allows the Operator to clear queues quickly if needed
-            const globalCooldown = 60000; 
+            // Hard server cooldown (90 seconds total) - BYPASSED FOR EXEMPT WALLETS
+            // This gives the sync layer time to propagate each block
+            const globalCooldown = 90000; 
             if (!isExempt && (Date.now() - lastBlockTimestamp < globalCooldown)) {
                 return res.status(429).json({ success: false, error: 'Server cooldown (global). Please wait.' });
             }

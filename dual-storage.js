@@ -10,6 +10,9 @@ class DualStorage {
         this.listeners = []; // Track Firebase listeners
         this.realtimeSyncEnabled = false;
         this.isSyncing = false;
+        this.consecutiveSyncErrors = 0;
+        this.lastSyncSuccess = null;
+        this.periodicSyncTimer = null;
         console.log('⚔️ DualStorage initialized: Hybrid-Priority with SQLite Master for Height');
     }
 
@@ -44,6 +47,22 @@ class DualStorage {
             this.sync().catch(e => console.error('Background Sync Error:', e.message));
             // Enable real-time Firebase → SQLite sync
             await this.enableRealtimeSync();
+
+            // 🔒 HARDENED: Periodic re-sync every 10 minutes (self-healing)
+            this.periodicSyncTimer = setInterval(() => {
+                console.log(`🔄 [PERIODIC] Scheduled re-sync at ${new Date().toISOString()}`);
+                this.sync().then(() => {
+                    this.consecutiveSyncErrors = 0;
+                    this.lastSyncSuccess = new Date();
+                    console.log('✅ [PERIODIC] Re-sync completed successfully');
+                }).catch(e => {
+                    this.consecutiveSyncErrors++;
+                    console.error(`❌ [PERIODIC] Re-sync failed (streak: ${this.consecutiveSyncErrors}):`, e.message);
+                    if (this.consecutiveSyncErrors >= 3) {
+                        console.error(`🚨 [CRITICAL ALERT] ${this.consecutiveSyncErrors} consecutive sync failures! DualStorage may be degraded.`);
+                    }
+                });
+            }, 10 * 60 * 1000); // Every 10 minutes
         }
 
         return true;
@@ -352,6 +371,13 @@ class DualStorage {
 
     async close() {
         console.log('🔌 Closing DualStorage...');
+
+        // Clear periodic sync timer
+        if (this.periodicSyncTimer) {
+            clearInterval(this.periodicSyncTimer);
+            this.periodicSyncTimer = null;
+            console.log('✅ Periodic sync timer cleared');
+        }
 
         // Unsubscribe from Firebase listeners
         if (this.listeners.length > 0) {
