@@ -8,9 +8,12 @@ const fs = require('fs');
 const https = require('https');
 const { execSync } = require('child_process');
 
-const PROJECT_ID = 'cheese-blockchain';
-const DB_PATH = '/Users/cheeseblockchain/CascadeProjects/cheese-blockchain/cheese-blockchain.db';
-const CONFIGSTORE_PATH = '/Users/cheeseblockchain/.config/configstore/firebase-tools.json';
+const path = require('path');
+const os = require('os');
+
+const PROJECT_ID = process.env.GCP_PROJECT_ID || 'cheese-blockchain';
+const DB_PATH = process.env.DB_PATH || (fs.existsSync('/opt/cheese-blockchain/cheese-blockchain.db') ? '/opt/cheese-blockchain/cheese-blockchain.db' : path.join(__dirname, 'cheese-blockchain.db'));
+const CONFIGSTORE_PATH = process.env.CONFIGSTORE_PATH || path.join(os.homedir(), '.config', 'configstore', 'firebase-tools.json');
 const BATCH_SIZE = 50;
 
 function getValidToken() {
