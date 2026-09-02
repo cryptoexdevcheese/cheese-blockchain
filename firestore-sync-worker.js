@@ -184,13 +184,73 @@ async function startDaemon() {
                 console.log(`[${new Date().toLocaleTimeString()}] ☁️ Mirrored latest blocks up to #${maxIndex} to Firestore`);
             }
         } catch (e) {
-            console.error('Daemon periodic sync notice:', e.message);
+            console.error('Daemon periodic block sync notice:', e.message);
         }
     }, 30000);
+
+    // Sync wallet balances every 2 minutes
+    setInterval(async () => {
+        try {
+            await syncWalletsToFirestore();
+        } catch (e) {
+            console.error('Daemon periodic wallet sync notice:', e.message);
+        }
+    }, 120000);
+}
+
+async function syncWalletsToFirestore() {
+    try {
+        const rows = sqliteQuery('SELECT address, balance, portfolio, lastUpdated FROM wallets;');
+        if (!rows) return;
+        const lines = rows.split('\n').filter(l => l.trim().length > 0);
+        const writes = [];
+
+        for (const line of lines) {
+            const parts = line.split('|');
+            if (parts.length < 2) continue;
+            const address = parts[0].toLowerCase();
+            const balance = parseFloat(parts[1]) || 0;
+            let portfolio = {};
+            try { portfolio = JSON.parse(parts[2] || '{}'); } catch(e) {}
+            const lastUpdated = parts[3] ? parseInt(parts[3]) : Date.now();
+
+            const docFields = {
+                address: { stringValue: address },
+                balance: { doubleValue: balance },
+                NCH: { doubleValue: balance },
+                USDT: { doubleValue: portfolio.USDT || 0 },
+                USDC: { doubleValue: portfolio.USDC || 0 },
+                WNCH: { doubleValue: portfolio.WNCH || 0 },
+                lastUpdate: { integerValue: String(lastUpdated) }
+            };
+
+            writes.push({
+                update: {
+                    name: `projects/${PROJECT_ID}/databases/(default)/documents/cheese-blockchain-wallets/${address}`,
+                    fields: docFields
+                }
+            });
+            writes.push({
+                update: {
+                    name: `projects/${PROJECT_ID}/databases/(default)/documents/balances/${address}`,
+                    fields: docFields
+                }
+            });
+        }
+
+        if (writes.length) {
+            for (let i = 0; i < writes.length; i += 100) {
+                await firestoreCommit(writes.slice(i, i + 100));
+            }
+            console.log(`[${new Date().toLocaleTimeString()}] 💼 Mirrored ${lines.length} wallet balances to Firestore`);
+        }
+    } catch (e) {
+        console.error('Wallet sync error:', e.message);
+    }
 }
 
 if (require.main === module) {
     startDaemon().catch(console.error);
 }
 
-module.exports = { syncBlocksToFirestore, startDaemon };
+module.exports = { syncBlocksToFirestore, syncWalletsToFirestore, startDaemon };
