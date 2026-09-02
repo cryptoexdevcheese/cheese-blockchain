@@ -58,7 +58,7 @@ class MLIntegration extends GuardianAIML {
     constructor(nodeRole = 'HYBRID') {
         super();
         this.nodeRole = (nodeRole || 'HYBRID').toUpperCase();
-        this.difficultyModel = { difficulty: 2, confidence: 0.8 };
+        this.difficultyModel = { difficulty: 5, confidence: 0.8 };
         this.realAI = new RealAIEngine(this.nodeRole);
         this._realAIReady = false;
     }
@@ -122,16 +122,17 @@ class MLIntegration extends GuardianAIML {
     }
 
     async optimizeMining(blockData, chainHistory) {
+        const baseDifficulty = blockData?.difficulty || this.difficultyModel.difficulty || 5;
         if (this._realAIReady && this.realAI?.miningOptimizer) {
-            const currentDifficulty = blockData?.difficulty || this.difficultyModel.difficulty || 2;
             const environment = {
                 blockTime: blockData?.timestamp || Date.now(),
                 chainLength: chainHistory?.length || 0,
                 pendingTxCount: blockData?.transactions?.length || 0
             };
-            const optimized = this.realAI.optimizeMining(currentDifficulty, environment);
+            const optimized = this.realAI.optimizeMining(baseDifficulty, environment);
+            const recDiff = optimized.recommendedDifficulty ?? optimized.difficulty ?? baseDifficulty;
             return {
-                difficulty: optimized.recommendedDifficulty ?? optimized.difficulty ?? currentDifficulty,
+                difficulty: Math.max(5, recDiff),
                 suggestedNonce: Math.floor(Math.random() * 1000000),
                 confidence: optimized.confidence ?? 0.9,
                 method: 'real-ai-mining-optimizer',
@@ -139,10 +140,7 @@ class MLIntegration extends GuardianAIML {
             };
         }
 
-        let difficulty = 2;
-        if (chainHistory && chainHistory.length > 10) {
-            difficulty = 3;
-        }
+        let difficulty = Math.max(5, baseDifficulty);
         return {
             difficulty,
             suggestedNonce: Math.floor(Math.random() * 1000000),
@@ -2279,11 +2277,11 @@ class EnhancedHybridBlockchainAI {
             const blockTransactions = [...this.pendingTransactions, rewardTx];
 
             const mlOptimization = await this.ml.optimizeMining(
-                { transactions: blockTransactions },
+                { transactions: blockTransactions, difficulty: this.difficulty },
                 this.chain
             );
 
-            const optimizedDifficulty = mlOptimization.difficulty || this.difficulty;
+            const optimizedDifficulty = Math.max(this.MIN_DIFFICULTY, mlOptimization.difficulty || this.difficulty);
 
             const block = {
                 index: nextBlockIndex,
