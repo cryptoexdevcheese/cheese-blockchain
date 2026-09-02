@@ -939,6 +939,26 @@ class EnhancedHybridBlockchainAI {
                 timestamp: 1700000000000,
                 data: { type: 'genesis_mint', recipient: 'liquidity_vault', currency: 'USDT' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-recovery-treasury-afx',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 914.0334011727649,
+                currency: 'AFX',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'AFX', label: 'Legacy AFX Holder Consolidation' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-recovery-treasury-cheesev2',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 10649,
+                currency: 'CHEESEV2',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'CHEESEV2', label: 'Legacy CheeseV2 Holder Consolidation' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
             }
         ];
     }
@@ -1922,8 +1942,8 @@ class EnhancedHybridBlockchainAI {
         const nchBalance = this.getBalance(address, 'NCH', null, true, extraData);
 
         // 2. Discover all currencies from transaction history
-        // Always include USDT, USDC, and WNCH by default as they are standard
-        const currencies = new Set(['USDT', 'USDC', 'WNCH']);
+        // Always include USDT, USDC, WNCH, AFX, and CHEESEV2 by default as standard ecosystem assets
+        const currencies = new Set(['USDT', 'USDC', 'WNCH', 'AFX', 'CHEESEV2']);
 
         // Scan chain for any tokens this address has interacted with
         const lowerAddr = address ? address.toLowerCase() : '';
