@@ -69,8 +69,15 @@ function firestoreCommit(writes) {
 }
 
 function sqliteQuery(query) {
-    const result = execSync(`sqlite3 "${DB_PATH}" "${query}"`, { maxBuffer: 50 * 1024 * 1024 });
-    return result.toString().trim();
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const result = execSync(`sqlite3 "${DB_PATH}" ".timeout 5000" "${query}"`, { maxBuffer: 50 * 1024 * 1024 });
+            return result.toString().trim();
+        } catch (e) {
+            if (attempt === 2) throw e;
+            execSync('sleep 0.5');
+        }
+    }
 }
 
 async function syncBlocksToFirestore() {
