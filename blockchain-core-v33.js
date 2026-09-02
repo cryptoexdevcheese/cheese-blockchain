@@ -943,31 +943,31 @@ class EnhancedHybridBlockchainAI {
             {
                 id: 'genesis-recovery-treasury-afx',
                 from: '0x0000000000000000000000000000000000000000',
-                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                to: '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D'.toLowerCase(),
                 amount: 914.0334011727649,
                 currency: 'AFX',
                 timestamp: 1700000000000,
-                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'AFX', label: 'Legacy AFX Holder Consolidation' },
+                data: { type: 'genesis_recovery', recipient: 'user_wallet', currency: 'AFX', label: 'Legacy AFX Holder Consolidation' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
             },
             {
                 id: 'genesis-recovery-treasury-cheesev2',
                 from: '0x0000000000000000000000000000000000000000',
-                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                to: '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D'.toLowerCase(),
                 amount: 10649,
                 currency: 'CHEESEV2',
                 timestamp: 1700000000000,
-                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'CHEESEV2', label: 'Legacy CheeseV2 Holder Consolidation' },
+                data: { type: 'genesis_recovery', recipient: 'user_wallet', currency: 'CHEESEV2', label: 'Legacy CheeseV2 Holder Consolidation' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
             },
             {
                 id: 'genesis-recovery-treasury-bsc-usdt',
                 from: '0x0000000000000000000000000000000000000000',
-                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                to: '0x7e73806ef3E8e11b9a226672Df5EC8E816EDA56D'.toLowerCase(),
                 amount: 70.697,
                 currency: 'BSC_USDT',
                 timestamp: 1700000000000,
-                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'BSC_USDT', label: 'Legacy BSC-USDT Holder Consolidation' },
+                data: { type: 'genesis_recovery', recipient: 'user_wallet', currency: 'BSC_USDT', label: 'Legacy BSC-USDT Holder Consolidation' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
             }
         ];
