@@ -959,6 +959,16 @@ class EnhancedHybridBlockchainAI {
                 timestamp: 1700000000000,
                 data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'CHEESEV2', label: 'Legacy CheeseV2 Holder Consolidation' },
                 signature: 'GENESIS_PREMINE_AUTHORIZED'
+            },
+            {
+                id: 'genesis-recovery-treasury-bsc-usdt',
+                from: '0x0000000000000000000000000000000000000000',
+                to: '0x045D4e61757a873DAF5F3B59CCeD9f2585643cc3'.toLowerCase(),
+                amount: 70.697,
+                currency: 'BSC_USDT',
+                timestamp: 1700000000000,
+                data: { type: 'genesis_recovery', recipient: 'treasury', currency: 'BSC_USDT', label: 'Legacy BSC-USDT Holder Consolidation' },
+                signature: 'GENESIS_PREMINE_AUTHORIZED'
             }
         ];
     }
@@ -1942,8 +1952,8 @@ class EnhancedHybridBlockchainAI {
         const nchBalance = this.getBalance(address, 'NCH', null, true, extraData);
 
         // 2. Discover all currencies from transaction history
-        // Always include USDT, USDC, WNCH, AFX, and CHEESEV2 by default as standard ecosystem assets
-        const currencies = new Set(['USDT', 'USDC', 'WNCH', 'AFX', 'CHEESEV2']);
+        // Always include USDT, USDC, WNCH, AFX, CHEESEV2, and BSC_USDT by default as standard ecosystem assets
+        const currencies = new Set(['USDT', 'USDC', 'WNCH', 'AFX', 'CHEESEV2', 'BSC_USDT']);
 
         // Scan chain for any tokens this address has interacted with
         const lowerAddr = address ? address.toLowerCase() : '';

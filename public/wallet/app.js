@@ -4229,7 +4229,8 @@ If you forgot your wallet password:
                     'DAI': 1.00,
                     'BUSD': 1.00,
                     'AFX': 1.00,
-                    'CheeseV2': 1.00
+                    'CheeseV2': 1.00,
+                    'BSC_USDT': 1.00
                 };
 
                 // Check if we have a fallback price for this token
