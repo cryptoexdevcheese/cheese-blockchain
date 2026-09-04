@@ -22,6 +22,8 @@ full_logs.txt
 
 # Database files
 *.db
+*.db.backup_*
+*.backup_*
 
 # ========== SENSITIVE FILES — NEVER COMMIT ==========
 

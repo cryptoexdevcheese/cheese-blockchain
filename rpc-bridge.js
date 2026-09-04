@@ -43,7 +43,13 @@ class RPCBridge {
                 case 'eth_getBalance':
                     const balanceData = await this.blockchain.getBalances(params[0]);
                     const balanceVal = balanceData.balance || 0;
-                    const balanceWei = BigInt(Math.floor(balanceVal * 1e18));
+                    let balanceWei = 0n;
+                    try {
+                        const cleanBalance = Number(balanceVal).toFixed(18);
+                        balanceWei = ethers.parseUnits(cleanBalance, 18);
+                    } catch (e) {
+                        balanceWei = BigInt(Math.floor(balanceVal * 1e18));
+                    }
                     result = '0x' + balanceWei.toString(16);
                     break;
                 case 'eth_getTransactionCount':
@@ -179,14 +185,20 @@ class RPCBridge {
                 balanceVal = portfolio[tokenSymbol] || 0;
             }
             
-            const decimals = (tokenSymbol === 'USDT' || tokenSymbol === 'USDC' || tokenSymbol === 'NCH') ? 6 : 18;
-            const amountWei = BigInt(Math.floor(balanceVal * Math.pow(10, decimals)));
+            const decimals = (tokenSymbol === 'USDT' || tokenSymbol === 'USDC') ? 6 : 18;
+            let amountWei = 0n;
+            try {
+                const cleanAmount = Number(balanceVal).toFixed(decimals);
+                amountWei = ethers.parseUnits(cleanAmount, decimals);
+            } catch (e) {
+                amountWei = BigInt(Math.floor(balanceVal * Math.pow(10, decimals)));
+            }
             return '0x' + amountWei.toString(16).padStart(64, '0');
         }
 
         // decimals()
         if (sighash === '0x313ce567') {
-            const decimals = (tokenSymbol === 'USDT' || tokenSymbol === 'USDC' || tokenSymbol === 'NCH') ? 6 : 18;
+            const decimals = (tokenSymbol === 'USDT' || tokenSymbol === 'USDC') ? 6 : 18;
             return '0x' + decimals.toString(16).padStart(64, '0');
         }
 

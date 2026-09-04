@@ -18,7 +18,7 @@ class HybridBlockchainAI {
     constructor() {
         this.chain = [this.createGenesisBlock()];
         this.pendingTransactions = [];
-        this.miningReward = 100;
+        this.miningReward = 50;
         this.difficulty = 2;
         this.aiAgents = [];
         this.aiConsensus = new AIConsensus();

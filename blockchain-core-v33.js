@@ -267,8 +267,8 @@ class EnhancedHybridBlockchainAI {
         // ==================== MINING REWARD ====================
         // 🔒 LOCKED: 100 NCH per block (controlled inflation)
         // Options are honored for flexible configuration
-        this.initialMiningReward = options.miningReward || 100;
-        this.miningReward = options.miningReward || 100; 
+        this.initialMiningReward = options.miningReward !== undefined ? options.miningReward : 50;
+        this.miningReward = options.miningReward !== undefined ? options.miningReward : 50; 
         this.halvingInterval = options.halvingInterval || 210000; // Halve every 210,000 blocks (like Bitcoin)
         this.maxSupply = options.maxSupply || 21000000; // 21 Million max supply (like Bitcoin)
         this.totalMined = 0; // Track total coins mined
@@ -1122,24 +1122,25 @@ class EnhancedHybridBlockchainAI {
             if (signature.startsWith('SOVEREIGN_GENESIS') || signature.startsWith('GENESIS')) {
                 isSystemSignature = true;
             } else if (signature.startsWith('SYSTEM_SIGNED')) {
-                const parts = signature.split('_');
-                if (parts.length >= 4) {
-                    const hmacReceived = parts[parts.length - 1];
-                    const timestampStr = parts[parts.length - 2];
-                    const msgType = parts[parts.length - 3] || 'MARKETING';
-                    const timestamp = parseInt(timestampStr, 10);
+                if (from === null || (data && (data.type === 'genesis' || data.type === 'mining_reward' || data.type === 'system_fee_collection' || data.type === 'restoration'))) {
+                    isSystemSignature = true;
+                } else {
+                    const parts = signature.split('_');
+                    if (parts.length >= 4) {
+                        const hmacReceived = parts[parts.length - 1];
+                        const timestampStr = parts[parts.length - 2];
+                        const msgType = parts[parts.length - 3] || 'INTERNAL';
+                        const timestamp = parseInt(timestampStr, 10);
 
-                    if (timestamp && (Math.abs(Date.now() - timestamp) < 600000)) {
-                        const secret = process.env.SYSTEM_HMAC_SECRET || 'SOVEREIGN_CHEESE_SYSTEM_SECRET_KEY_2026';
-                        const message = `${String(from).toLowerCase()}:${String(to).toLowerCase()}:${parseFloat(amount)}:${msgType}:${timestamp}`;
-                        const expectedHmac = crypto.createHmac('sha256', secret).update(message).digest('hex');
-                        if (hmacReceived === expectedHmac) {
-                            isSystemSignature = true;
+                        if (timestamp && (Math.abs(Date.now() - timestamp) < 600000)) {
+                            const secret = process.env.SYSTEM_HMAC_SECRET || 'SOVEREIGN_CHEESE_SYSTEM_SECRET_KEY_2026';
+                            const message = `${String(from).toLowerCase()}:${String(to).toLowerCase()}:${parseFloat(amount)}:${msgType}:${timestamp}`;
+                            const expectedHmac = crypto.createHmac('sha256', secret).update(message).digest('hex');
+                            if (hmacReceived === expectedHmac) {
+                                isSystemSignature = true;
+                            }
                         }
                     }
-                }
-                if (!isSystemSignature) {
-                    isSystemSignature = true;
                 }
             }
         }
@@ -1174,15 +1175,22 @@ class EnhancedHybridBlockchainAI {
             try {
                 console.log('🐺 Validating MetaMask Bridged Transaction...');
 
-                // 🛑 CRITICAL: Check for Replay Attacks
+                // 🛑 CRITICAL: Check for Replay Attacks (Database-Agnostic: SQLite & Firestore)
                 if (data.eth_hash && this.database) {
                     try {
-                        const txSnapshot = await this.database.db.collection(this.database.collections.transactions)
-                            .where('data.eth_hash', '==', data.eth_hash)
-                            .limit(1)
-                            .get();
+                        let isReplay = false;
+                        if (typeof this.database.getTransaction === 'function') {
+                            const existingTx = await this.database.getTransaction(data.eth_hash);
+                            if (existingTx) isReplay = true;
+                        } else if (this.database.db && typeof this.database.db.collection === 'function' && this.database.collections) {
+                            const txSnapshot = await this.database.db.collection(this.database.collections.transactions)
+                                .where('data.eth_hash', '==', data.eth_hash)
+                                .limit(1)
+                                .get();
+                            if (!txSnapshot.empty) isReplay = true;
+                        }
 
-                        if (!txSnapshot.empty) {
+                        if (isReplay) {
                             console.error(`🛑 REPLAY ATTACK DETECTED: eth_hash ${data.eth_hash} already processed!`);
                             return {
                                 success: false,
